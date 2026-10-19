@@ -112,6 +112,7 @@
     <div class="nav-tabs">
         <button class="tab-btn active" id="tabHomeBtn" onclick="switchTab('home')">🏠 الرئيسية</button>
         <button class="tab-btn" id="tabFormBtn" onclick="switchTab('form')">➕ إضافة منتج</button>
+        <button class="tab-btn" id="tabSlideshowBtn" onclick="switchTab('slideshow')">🎠 السلايد شو</button>
         <button class="tab-btn" id="tabListBtn" onclick="switchTab('list')">📦 المنتجات الظاهرة</button>
         <button class="tab-btn" id="tabHiddenBtn" onclick="switchTab('hidden')">🙈 المنتجات المخفية</button>
         <button class="tab-btn" id="tabCategoriesBtn" onclick="switchTab('categories')">📁 الأقسام</button>
@@ -127,6 +128,32 @@
             <h3 style="color: #38bdf8; font-size: 16px; margin-bottom: 8px;">حالة الاشتراك الشهري</h3>
             <p id="subscriptionInfoText" style="color: #cbd5e1; font-size: 14px; margin-bottom: 15px;">جاري جلب تاريخ انتهاء الاشتراك...</p>
             <a href="https://wa.me/9647803342472" target="_blank" class="btn-support" style="display: inline-block; background: #25d366; color: #fff; text-decoration: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; font-size: 13px;">💬 مراسلة الدعم</a>
+        </div>
+    </div>
+
+    <!-- تبويب التحكم بالسلايد شو (محدث للأقسام والرفع) -->
+    <div id="slideshowTab" class="hidden">
+        <div style="background: #0f172a; padding: 15px; border-radius: 10px; border: 1px solid #334155; margin-bottom: 20px;">
+            <label style="color: #38bdf8; font-size: 15px; margin-bottom: 12px; display: block;">🎠 إعدادات السلايد شو العلوي (الأقسام والبـنرات)</label>
+            <form onsubmit="handleSaveSlideshowSettings(event)">
+                <div class="form-group" style="display: flex; align-items: center; gap: 8px; background: #1e293b; padding: 10px; border-radius: 8px; border: 1px solid #334155; margin-bottom: 12px;">
+                    <input type="checkbox" id="hideSlideshowCheck" style="width: 18px; height: 18px; cursor: pointer;">
+                    <label for="hideSlideshowCheck" style="margin-bottom: 0; cursor: pointer; color: #fca5a5;">🙈 إخفاء السلايد شو بالكامل من الواجهة الرئيسية</label>
+                </div>
+
+                <div class="form-group">
+                    <label>⏱️ سرعة الحركة التلقائية (بالثواني):</label>
+                    <input type="number" id="slideshowSpeedInput" min="1" max="20" value="4" required>
+                </div>
+
+                <div class="form-group">
+                    <label>📁 أضف بانرات الأقسام للسلايد شو:</label>
+                    <div id="slideshowCategoriesListContainer" style="margin-bottom: 12px;"></div>
+                    <button type="button" onclick="addSlideshowCategoryRow()" class="btn-action" style="background: #0284c7; color: #fff; padding: 8px 12px; width: 100%;">➕ إضافة قسم للسلايد</button>
+                </div>
+
+                <button type="submit" id="saveSlideshowBtn" class="btn-submit" style="background:#0284c7; margin-top:5px;">💾 حفظ إعدادات السلايد شو</button>
+            </form>
         </div>
     </div>
 
@@ -215,7 +242,6 @@
 
     <!-- تبويب قائمة المنتجات الظاهرة -->
     <div id="listTab" class="hidden">
-        <!-- شريط التحكم بحالة إخفاء جميع المنتجات -->
         <div id="storeStatusBox" style="background: #0f172a; padding: 10px 12px; border-radius: 8px; border: 1px solid #334155; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;">
             <span id="storeStatusText" style="font-size: 13px; font-weight: bold; color: #4ade80;">👁️ المنتجات ظاهرة في المتجر</span>
             <button type="button" id="toggleStoreBtn" onclick="toggleStoreVisibility()" style="background: #ef4444; color: #fff; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: bold;">🙈 إخفاء جميع المنتجات</button>
@@ -274,7 +300,6 @@
                     </div>
                 </div>
 
-                <!-- إعدادات عدد مرات الاستخدام -->
                 <div class="form-group">
                     <label>عدد مرات الاستخدام *</label>
                     <select id="couponUsageLimitType" onchange="toggleUsageLimitField()" style="margin-bottom: 8px;">
@@ -286,7 +311,6 @@
                     </div>
                 </div>
 
-                <!-- إعدادات الحد المالي -->
                 <div class="form-group">
                     <label>الحد المالي لتفعيل الكود *</label>
                     <select id="couponMinAmountType" onchange="toggleMinAmountField()" style="margin-bottom: 8px;">
@@ -320,7 +344,7 @@
         </div>
     </div>
 
-    <!-- تبويب الطلبات (الجديد) -->
+    <!-- تبويب الطلبات -->
     <div id="ordersTab" class="hidden">
         <label style="color: #38bdf8; font-size: 15px; margin-bottom: 10px; display: block;">📋 تصفية الطلبات حسب المرحلة:</label>
         <div style="display: flex; gap: 6px; margin-bottom: 15px; flex-wrap: wrap;">
@@ -351,6 +375,7 @@
     var editingCategoryValue = ""; 
     var existingImages = ["", "", ""];
     var isStoreHidden = false;
+    var slideshowCategoryRows = [];
 
     window.onload = function() {
         checkSubscriptionStatus();
@@ -476,6 +501,7 @@
     function switchTab(tabName) {
         var homeTab = document.getElementById("homeTab");
         var formTab = document.getElementById("formTab");
+        var slideshowTab = document.getElementById("slideshowTab");
         var listTab = document.getElementById("listTab");
         var hiddenTab = document.getElementById("hiddenTab");
         var categoriesTab = document.getElementById("categoriesTab");
@@ -485,6 +511,7 @@
 
         var tabHomeBtn = document.getElementById("tabHomeBtn");
         var tabFormBtn = document.getElementById("tabFormBtn");
+        var tabSlideshowBtn = document.getElementById("tabSlideshowBtn");
         var tabListBtn = document.getElementById("tabListBtn");
         var tabHiddenBtn = document.getElementById("tabHiddenBtn");
         var tabCategoriesBtn = document.getElementById("tabCategoriesBtn");
@@ -494,6 +521,7 @@
 
         if (homeTab) homeTab.classList.add("hidden");
         if (formTab) formTab.classList.add("hidden");
+        if (slideshowTab) slideshowTab.classList.add("hidden");
         if (listTab) listTab.classList.add("hidden");
         if (hiddenTab) hiddenTab.classList.add("hidden");
         if (categoriesTab) categoriesTab.classList.add("hidden");
@@ -503,6 +531,7 @@
 
         if (tabHomeBtn) tabHomeBtn.classList.remove("active");
         if (tabFormBtn) tabFormBtn.classList.remove("active");
+        if (tabSlideshowBtn) tabSlideshowBtn.classList.remove("active");
         if (tabListBtn) tabListBtn.classList.remove("active");
         if (tabHiddenBtn) tabHiddenBtn.classList.remove("active");
         if (tabCategoriesBtn) tabCategoriesBtn.classList.remove("active");
@@ -518,6 +547,10 @@
             if (formTab) formTab.classList.remove("hidden");
             if (tabFormBtn) tabFormBtn.classList.add("active");
             loadCategoriesDropdown();
+        } else if (tabName === 'slideshow') {
+            if (slideshowTab) slideshowTab.classList.remove("hidden");
+            if (tabSlideshowBtn) tabSlideshowBtn.classList.add("active");
+            loadSlideshowAdminData();
         } else if (tabName === 'list') {
             if (listTab) listTab.classList.remove("hidden");
             if (tabListBtn) tabListBtn.classList.add("active");
@@ -549,6 +582,120 @@
             if (ordersTab) ordersTab.classList.remove("hidden");
             if (tabOrdersBtn) tabOrdersBtn.classList.add("active");
             loadOrdersList();
+        }
+    }
+
+    async function loadSlideshowAdminData() {
+        await loadCategoriesDropdown();
+        try {
+            var res = await fetch(SHEET_API_URL + "?action=getSettings");
+            var settings = await res.json();
+            if (settings) {
+                document.getElementById("hideSlideshowCheck").checked = !!settings.hideSlideshow;
+                document.getElementById("slideshowSpeedInput").value = settings.slideshowSpeed || 4;
+                slideshowCategoryRows = Array.isArray(settings.slideshowCategories) ? settings.slideshowCategories : [];
+            }
+        } catch(e) {
+            slideshowCategoryRows = [];
+        }
+        renderSlideshowCategoriesRows();
+    }
+
+    function addSlideshowCategoryRow(category = "", image = "") {
+        slideshowCategoryRows.push({ category: category, image: image });
+        renderSlideshowCategoriesRows();
+    }
+
+    function removeSlideshowCategoryRow(index) {
+        slideshowCategoryRows.splice(index, 1);
+        renderSlideshowCategoriesRows();
+    }
+
+    function renderSlideshowCategoriesRows() {
+        var container = document.getElementById("slideshowCategoriesListContainer");
+        if (!container) return;
+
+        if (slideshowCategoryRows.length === 0) {
+            container.innerHTML = '<p style="color:#94a3b8; font-size:12px; text-align:center; padding:10px;">لا توجد بانرات أقسام مضافة للسلايد شو حالياً</p>';
+            return;
+        }
+
+        var html = "";
+        slideshowCategoryRows.forEach((row, idx) => {
+            var catOptions = '<option value="">اختر القسم...</option>';
+            allCategories.forEach(cat => {
+                var selected = (row.category === cat) ? 'selected' : '';
+                catOptions += `<option value="${cat}" ${selected}>${cat}</option>`;
+            });
+
+            var imgPreviewStyle = row.image ? `display:block; max-height:80px; margin-top:6px; border-radius:6px; margin-left:auto; margin-right:auto;` : `display:none; max-height:80px; margin-top:6px; border-radius:6px; margin-left:auto; margin-right:auto;`;
+
+            html += `
+                <div style="background:#0f172a; border:1px solid #334155; padding:10px; border-radius:8px; margin-bottom:10px;">
+                    <div class="form-group" style="margin-bottom:8px;">
+                        <label style="font-size:11px;">القسم المستهدف:</label>
+                        <select onchange="slideshowCategoryRows[${idx}].category = this.value" style="padding:10px;">
+                            ${catOptions}
+                        </select>
+                    </div>
+                    <div class="upload-box" style="margin-bottom:8px;">
+                        <span style="font-size:11px; color:#cbd5e1;">صورة البانر المخصصة:</span><br>
+                        <label for="slideImg_${idx}" class="upload-btn" style="padding:4px 8px; font-size:11px;">📁 اختيار صورة</label>
+                        <input type="file" id="slideImg_${idx}" accept="image/*" onchange="handleSlideImgUpload(this, ${idx})">
+                        <img id="slidePrev_${idx}" class="preview-img" src="${row.image || ''}" style="${imgPreviewStyle}">
+                    </div>
+                    <button type="button" class="btn-action btn-delete" onclick="removeSlideshowCategoryRow(${idx})" style="width:100%;">🗑️ حذف هذا البانر</button>
+                </div>
+            `;
+        });
+        container.innerHTML = html;
+    }
+
+    async function handleSlideImgUpload(input, index) {
+        var file = input.files[0];
+        if (file) {
+            var compressed = await compressAndConvertToBase64(file);
+            slideshowCategoryRows[index].image = "data:image/jpeg;base64," + compressed.base64;
+            var prevImg = document.getElementById(`slidePrev_${index}`);
+            if (prevImg) {
+                prevImg.src = slideshowCategoryRows[index].image;
+                prevImg.style.display = "block";
+            }
+        }
+    }
+
+    async function handleSaveSlideshowSettings(event) {
+        event.preventDefault();
+        var statusMsg = document.getElementById('productStatus');
+        statusMsg.className = "status-msg status-loading";
+        statusMsg.style.display = "block";
+        statusMsg.innerText = "جارِ حفظ إعدادات السلايد شو...";
+
+        var hideSlideshow = document.getElementById("hideSlideshowCheck").checked;
+        var speed = document.getElementById("slideshowSpeedInput").value;
+
+        try {
+            var res = await fetch(SHEET_API_URL, {
+                method: "POST",
+                body: JSON.stringify({
+                    action: "saveSlideshowSettings",
+                    hideSlideshow: hideSlideshow,
+                    slideshowSpeed: speed,
+                    slideshowCategories: slideshowCategoryRows
+                })
+            });
+            var data = await res.json();
+            if (data.status === "success") {
+                statusMsg.className = "status-msg status-success";
+                statusMsg.innerText = "✅ تم حفظ إعدادات السلايد شو بنجاح";
+                setTimeout(() => statusMsg.style.display = "none", 3000);
+            } else {
+                throw new Error(data.message || "فشل الحفظ");
+            }
+        } catch(err) {
+            statusMsg.className = "status-msg status-error";
+            statusMsg.innerText = "❌ تعذر الحفظ: " + err.message;
+            setTimeout(() => statusMsg.style.display = "none", 3000);
         }
     }
 
@@ -597,7 +744,7 @@
 
         var html = "";
         filtered.forEach(function(o) {
-            var statusColor = "#f59e0b"; // انتظار
+            var statusColor = "#f59e0b";
             if (o.status === "تم التجهيز") statusColor = "#38bdf8";
             if (o.status === "تم التسليم") statusColor = "#22c55e";
 
@@ -749,8 +896,8 @@
         if (cachedCat) {
             try {
                 allCategories = JSON.parse(cachedCat);
-                renderCategoryOptions(select, allCategories);
-                if (editingProductId && editingCategoryValue) {
+                if (select) renderCategoryOptions(select, allCategories);
+                if (editingProductId && editingCategoryValue && select) {
                     select.value = editingCategoryValue;
                 }
             } catch(e) {}
@@ -766,12 +913,9 @@
             if (Array.isArray(data)) {
                 allCategories = data;
                 localStorage.setItem("cached_categories", JSON.stringify(allCategories));
-                renderCategoryOptions(select, allCategories);
-                if (editingProductId && editingCategoryValue) {
+                if (select) renderCategoryOptions(select, allCategories);
+                if (editingProductId && editingCategoryValue && select) {
                     select.value = editingCategoryValue;
-                } else {
-                    var currentVal = select.value;
-                    select.value = currentVal;
                 }
             }
         } catch(err) {}
