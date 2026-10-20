@@ -111,6 +111,7 @@
     <!-- الشريط العلوي للتنقل -->
     <div class="nav-tabs">
         <button class="tab-btn active" id="tabHomeBtn" onclick="switchTab('home')">🏠 الرئيسية</button>
+        <button class="tab-btn" id="tabStoreSettingsBtn" onclick="switchTab('storeSettings')">🏪 الهوية والبانر</button>
         <button class="tab-btn" id="tabFormBtn" onclick="switchTab('form')">➕ إضافة منتج</button>
         <button class="tab-btn" id="tabSlideshowBtn" onclick="switchTab('slideshow')">🎠 السلايد شو</button>
         <button class="tab-btn" id="tabListBtn" onclick="switchTab('list')">📦 المنتجات الظاهرة</button>
@@ -128,6 +129,65 @@
             <h3 style="color: #38bdf8; font-size: 16px; margin-bottom: 8px;">حالة الاشتراك الشهري</h3>
             <p id="subscriptionInfoText" style="color: #cbd5e1; font-size: 14px; margin-bottom: 15px;">جاري جلب تاريخ انتهاء الاشتراك...</p>
             <a href="https://wa.me/9647803342472" target="_blank" class="btn-support" style="display: inline-block; background: #25d366; color: #fff; text-decoration: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; font-size: 13px;">💬 مراسلة الدعم</a>
+        </div>
+    </div>
+
+    <!-- تبويب هوية المتجر والبانر الترويجي -->
+    <div id="storeSettingsTab" class="hidden">
+        <div style="background: #0f172a; padding: 15px; border-radius: 10px; border: 1px solid #334155; margin-bottom: 20px;">
+            <label style="color: #38bdf8; font-size: 15px; margin-bottom: 12px; display: block;">🏪 تخصيص هويّة المتجر (لوغو أو عنوان/وصف)</label>
+            <form onsubmit="handleSaveStoreIdentity(event)">
+                <div class="form-group">
+                    <label>اختر طريقة عرض رأس المتجر:</label>
+                    <select id="headerModeSelect" onchange="toggleHeaderModeFields()" style="margin-bottom: 10px;">
+                        <option value="text">العنوان والوصف (كتابة)</option>
+                        <option value="logo">صورة لوغو (شعار)</option>
+                    </select>
+                </div>
+
+                <div id="headerTextFieldsBox">
+                    <div class="form-group">
+                        <label>عنوان المتجر:</label>
+                        <input type="text" id="storeTitleInput" placeholder="متجر كوزمتك">
+                    </div>
+                    <div class="form-group">
+                        <label>وصف المتجر:</label>
+                        <input type="text" id="storeSubtitleInput" placeholder="أفضل المنتجات الأصلية والعالمية">
+                    </div>
+                </div>
+
+                <div id="headerLogoBox" class="hidden">
+                    <div class="upload-box">
+                        <span style="font-size:12px; color:#cbd5e1;">صورة اللوغو (الشعار):</span><br>
+                        <label for="storeLogoFile" class="upload-btn">📁 اختيار صورة اللوغو</label>
+                        <input type="file" id="storeLogoFile" accept="image/*" onchange="previewLogoFile(this)">
+                        <img id="storeLogoPrev" class="preview-img">
+                        <br>
+                        <button type="button" id="removeLogoBtn" class="btn-remove-img" onclick="removeStoreLogo()">🗑️ حذف اللوغو</button>
+                    </div>
+                </div>
+
+                <hr style="border: 0; border-top: 1px solid #334155; margin: 20px 0;">
+
+                <label style="color: #38bdf8; font-size: 15px; margin-bottom: 12px; display: block;">🎯 البانر الترويجي (Promotional Banner)</label>
+                <div class="upload-box">
+                    <span style="font-size:12px; color:#cbd5e1;">صورة البانر الترويجي:</span><br>
+                    <label for="promoBannerFile" class="upload-btn">📁 اختيار صورة البانر</label>
+                    <input type="file" id="promoBannerFile" accept="image/*" onchange="previewPromoBanner(this)">
+                    <img id="promoBannerPrev" class="preview-img">
+                    <br>
+                    <button type="button" id="removePromoBtn" class="btn-remove-img" onclick="removePromoBanner()">🗑️ حذف البانر</button>
+                </div>
+
+                <div class="form-group">
+                    <label>📁 القسم المستهدف عند النقر على البانر:</label>
+                    <select id="promoBannerCategorySelect">
+                        <option value="">-- بدون توجيه (عرض فقط) --</option>
+                    </select>
+                </div>
+
+                <button type="submit" id="saveStoreIdentityBtn" class="btn-submit" style="background:#0284c7; margin-top:10px;">💾 حفظ إعدادات الهوية والبانر</button>
+            </form>
         </div>
     </div>
 
@@ -376,6 +436,7 @@
     var existingImages = ["", "", ""];
     var isStoreHidden = false;
     var slideshowCategoryRows = [];
+    var currentStoreIdentity = { mode: "text", title: "متجر كوزمتك", subtitle: "أفضل المنتجات الأصلية والعالمية", logoUrl: "", promoBannerUrl: "", promoBannerCategory: "" };
 
     window.onload = function() {
         checkSubscriptionStatus();
@@ -462,7 +523,7 @@
     async function loadSubscriptionDetails() {
         var infoText = document.getElementById("subscriptionInfoText");
         if (!infoText) return;
-        infoText.innerText = "يرجى الانتظار جار التحقق من صلاحية حسابك ...";
+        infoText.innerText = "يرجى الانتظار جار جلب تاريخ انتهاء الاشتراك ...";
         try {
             var res = await fetch(SHEET_API_URL + "?action=checkSubscription");
             var data = await res.json();
@@ -500,6 +561,7 @@
 
     function switchTab(tabName) {
         var homeTab = document.getElementById("homeTab");
+        var storeSettingsTab = document.getElementById("storeSettingsTab");
         var formTab = document.getElementById("formTab");
         var slideshowTab = document.getElementById("slideshowTab");
         var listTab = document.getElementById("listTab");
@@ -510,6 +572,7 @@
         var ordersTab = document.getElementById("ordersTab");
 
         var tabHomeBtn = document.getElementById("tabHomeBtn");
+        var tabStoreSettingsBtn = document.getElementById("tabStoreSettingsBtn");
         var tabFormBtn = document.getElementById("tabFormBtn");
         var tabSlideshowBtn = document.getElementById("tabSlideshowBtn");
         var tabListBtn = document.getElementById("tabListBtn");
@@ -520,6 +583,7 @@
         var tabOrdersBtn = document.getElementById("tabOrdersBtn");
 
         if (homeTab) homeTab.classList.add("hidden");
+        if (storeSettingsTab) storeSettingsTab.classList.add("hidden");
         if (formTab) formTab.classList.add("hidden");
         if (slideshowTab) slideshowTab.classList.add("hidden");
         if (listTab) listTab.classList.add("hidden");
@@ -530,6 +594,7 @@
         if (ordersTab) ordersTab.classList.add("hidden");
 
         if (tabHomeBtn) tabHomeBtn.classList.remove("active");
+        if (tabStoreSettingsBtn) tabStoreSettingsBtn.classList.remove("active");
         if (tabFormBtn) tabFormBtn.classList.remove("active");
         if (tabSlideshowBtn) tabSlideshowBtn.classList.remove("active");
         if (tabListBtn) tabListBtn.classList.remove("active");
@@ -543,6 +608,10 @@
             if (homeTab) homeTab.classList.remove("hidden");
             if (tabHomeBtn) tabHomeBtn.classList.add("active");
             loadSubscriptionDetails();
+        } else if (tabName === 'storeSettings') {
+            if (storeSettingsTab) storeSettingsTab.classList.remove("hidden");
+            if (tabStoreSettingsBtn) tabStoreSettingsBtn.classList.add("active");
+            loadStoreIdentityData();
         } else if (tabName === 'form') {
             if (formTab) formTab.classList.remove("hidden");
             if (tabFormBtn) tabFormBtn.classList.add("active");
@@ -582,6 +651,163 @@
             if (ordersTab) ordersTab.classList.remove("hidden");
             if (tabOrdersBtn) tabOrdersBtn.classList.add("active");
             loadOrdersList();
+        }
+    }
+
+    function toggleHeaderModeFields() {
+        var mode = document.getElementById("headerModeSelect").value;
+        var textFieldsBox = document.getElementById("headerTextFieldsBox");
+        var logoBox = document.getElementById("headerLogoBox");
+        if (mode === "logo") {
+            textFieldsBox.classList.add("hidden");
+            logoBox.classList.remove("hidden");
+        } else {
+            textFieldsBox.classList.remove("hidden");
+            logoBox.classList.add("hidden");
+        }
+    }
+
+    async function loadPromoBannerCategoryOptions(selectedCat = "") {
+        var select = document.getElementById("promoBannerCategorySelect");
+        if (!select) return;
+
+        if (allCategories.length === 0) {
+            try {
+                var res = await fetch(SHEET_API_URL + "?action=getCategories");
+                var data = await res.json();
+                if (Array.isArray(data)) {
+                    allCategories = data;
+                }
+            } catch(e) {}
+        }
+
+        var html = '<option value="">-- بدون توجيه (عرض فقط) --</option>';
+        allCategories.forEach(function(cat) {
+            var sel = (cat === selectedCat) ? 'selected' : '';
+            html += `<option value="${cat}" ${sel}>${cat}</option>`;
+        });
+        select.innerHTML = html;
+    }
+
+    async function loadStoreIdentityData() {
+        try {
+            var res = await fetch(SHEET_API_URL + "?action=getSettings");
+            var data = await res.json();
+            if (data) {
+                currentStoreIdentity.mode = data.headerMode || "text";
+                currentStoreIdentity.title = data.storeTitle || "متجر كوزمتك";
+                currentStoreIdentity.subtitle = data.storeSubtitle || "أفضل المنتجات الأصلية والعالمية";
+                currentStoreIdentity.logoUrl = data.storeLogo || "";
+                currentStoreIdentity.promoBannerUrl = data.promoBanner || "";
+                currentStoreIdentity.promoBannerCategory = data.promoBannerCategory || "";
+
+                document.getElementById("headerModeSelect").value = currentStoreIdentity.mode;
+                document.getElementById("storeTitleInput").value = currentStoreIdentity.title;
+                document.getElementById("storeSubtitleInput").value = currentStoreIdentity.subtitle;
+
+                toggleHeaderModeFields();
+                loadPromoBannerCategoryOptions(currentStoreIdentity.promoBannerCategory);
+
+                if (currentStoreIdentity.logoUrl) {
+                    var prev = document.getElementById("storeLogoPrev");
+                    prev.src = currentStoreIdentity.logoUrl;
+                    prev.style.display = "block";
+                    document.getElementById("removeLogoBtn").style.display = "inline-block";
+                } else {
+                    document.getElementById("storeLogoPrev").style.display = "none";
+                    document.getElementById("removeLogoBtn").style.display = "none";
+                }
+
+                if (currentStoreIdentity.promoBannerUrl) {
+                    var prevP = document.getElementById("promoBannerPrev");
+                    prevP.src = currentStoreIdentity.promoBannerUrl;
+                    prevP.style.display = "block";
+                    document.getElementById("removePromoBtn").style.display = "inline-block";
+                } else {
+                    document.getElementById("promoBannerPrev").style.display = "none";
+                    document.getElementById("removePromoBtn").style.display = "none";
+                }
+            }
+        } catch(e) {}
+    }
+
+    async function previewLogoFile(input) {
+        var file = input.files[0];
+        if (file) {
+            var compressed = await compressAndConvertToBase64(file);
+            currentStoreIdentity.logoUrl = "data:image/jpeg;base64," + compressed.base64;
+            var prev = document.getElementById("storeLogoPrev");
+            prev.src = currentStoreIdentity.logoUrl;
+            prev.style.display = "block";
+            document.getElementById("removeLogoBtn").style.display = "inline-block";
+        }
+    }
+
+    function removeStoreLogo() {
+        if (!confirm("هل أنت متأكد من حذف اللوغو؟")) return;
+        currentStoreIdentity.logoUrl = "";
+        document.getElementById("storeLogoFile").value = "";
+        document.getElementById("storeLogoPrev").style.display = "none";
+        document.getElementById("removeLogoBtn").style.display = "none";
+    }
+
+    async function previewPromoBanner(input) {
+        var file = input.files[0];
+        if (file) {
+            var compressed = await compressAndConvertToBase64(file);
+            currentStoreIdentity.promoBannerUrl = "data:image/jpeg;base64," + compressed.base64;
+            var prev = document.getElementById("promoBannerPrev");
+            prev.src = currentStoreIdentity.promoBannerUrl;
+            prev.style.display = "block";
+            document.getElementById("removePromoBtn").style.display = "inline-block";
+        }
+    }
+
+    function removePromoBanner() {
+        if (!confirm("هل أنت متأكد من حذف البانر الترويجي؟")) return;
+        currentStoreIdentity.promoBannerUrl = "";
+        document.getElementById("promoBannerFile").value = "";
+        document.getElementById("promoBannerPrev").style.display = "none";
+        document.getElementById("removePromoBtn").style.display = "none";
+    }
+
+    async function handleSaveStoreIdentity(event) {
+        event.preventDefault();
+        var statusMsg = document.getElementById('productStatus');
+        statusMsg.className = "status-msg status-loading";
+        statusMsg.style.display = "block";
+        statusMsg.innerText = "جارِ حفظ إعدادات الهوية والبانر...";
+
+        var mode = document.getElementById("headerModeSelect").value;
+        var title = document.getElementById("storeTitleInput").value.trim();
+        var subtitle = document.getElementById("storeSubtitleInput").value.trim();
+        var promoCategory = document.getElementById("promoBannerCategorySelect").value;
+
+        try {
+            var res = await fetch(SHEET_API_URL, {
+                method: "POST",
+                body: JSON.stringify({
+                    action: "saveStoreIdentity",
+                    headerMode: mode,
+                    storeTitle: title,
+                    storeSubtitle: subtitle,
+                    storeLogo: currentStoreIdentity.logoUrl,
+                    promoBanner: currentStoreIdentity.promoBannerUrl,
+                    promoBannerCategory: promoCategory
+                })
+            });
+            var data = await res.json();
+            if (data.status === "success") {
+                statusMsg.className = "status-msg status-success";
+                statusMsg.innerText = "✅ تم حفظ إعدادات الهوية والبانر بنجاح";
+                setTimeout(() => statusMsg.style.display = "none", 3000);
+            } else {
+                throw new Error(data.message || "فشل الحفظ");
+            }
+        } catch(err) {
+            statusMsg.className = "status-msg status-error";
+            statusMsg.innerText = "❌ تعذر الحفظ: " + err.message;
+            setTimeout(() => statusMsg.style.display = "none", 3000);
         }
     }
 
