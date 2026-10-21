@@ -523,7 +523,7 @@
     async function loadSubscriptionDetails() {
         var infoText = document.getElementById("subscriptionInfoText");
         if (!infoText) return;
-        infoText.innerText = "يرجى الانتظار جار جلب تاريخ انتهاء الاشتراك ...";
+        infoText.innerText = "يرجى الانتظار جار التحقق من صلاحية حسابك";
         try {
             var res = await fetch(SHEET_API_URL + "?action=checkSubscription");
             var data = await res.json();
