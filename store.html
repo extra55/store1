@@ -57,8 +57,8 @@
             font-weight: 500;
         }
         .header-logo {
-            max-height: 45px;
-            max-width: 160px;
+            max-height: 65px;
+            max-width: 220px;
             object-fit: contain;
             display: block;
         }
@@ -158,7 +158,7 @@
             box-shadow: 0 4px 10px rgba(15, 23, 42, 0.2);
         }
 
-        /* تنسيقات شريط الماركات العالمية (أكبر وأوضح مع مؤشر ضغط تفاعلي) */
+        /* تنسيقات شريط الماركات العالمية */
         .brands-showcase-bar {
             display: flex;
             gap: 12px;
@@ -205,6 +205,11 @@
             border: 1px solid #e2e8f0;
             background: #ffffff;
         }
+        @media (min-width: 768px) {
+            .promo-banner-wrapper {
+                height: 338px;
+            }
+        }
         .promo-banner-wrapper img {
             width: 100%;
             height: 100%;
@@ -223,6 +228,11 @@
             box-shadow: 0 4px 15px rgba(0,0,0,0.06);
             border: 1px solid #e2e8f0;
             background: #ffffff;
+        }
+        @media (min-width: 768px) {
+            .slideshow-wrapper {
+                height: 480px;
+            }
         }
         .slideshow-container {
             display: flex;
@@ -253,36 +263,6 @@
             width: 100%;
             height: 100%;
             object-fit: cover;
-        }
-        .slide-info-overlay {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            padding: 16px;
-            background: linear-gradient(to top, rgba(15,23,42,0.9), transparent);
-            color: #fff;
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-end;
-        }
-        .slide-title {
-            font-size: 16px;
-            font-weight: 800;
-            color: #fff;
-            margin-bottom: 2px;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
-        }
-        .slide-btn {
-            background: #0284c7;
-            color: #fff;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 8px;
-            font-size: 12px;
-            font-weight: bold;
-            cursor: pointer;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
         }
 
         .slideshow-nav {
@@ -341,7 +321,7 @@
 
         @media (min-width: 768px) {
             .products-grid-view {
-                grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+                grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
                 gap: 16px;
             }
         }
@@ -378,6 +358,11 @@
             margin-bottom: 8px; 
             position: relative;
             border: 1px solid #f1f5f9;
+        }
+        @media (min-width: 768px) {
+            .img-box {
+                height: 160px;
+            }
         }
         .img-box img { 
             width: 100%; 
@@ -527,7 +512,7 @@
             display: flex; 
             align-items: center; 
             justify-content: center; 
-            z-index: 10; 
+            z-index: 1001; 
             user-select: none; 
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
@@ -562,13 +547,19 @@
         .detail-desc-box h3 { color: #0f172a; font-size: 14px; margin-bottom: 6px; font-weight: 700; }
         .detail-desc-box p { white-space: pre-line; color: #64748b; }
 
+        /* تثبيت رأس الصفحات وأزرار الرجوع بشكل دائم في الأعلى (Sticky) */
         .cart-header { 
+            position: sticky;
+            top: 0;
+            background: #ffffff;
+            z-index: 1000;
+            margin: -12px -12px 16px -12px;
+            padding: 12px 16px;
             display: flex; 
             justify-content: space-between; 
             align-items: center; 
-            margin-bottom: 16px; 
             border-bottom: 1px solid #e2e8f0; 
-            padding-bottom: 12px; 
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
         }
         .cart-header h2 { font-size: 18px; font-weight: 800; color: #0f172a; }
         .btn-back { 
@@ -677,7 +668,6 @@
     
     <div style="position: sticky; top: 0; background: #f8fafc; z-index: 1000; padding-top: 2px; margin: -12px -12px 10px -12px; padding-left: 12px; padding-right: 12px;">
         <div class="header">
-            <!-- تم مسح العنوان والوصف وجعل الحاوية فارغة تماماً ليتم ملؤها من لوحة التحكم -->
             <div id="storeHeaderIdentityContainer" style="flex: 1; min-width: 0; margin-left: 12px;"></div>
             <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
                 <button onclick="toggleSearchBox()" style="background: #ffffff; color: #0f172a; border: 1px solid #cbd5e1; width: 38px; height: 38px; border-radius: 10px; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 6px rgba(0,0,0,0.05); transition: all 0.2s;" title="بحث">🔍</button>
@@ -831,100 +821,56 @@
         }
     }
 
-    // جلب الإعدادات فوراً عند بداية التشغيل لضمان عرض اللوجو والبانر بدون تأخير
-    function loadInitialSettingsFast() {
-        fetch(SHEET_API_URL + "?action=getSettings")
-            .then(res => res.json())
-            .then(data => {
-                if (data) {
-                    globalStoreSettings.headerMode = data.headerMode || "text";
-                    globalStoreSettings.storeTitle = data.storeTitle || "";
-                    globalStoreSettings.storeSubtitle = data.storeSubtitle || "";
-                    globalStoreSettings.storeLogo = data.storeLogo || "";
-                    globalStoreSettings.promoBanner = data.promoBanner || "";
-                    globalStoreSettings.promoBannerCategory = data.promoBannerCategory || "";
-
-                    slideshowSettings.hideSlideshow = !!data.hideSlideshow;
-                    slideshowSettings.speedSeconds = Number(data.slideshowSpeed) || 4;
-                    slideshowSettings.categories = Array.isArray(data.slideshowCategories) ? data.slideshowCategories : [];
-                    
-                    renderStoreIdentity();
-                    renderProducts(); 
-                }
-            })
-            .catch(err => console.log(err));
-    }
-    loadInitialSettingsFast();
-
-    function fetchProductsFromSheet() {
+    // جلب الإعدادات والمنتجات والأقسام معاً دفعة واحدة (Promise.all) لضمان ظهور كافة عناصر الصفحة الرئيسية في نفس الوقت بدون تأخير
+    async function initStoreData() {
         var container = document.getElementById('productsGrid');
-        container.innerHTML = '<p style="text-align:center; padding:30px; color:#64748b;">جارٍ تحميل المنتجات...</p>';
+        container.innerHTML = '<p style="text-align:center; padding:30px; color:#64748b;">جارٍ تحميل المتجر...</p>';
 
-        fetch(SHEET_API_URL)
-            .then(function(response) { return response.json(); })
-            .then(function(data) {
-                products = data;
-                
-                fetch(SHEET_API_URL + "?action=getCategories")
-                    .then(function(res) { return res.json(); })
-                    .then(function(catData) {
-                        var backendCategories = Array.isArray(catData) ? catData : [];
-                        var catList = ["الرئيسية", "المنتجات المميزة"];
-                        for (var i = 0; i < backendCategories.length; i++) {
-                            if (backendCategories[i] && catList.indexOf(backendCategories[i]) === -1) {
-                                catList.push(backendCategories[i]);
-                            }
-                        }
-                        for (var j = 0; j < products.length; j++) {
-                            if (products[j].category && catList.indexOf(products[j].category) === -1) {
-                                catList.push(products[j].category);
-                            }
-                        }
-                        categories = catList;
-                        renderCategories();
-                        renderProducts();
-                        fetchSettingsData();
-                    })
-                    .catch(function() {
-                        var catMap = { "الرئيسية": true, "المنتجات المميزة": true };
-                        for (var i = 0; i < products.length; i++) {
-                            if (products[i].category) {
-                                catMap[products[i].category] = true;
-                            }
-                        }
-                        categories = Object.keys(catMap);
-                        renderCategories();
-                        renderProducts();
-                        fetchSettingsData();
-                    });
-            })
-            .catch(function(error) {
-                container.innerHTML = '<p style="text-align:center; color:#ef4444; padding:20px;">تعذر تحميل المنتجات، تأكد من اتصال الإنترنت.</p>';
-            });
-    }
+        try {
+            var [settingsRes, productsRes, catRes] = await Promise.all([
+                fetch(SHEET_API_URL + "?action=getSettings").then(r => r.json()).catch(() => null),
+                fetch(SHEET_API_URL).then(r => r.json()).catch(() => []),
+                fetch(SHEET_API_URL + "?action=getCategories").then(r => r.json()).catch(() => [])
+            ]);
 
-    function fetchSettingsData() {
-        fetch(SHEET_API_URL + "?action=getSettings")
-            .then(res => res.json())
-            .then(data => {
-                if (data) {
-                    globalStoreSettings.headerMode = data.headerMode || "text";
-                    globalStoreSettings.storeTitle = data.storeTitle || "";
-                    globalStoreSettings.storeSubtitle = data.storeSubtitle || "";
-                    globalStoreSettings.storeLogo = data.storeLogo || "";
-                    globalStoreSettings.promoBanner = data.promoBanner || "";
-                    globalStoreSettings.promoBannerCategory = data.promoBannerCategory || "";
+            if (settingsRes) {
+                globalStoreSettings.headerMode = settingsRes.headerMode || "text";
+                globalStoreSettings.storeTitle = settingsRes.storeTitle || "";
+                globalStoreSettings.storeSubtitle = settingsRes.storeSubtitle || "";
+                globalStoreSettings.storeLogo = settingsRes.storeLogo || "";
+                globalStoreSettings.promoBanner = settingsRes.promoBanner || "";
+                globalStoreSettings.promoBannerCategory = settingsRes.promoBannerCategory || "";
 
-                    slideshowSettings.hideSlideshow = !!data.hideSlideshow;
-                    slideshowSettings.speedSeconds = Number(data.slideshowSpeed) || 4;
-                    slideshowSettings.categories = Array.isArray(data.slideshowCategories) ? data.slideshowCategories : [];
-                    
-                    renderStoreIdentity();
-                    renderPromoBanner();
-                    initSlideshow();
+                slideshowSettings.hideSlideshow = !!settingsRes.hideSlideshow;
+                slideshowSettings.speedSeconds = Number(settingsRes.slideshowSpeed) || 4;
+                slideshowSettings.categories = Array.isArray(settingsRes.slideshowCategories) ? settingsRes.slideshowCategories : [];
+            }
+
+            products = Array.isArray(productsRes) ? productsRes : [];
+
+            var backendCategories = Array.isArray(catRes) ? catRes : [];
+            var catList = ["الرئيسية", "المنتجات المميزة"];
+            for (var i = 0; i < backendCategories.length; i++) {
+                if (backendCategories[i] && catList.indexOf(backendCategories[i]) === -1) {
+                    catList.push(backendCategories[i]);
                 }
-            })
-            .catch(err => console.log(err));
+            }
+            for (var j = 0; j < products.length; j++) {
+                if (products[j].category && catList.indexOf(products[j].category) === -1) {
+                    catList.push(products[j].category);
+                }
+            }
+            categories = catList;
+
+            // عرض وتوليد كافة عناصر الواجهة في نفس اللحظة
+            renderStoreIdentity();
+            renderCategories();
+            initSlideshow();
+            renderProducts();
+
+        } catch (error) {
+            container.innerHTML = '<p style="text-align:center; color:#ef4444; padding:20px;">تعذر تحميل المتجر، تأكد من اتصال الإنترنت.</p>';
+        }
     }
 
     function renderStoreIdentity() {
@@ -939,10 +885,6 @@
                 <p>${globalStoreSettings.storeSubtitle || ""}</p>
             `;
         }
-    }
-
-    function renderPromoBanner() {
-        // تم نقل دالة عرض البانر لتتم برمجتها لتظهر حصرياً تحت شريط أبرز الماركات في الصفحة الرئيسية
     }
 
     function initSlideshow() {
@@ -974,12 +916,6 @@
             html += `
                 <div class="slide-item" onclick="selectCategory('${item.category}')">
                     <div class="slide-img-box">${imgTag}</div>
-                    <div class="slide-info-overlay">
-                        <div>
-                            <div class="slide-title">📁  ${item.category}</div>
-                        </div>
-                        <button class="slide-btn">تسوق الآن 🛍️</button>
-                    </div>
                 </div>
             `;
             dotsHtml += `<div class="dot ${idx === 0 ? 'active' : ''}" onclick="goToSlide(${idx})"></div>`;
@@ -1155,7 +1091,6 @@
         input.focus();
     }
 
-    // دالة لإعادة الضبط الكامل والعودة للرئيسية (تستخدم عند الضغط على زر العودة للقوائم)
     function resetToHome() {
         activeCategory = "الرئيسية";
         searchQuery = "";
@@ -1171,18 +1106,17 @@
     function renderProducts() {
         var container = document.getElementById('productsGrid');
 
-        // إذا كان هناك بحث نشط أو تم اختيار قائمة معينة غير الرئيسية
         if (searchQuery !== "" || activeCategory !== "الرئيسية") {
             var isCategoryFilter = activeCategory !== "الرئيسية" && searchQuery === "";
             var topHeaderHtml = "";
             
             if (isCategoryFilter) {
-                topHeaderHtml = '<div style="display: flex; justify-content: space-between; align-items: center; background: #ffffff; padding: 12px 16px; border-radius: 12px; margin-bottom: 14px; border: 1px solid #cbd5e1; box-shadow: 0 2px 6px rgba(0,0,0,0.03);">' +
+                topHeaderHtml = '<div style="position: sticky; top: 65px; z-index: 900; display: flex; justify-content: space-between; align-items: center; background: #ffffff; padding: 12px 16px; border-radius: 12px; margin-bottom: 14px; border: 1px solid #cbd5e1; box-shadow: 0 4px 10px rgba(0,0,0,0.06);">' +
                     '<span style="font-weight: 800; color: #0f172a; font-size: 14px;">📁 قائمة: ' + activeCategory + '</span>' +
                     '<button onclick="resetToHome()" style="background: #ef4444; color: white; border: none; padding: 6px 14px; border-radius: 8px; font-weight: 700; font-size: 12px; cursor: pointer;">✕ العودة للرئيسية</button>' +
                 '</div>';
             } else if (searchQuery !== "") {
-                topHeaderHtml = '<div style="display: flex; justify-content: space-between; align-items: center; background: #ffffff; padding: 12px 16px; border-radius: 12px; margin-bottom: 14px; border: 1px solid #cbd5e1; box-shadow: 0 2px 6px rgba(0,0,0,0.03);">' +
+                topHeaderHtml = '<div style="position: sticky; top: 65px; z-index: 900; display: flex; justify-content: space-between; align-items: center; background: #ffffff; padding: 12px 16px; border-radius: 12px; margin-bottom: 14px; border: 1px solid #cbd5e1; box-shadow: 0 4px 10px rgba(0,0,0,0.06);">' +
                     '<span style="font-weight: 800; color: #0f172a; font-size: 14px;">🏷️ نتائج البحث: ' + searchQuery + '</span>' +
                     '<button onclick="clearSearch()" style="background: #ef4444; color: white; border: none; padding: 6px 14px; border-radius: 8px; font-weight: 700; font-size: 12px; cursor: pointer;">✕ العودة للرئيسية</button>' +
                 '</div>';
@@ -1202,7 +1136,6 @@
         if (featuredProducts.length > 0) {
             html += createCategorySection("⭐ المنتجات المميزة", featuredProducts, "المنتجات المميزة");
 
-            // إدراج شريط الماركات العالمية
             var uniqueBrands = [];
             for (var b = 0; b < products.length; b++) {
                 if (products[b].brand && uniqueBrands.indexOf(products[b].brand) === -1) {
@@ -1220,7 +1153,6 @@
                 html += '</div>';
             }
 
-            // وضع البانر الترويجي تحت شريط أبرز الماركات في الصفحة الرئيسية مباشرة ليظهر بسرعة (مع إمكانية الضغط والانتقال للقسم)
             if (globalStoreSettings.promoBanner) {
                 var bannerClickAttr = globalStoreSettings.promoBannerCategory ? 'onclick="selectCategory(\'' + globalStoreSettings.promoBannerCategory + '\')" style="cursor: pointer;"' : '';
                 html += '<div class="promo-banner-wrapper" ' + bannerClickAttr + '><img src="' + globalStoreSettings.promoBanner + '" alt="Promotional Banner"></div>';
@@ -1238,7 +1170,7 @@
         }
 
         if (products.length === 0) {
-            html = '<p style="text-align:center; padding:30px; color:#64748b;">جارٍ تحميل المنتجات...</p>';
+            html = '<p style="text-align:center; padding:30px; color:#64748b;">لا توجد منتجات متاحة حالياً</p>';
         }
 
         container.innerHTML = html;
@@ -1663,7 +1595,7 @@
     }
 
     loadCartFromStorage();
-    fetchProductsFromSheet();
+    initStoreData();
     fetchCouponsFromSheet();
 </script>
 
