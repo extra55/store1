@@ -130,7 +130,7 @@
             gap: 8px; 
             overflow-x: auto; 
             padding-bottom: 6px; 
-            margin-bottom: 12px; 
+            margin-bottom: 0px; 
             scrollbar-width: none; 
         }
         .categories-bar::-webkit-scrollbar { display: none; }
@@ -484,6 +484,11 @@
             scroll-behavior: smooth; 
             border: 1px solid #e2e8f0;
         }
+        @media (min-width: 768px) {
+            .detail-img-box {
+                height: 460px;
+            }
+        }
         .detail-img-box::-webkit-scrollbar { display: none; }
         .detail-img-box img { 
             flex: 0 0 100%; 
@@ -683,6 +688,12 @@
         </div>
 
         <div class="categories-bar" id="categoriesBar"></div>
+
+        <!-- شريط التصفية والعودة للرئيسية المثبت بالكامل في الأعلى -->
+        <div id="activeFilterBanner" class="hidden" style="display: flex; justify-content: space-between; align-items: center; background: #ffffff; padding: 10px 16px; border-radius: 12px; margin-top: 8px; margin-bottom: 8px; border: 1px solid #cbd5e1; box-shadow: 0 4px 10px rgba(0,0,0,0.06);">
+            <span id="activeFilterText" style="font-weight: 800; color: #0f172a; font-size: 14px;"></span>
+            <button onclick="resetToHome()" style="background: #ef4444; color: white; border: none; padding: 6px 14px; border-radius: 8px; font-weight: 700; font-size: 12px; cursor: pointer;">✕ العودة للرئيسية</button>
+        </div>
     </div>
 
     <!-- السلايد شو العلوي -->
@@ -696,7 +707,7 @@
     <div id="productsGrid" style="flex: 1;"></div>
 
     <div class="footer">
-        Designed by Eng. Amjed 07803342472
+        <a href="#" target="_blank" style="color: inherit; text-decoration: none;">Designed by VIWCOD Company</a>
     </div>
 </div>
 
@@ -757,6 +768,7 @@
     var products = [];
     var categories = ["الرئيسية"];
     var activeCategory = "الرئيسية";
+    var activeBrand = null; // لتتبع الماركة الحالية عند الدخول لصفحة ماركة
     var cart = {};
     var currentDetailId = null;
     var searchQuery = "";
@@ -821,7 +833,6 @@
         }
     }
 
-    // جلب الإعدادات والمنتجات والأقسام معاً دفعة واحدة (Promise.all) لضمان ظهور كافة عناصر الصفحة الرئيسية في نفس الوقت بدون تأخير
     async function initStoreData() {
         var container = document.getElementById('productsGrid');
         container.innerHTML = '<p style="text-align:center; padding:30px; color:#64748b;">جارٍ تحميل المتجر...</p>';
@@ -862,7 +873,6 @@
             }
             categories = catList;
 
-            // عرض وتوليد كافة عناصر الواجهة في نفس اللحظة
             renderStoreIdentity();
             renderCategories();
             initSlideshow();
@@ -1052,22 +1062,34 @@
             var activeClass = (cat === activeCategory) ? "active" : "";
             html += '<div class="category-tab ' + activeClass + '" onclick="selectCategory(\'' + cat + '\')">' + cat + '</div>';
         }
-        document.getElementById('categoriesBar').innerHTML = html;
+        var bar = document.getElementById('categoriesBar');
+        if (bar) {
+            bar.innerHTML = html;
+            if (activeBrand) {
+                bar.classList.add('hidden');
+            } else {
+                bar.classList.remove('hidden');
+            }
+        }
     }
 
     function selectCategory(cat) {
+        activeBrand = null; // إعادة تعيين الماركة عند اختيار قسم عادي
         activeCategory = cat;
         renderCategories();
         renderProducts();
         initSlideshow();
+        window.scrollTo(0, 0); 
     }
 
     function filterByBrand(brandName) {
+        activeBrand = brandName; // تعيين الماركة النشطة لإخفاء شريط القوائم
         activeCategory = "الرئيسية";
         renderCategories();
         var searchInput = document.getElementById('searchInput');
         searchInput.value = brandName;
         onSearchInput();
+        window.scrollTo(0, 0);
     }
 
     function onSearchInput() {
@@ -1075,6 +1097,11 @@
         var input = document.getElementById('searchInput');
         searchQuery = input.value.trim().toLowerCase();
         
+        if (searchQuery === "") {
+            activeBrand = null;
+            renderCategories();
+        }
+
         var clearBtn = document.getElementById('clearSearchBtn');
         if (clearBtn) {
             clearBtn.style.display = input.value.length > 0 ? 'block' : 'none';
@@ -1085,6 +1112,7 @@
     }
 
     function clearSearch() {
+        activeBrand = null;
         var input = document.getElementById('searchInput');
         input.value = '';
         onSearchInput();
@@ -1092,6 +1120,7 @@
     }
 
     function resetToHome() {
+        activeBrand = null;
         activeCategory = "الرئيسية";
         searchQuery = "";
         var input = document.getElementById('searchInput');
@@ -1101,30 +1130,33 @@
         renderCategories();
         renderProducts();
         initSlideshow();
+        window.scrollTo(0, 0);
     }
 
     function renderProducts() {
         var container = document.getElementById('productsGrid');
+        var filterBanner = document.getElementById('activeFilterBanner');
+        var filterText = document.getElementById('activeFilterText');
 
         if (searchQuery !== "" || activeCategory !== "الرئيسية") {
             var isCategoryFilter = activeCategory !== "الرئيسية" && searchQuery === "";
-            var topHeaderHtml = "";
             
-            if (isCategoryFilter) {
-                topHeaderHtml = '<div style="position: sticky; top: 65px; z-index: 900; display: flex; justify-content: space-between; align-items: center; background: #ffffff; padding: 12px 16px; border-radius: 12px; margin-bottom: 14px; border: 1px solid #cbd5e1; box-shadow: 0 4px 10px rgba(0,0,0,0.06);">' +
-                    '<span style="font-weight: 800; color: #0f172a; font-size: 14px;">📁 قائمة: ' + activeCategory + '</span>' +
-                    '<button onclick="resetToHome()" style="background: #ef4444; color: white; border: none; padding: 6px 14px; border-radius: 8px; font-weight: 700; font-size: 12px; cursor: pointer;">✕ العودة للرئيسية</button>' +
-                '</div>';
-            } else if (searchQuery !== "") {
-                topHeaderHtml = '<div style="position: sticky; top: 65px; z-index: 900; display: flex; justify-content: space-between; align-items: center; background: #ffffff; padding: 12px 16px; border-radius: 12px; margin-bottom: 14px; border: 1px solid #cbd5e1; box-shadow: 0 4px 10px rgba(0,0,0,0.06);">' +
-                    '<span style="font-weight: 800; color: #0f172a; font-size: 14px;">🏷️ نتائج البحث: ' + searchQuery + '</span>' +
-                    '<button onclick="clearSearch()" style="background: #ef4444; color: white; border: none; padding: 6px 14px; border-radius: 8px; font-weight: 700; font-size: 12px; cursor: pointer;">✕ العودة للرئيسية</button>' +
-                '</div>';
+            if (filterBanner && filterText) {
+                filterBanner.classList.remove('hidden');
+                if (isCategoryFilter) {
+                    filterText.innerText = '📁 قائمة: ' + activeCategory;
+                } else if (searchQuery !== "") {
+                    filterText.innerText = '🏷️ نتائج البحث (الماركة/البحث): ' + searchQuery;
+                }
             }
 
-            container.innerHTML = topHeaderHtml;
-            renderStandardGridForSearch(true);
+            container.innerHTML = '';
+            renderStandardGrid();
             return;
+        } else {
+            if (filterBanner) {
+                filterBanner.classList.add('hidden');
+            }
         }
 
         var html = "";
@@ -1207,7 +1239,7 @@
                         '<span class="qty-number">' + qty + '</span>' +
                         '<button class="btn-qty btn-plus" style="width:26px;" onclick="changeQty(' + p.id + ', 1)">+</button>';
             } else {
-                sectionHtml += '<button class="btn-qty btn-plus" onclick="changeQty(' + p.id + ', 1)">+ إضافة</button>';
+                sectionHtml += '<button class="btn-qty btn-plus" onclick="changeQty(' + p.id + ', 1)">+ إضافة للسلة</button>';
             }
 
             sectionHtml += '</div></div>';
@@ -1218,14 +1250,9 @@
     }
 
     function renderStandardGrid() {
-        renderStandardGridForSearch(false);
-    }
-
-    function renderStandardGridForSearch(hasTopHeader) {
         var container = document.getElementById('productsGrid');
-        var existingContent = hasTopHeader ? container.innerHTML : "";
 
-        var html = existingContent + '<div class="products-grid-view">';
+        var html = '<div class="products-grid-view">';
         var matchCount = 0;
 
         for (var i = 0; i < products.length; i++) {
@@ -1260,7 +1287,7 @@
                             '<span class="qty-number">' + qty + '</span>' +
                             '<button class="btn-qty btn-plus" style="width:26px;" onclick="changeQty(' + p.id + ', 1)">+</button>';
                 } else {
-                    html += '<button class="btn-qty btn-plus" onclick="changeQty(' + p.id + ', 1)">+ إضافة</button>';
+                    html += '<button class="btn-qty btn-plus" onclick="changeQty(' + p.id + ', 1)">+ إضافة للسلة</button>';
                 }
 
                 html += '</div></div>';
@@ -1270,11 +1297,15 @@
         html += '</div>';
 
         if (matchCount === 0 && products.length > 0) {
-            html = existingContent + '<p style="text-align:center; padding:30px; color:#64748b;">لا توجد نتائج مطابقة</p>';
+            html = '<p style="text-align:center; padding:30px; color:#64748b;">لا توجد نتائج مطابقة</p>';
         }
 
         container.innerHTML = html;
         updateBadge();
+    }
+
+    function renderStandardGridForSearch(hasTopHeader) {
+        renderStandardGrid();
     }
 
     function scrollGallery(direction) {
@@ -1293,6 +1324,7 @@
         document.getElementById('shopPage').classList.add('hidden');
         document.getElementById('cartPage').classList.add('hidden');
         document.getElementById('productDetailPage').classList.remove('hidden');
+        window.scrollTo(0, 0); 
 
         var imgList = (p.images && p.images.length > 0) ? p.images : ((p.image && p.image.trim().startsWith('http')) ? [p.image] : []);
         var imageContent = "";
@@ -1408,6 +1440,7 @@
         document.getElementById('shopPage').classList.add('hidden');
         document.getElementById('productDetailPage').classList.add('hidden');
         document.getElementById('cartPage').classList.remove('hidden');
+        window.scrollTo(0, 0);
 
         document.getElementById('custName').value = localStorage.getItem('cust_name') || '';
         document.getElementById('custPhone').value = localStorage.getItem('cust_phone') || '';
@@ -1424,6 +1457,7 @@
         document.getElementById('shopPage').classList.remove('hidden');
         renderProducts();
         initSlideshow();
+        window.scrollTo(0, 0);
     }
 
     function renderCartItems() {
