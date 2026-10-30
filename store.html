@@ -132,6 +132,7 @@
             padding-bottom: 6px; 
             margin-bottom: 0px; 
             scrollbar-width: none; 
+            user-select: none;
         }
         .categories-bar::-webkit-scrollbar { display: none; }
         .category-tab { 
@@ -171,6 +172,7 @@
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
             scrollbar-width: none;
             align-items: center;
+            user-select: none;
         }
         .brands-showcase-bar::-webkit-scrollbar { display: none; }
         .brand-chip {
@@ -192,6 +194,35 @@
             color: #ffffff;
             border-color: #0f172a;
             transform: translateY(-2px);
+        }
+
+        /* تنسيقات الفهرس الأبجدي */
+        .alphabet-bar {
+            display: flex;
+            gap: 6px;
+            overflow-x: auto;
+            padding: 8px 0;
+            margin-bottom: 12px;
+            scrollbar-width: none;
+            user-select: none;
+        }
+        .alphabet-bar::-webkit-scrollbar { display: none; }
+        .alphabet-chip {
+            flex: 0 0 auto;
+            background: #ffffff;
+            border: 1px solid #cbd5e1;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 700;
+            color: #0f172a;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .alphabet-chip:hover, .alphabet-chip.active {
+            background: #0f172a;
+            color: #ffffff;
+            border-color: #0f172a;
         }
 
         /* تنسيقات البانر الترويجي */
@@ -707,7 +738,7 @@
     <div id="productsGrid" style="flex: 1;"></div>
 
     <div class="footer">
-        <a href="#" target="_blank" style="color: inherit; text-decoration: none;">Designed by VIWCOD Company</a>
+        <a href="https://extra55.github.io" target="_blank" style="color: inherit; text-decoration: none;">Designed by VIWCOD Company</a>
     </div>
 </div>
 
@@ -768,7 +799,8 @@
     var products = [];
     var categories = ["الرئيسية"];
     var activeCategory = "الرئيسية";
-    var activeBrand = null; // لتتبع الماركة الحالية عند الدخول لصفحة ماركة
+    var activeBrand = null; 
+    var activeBrandLetter = 'الكل'; 
     var cart = {};
     var currentDetailId = null;
     var searchQuery = "";
@@ -785,6 +817,46 @@
     document.addEventListener('contextmenu', function(e) {
         e.preventDefault();
     });
+
+    // دالة تفعيل السحب والإفلات بالماوس للتمرير الأفقي
+    function initDragScroll() {
+        var sliders = document.querySelectorAll('.brands-showcase-bar, .alphabet-bar, .categories-bar');
+        sliders.forEach(function(slider) {
+            if (slider.dataset.dragInitialized) return;
+            slider.dataset.dragInitialized = 'true';
+
+            var isDown = false;
+            var startX;
+            var scrollLeft;
+
+            slider.addEventListener('mousedown', function(e) {
+                isDown = true;
+                slider.style.cursor = 'grabbing';
+                startX = e.pageX - slider.offsetLeft;
+                scrollLeft = slider.scrollLeft;
+            });
+
+            slider.addEventListener('mouseleave', function() {
+                isDown = false;
+                slider.style.cursor = 'grab';
+            });
+
+            slider.addEventListener('mouseup', function() {
+                isDown = false;
+                slider.style.cursor = 'grab';
+            });
+
+            slider.addEventListener('mousemove', function(e) {
+                if (!isDown) return;
+                e.preventDefault();
+                var x = e.pageX - slider.offsetLeft;
+                var walk = (x - startX) * 1.5;
+                slider.scrollLeft = scrollLeft - walk;
+            });
+
+            slider.style.cursor = 'grab';
+        });
+    }
 
     function toggleSearchBox() {
         var box = document.getElementById('searchContainerBox');
@@ -1071,10 +1143,11 @@
                 bar.classList.remove('hidden');
             }
         }
+        initDragScroll();
     }
 
     function selectCategory(cat) {
-        activeBrand = null; // إعادة تعيين الماركة عند اختيار قسم عادي
+        activeBrand = null; 
         activeCategory = cat;
         renderCategories();
         renderProducts();
@@ -1083,13 +1156,18 @@
     }
 
     function filterByBrand(brandName) {
-        activeBrand = brandName; // تعيين الماركة النشطة لإخفاء شريط القوائم
+        activeBrand = brandName; 
         activeCategory = "الرئيسية";
         renderCategories();
         var searchInput = document.getElementById('searchInput');
         searchInput.value = brandName;
         onSearchInput();
         window.scrollTo(0, 0);
+    }
+
+    function filterByLetter(letter) {
+        activeBrandLetter = letter;
+        renderProducts();
     }
 
     function onSearchInput() {
@@ -1122,6 +1200,7 @@
     function resetToHome() {
         activeBrand = null;
         activeCategory = "الرئيسية";
+        activeBrandLetter = 'الكل';
         searchQuery = "";
         var input = document.getElementById('searchInput');
         if (input) input.value = '';
@@ -1174,15 +1253,44 @@
                     uniqueBrands.push(products[b].brand);
                 }
             }
+            uniqueBrands.sort(); 
 
             if (uniqueBrands.length > 0) {
-                html += '<div class="brands-showcase-bar">' +
-                        '<div style="font-weight: 900; font-size: 13px; color: #334155; white-space: nowrap; padding-left: 12px; border-left: 3px solid #0284c7;">🌟 أبرز الماركات:</div>';
-                
+                html += '<div style="background: #ffffff; border-radius: 16px; border: 1px solid #cbd5e1; padding: 16px; margin-bottom: 25px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);">' +
+                        '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">' +
+                            '<div style="font-weight: 900; font-size: 14px; color: #0f172a;">🌟 الفهرس الأبجدي للماركات (A-Z):</div>' +
+                        '</div>';
+
+                var availableLetters = ['الكل'];
                 for (var i = 0; i < uniqueBrands.length; i++) {
-                    html += '<div class="brand-chip" onclick="filterByBrand(\'' + uniqueBrands[i] + '\')">' + uniqueBrands[i] + '</div>';
+                    var firstLetter = uniqueBrands[i].charAt(0).toUpperCase();
+                    if (availableLetters.indexOf(firstLetter) === -1) {
+                        availableLetters.push(firstLetter);
+                    }
+                }
+
+                html += '<div class="alphabet-bar">';
+                for (var l = 0; l < availableLetters.length; l++) {
+                    var letVal = availableLetters[l];
+                    var isAct = (activeBrandLetter === letVal) ? 'active' : '';
+                    html += '<div class="alphabet-chip ' + isAct + '" onclick="filterByLetter(\'' + letVal + '\')">' + letVal + '</div>';
                 }
                 html += '</div>';
+
+                var filteredBrands = uniqueBrands.filter(function(brand) {
+                    if (activeBrandLetter === 'الكل' || !activeBrandLetter) return true;
+                    return brand.charAt(0).toUpperCase() === activeBrandLetter;
+                });
+
+                html += '<div class="brands-showcase-bar" style="margin: 0; border: none; box-shadow: none; padding: 8px 0;">';
+                if (filteredBrands.length > 0) {
+                    for (var i = 0; i < filteredBrands.length; i++) {
+                        html += '<div class="brand-chip" onclick="filterByBrand(\'' + filteredBrands[i] + '\')">' + filteredBrands[i] + '</div>';
+                    }
+                } else {
+                    html += '<div style="color: #64748b; font-size: 13px; padding: 10px;">لا توجد ماركات تبدأ بهذا الحرف</div>';
+                }
+                html += '</div></div>';
             }
 
             if (globalStoreSettings.promoBanner) {
@@ -1207,6 +1315,7 @@
 
         container.innerHTML = html;
         updateBadge();
+        initDragScroll();
     }
 
     function createCategorySection(title, prodList, categoryName) {
