@@ -104,7 +104,7 @@
 <!-- ================= 2. واجهة التحكم الرئيسية ================= -->
 <div id="dashboardCard" class="card hidden">
     <div class="header-box">
-        <h2 id="dashboardTitle">⚙️ إدارة المتجر</h2>
+        <h2 id="dashboardTitle">⚙️ لوحة تحكم المتجر</h2>
         <button class="btn-logout" onclick="logout()">تسجيل خروج 🚪</button>
     </div>
 
@@ -395,12 +395,17 @@
     <!-- تبويب المبيعات -->
     <div id="salesTab" class="hidden">
         <div class="form-group">
-            <label>اختر التاريخ لعرض المبيعات:</label>
-            <input type="date" id="salesDateFilter" style="background: #0f172a; color: #fff; padding: 10px; border-radius: 8px; border: 1px solid #334155; margin-bottom: 8px;">
-            <button type="button" onclick="filterSalesByDate()" class="btn-submit" style="background: #0284c7; margin-top: 0;">اختيار 🔍</button>
+            <label>اختر فترة عرض المبيعات:</label>
+            <select id="salesPeriodSelect" onchange="loadSalesList()" style="background: #0f172a; color: #fff; padding: 10px; border-radius: 8px; border: 1px solid #334155; margin-bottom: 8px;">
+                <option value="today">المبيعات لهذا اليوم</option>
+                <option value="week">آخر أسبوع</option>
+                <option value="month">آخر شهر</option>
+                <option value="6months">آخر 6 أشهر</option>
+                <option value="year">آخر سنة</option>
+            </select>
         </div>
         <div id="salesContainer">
-            <p style="text-align:center; color:#94a3b8; padding:20px;">اختر تاريخاً لعرض المبيعات...</p>
+            <p style="text-align:center; color:#94a3b8; padding:20px;">جار تحميل المبيعات...</p>
         </div>
     </div>
 
@@ -523,7 +528,7 @@
     async function loadSubscriptionDetails() {
         var infoText = document.getElementById("subscriptionInfoText");
         if (!infoText) return;
-        infoText.innerText = "يرجى الانتظار جار التحقق من صلاحية حسابك";
+        infoText.innerText = "يرجى الانتظار جار جلب تاريخ انتهاء الاشتراك ...";
         try {
             var res = await fetch(SHEET_API_URL + "?action=checkSubscription");
             var data = await res.json();
@@ -639,13 +644,7 @@
         } else if (tabName === 'sales') {
             if (salesTab) salesTab.classList.remove("hidden");
             if (tabSalesBtn) tabSalesBtn.classList.add("active");
-            if (!document.getElementById("salesDateFilter").value) {
-                var today = new Date();
-                var yyyy = today.getFullYear();
-                var mm = String(today.getMonth() + 1).padStart(2, '0');
-                var dd = String(today.getDate()).padStart(2, '0');
-                document.getElementById("salesDateFilter").value = yyyy + '-' + mm + '-' + dd;
-            }
+            document.getElementById("salesPeriodSelect").value = "today";
             loadSalesList();
         } else if (tabName === 'orders') {
             if (ordersTab) ordersTab.classList.remove("hidden");
@@ -1067,34 +1066,53 @@
                 return;
             }
             allSales = Array.isArray(data) ? data : [];
-            filterSalesByDate();
+            renderSalesList();
         } catch(err) {
             container.innerHTML = '<p style="text-align:center; color:#ef4444; padding:20px;">فشل في جلب المبيعات</p>';
         }
     }
 
-    function filterSalesByDate() {
-        var dateInput = document.getElementById("salesDateFilter").value;
+    function renderSalesList() {
+        var period = document.getElementById("salesPeriodSelect").value;
         var container = document.getElementById("salesContainer");
-        if (!dateInput) {
-            container.innerHTML = '<p style="text-align:center; color:#ef4444; padding:20px;">يرجى اختيار التاريخ أولاً</p>';
-            return;
-        }
+        var now = new Date();
 
         var filtered = allSales.filter(function(s) {
-            var sDate = String(s.date || "").trim();
-            var cleanSDate = sDate.split('T')[0].split(' ')[0];
-            return cleanSDate === dateInput;
+            if (!s.date) return false;
+            var sDate = new Date(s.date);
+            if (isNaN(sDate.getTime())) return false;
+
+            var diffTime = now.getTime() - sDate.getTime();
+            var diffDays = diffTime / (1000 * 3600 * 24);
+
+            // استبعاد وحذف المبيعات الأقدم من سنة تلقائياً
+            if (diffDays > 365) return false;
+
+            if (period === "today") {
+                return sDate.getFullYear() === now.getFullYear() &&
+                       sDate.getMonth() === now.getMonth() &&
+                       sDate.getDate() === now.getDate();
+            } else if (period === "week") {
+                return diffDays <= 7;
+            } else if (period === "month") {
+                return diffDays <= 30;
+            } else if (period === "6months") {
+                return diffDays <= 182;
+            } else if (period === "year") {
+                return diffDays <= 365;
+            }
+            return true;
         });
 
         if (filtered.length === 0) {
-            container.innerHTML = '<p style="text-align:center; color:#94a3b8; padding:20px;">لا توجد مبيعات مسجلة في هذا التاريخ</p>';
+            container.innerHTML = '<p style="text-align:center; color:#94a3b8; padding:20px;">لا توجد مبيعات مسجلة في هذه الفترة</p>';
             return;
         }
 
         var html = '<div style="overflow-x:auto;"><table style="width:100%; border-collapse:collapse; margin-top:10px; font-size:13px; text-align:right;">' +
             '<thead><tr style="background:#1e293b; color:#38bdf8; border-bottom:2px solid #334155;">' +
-            '<th style="padding:10px; border:1px solid #334155;">الاسم</th>' +
+            '<th style="padding:12px; border:1px solid #334155; min-width:110px;">التاريخ</th>' +
+            '<th style="padding:12px; border:1px solid #334155; min-width:130px;">الاسم</th>' +
             '<th style="padding:10px; border:1px solid #334155;">رقم الهاتف</th>' +
             '<th style="padding:10px; border:1px solid #334155;">التفاصيل</th>' +
             '<th style="padding:10px; border:1px solid #334155;">نسبة الخصم</th>' +
@@ -1102,8 +1120,21 @@
             '</tr></thead><tbody>';
 
         filtered.forEach(function(s) {
+            // استخراج اليوم والشهر والسنة فقط من التاريخ
+            var rawDateObj = new Date(s.date);
+            var dateOnlyStr = s.date;
+            if (!isNaN(rawDateObj.getTime())) {
+                var y = rawDateObj.getFullYear();
+                var m = String(rawDateObj.getMonth() + 1).padStart(2, '0');
+                var d = String(rawDateObj.getDate()).padStart(2, '0');
+                dateOnlyStr = y + '-' + m + '-' + d;
+            } else {
+                dateOnlyStr = String(s.date).split('T')[0].split(' ')[0];
+            }
+
             html += '<tr style="border-bottom:1px solid #334155; background:#0f172a;">' +
-                '<td style="padding:10px; border:1px solid #334155;">' + s.name + '</td>' +
+                '<td style="padding:12px; border:1px solid #334155; color:#38bdf8; white-space:nowrap; font-weight:bold;">' + dateOnlyStr + '</td>' +
+                '<td style="padding:12px; border:1px solid #334155; white-space:nowrap; font-weight:bold;">' + s.name + '</td>' +
                 '<td style="padding:10px; border:1px solid #334155;">' + s.phone + '</td>' +
                 '<td style="padding:10px; border:1px solid #334155;">' + s.items + '</td>' +
                 '<td style="padding:10px; border:1px solid #334155;">' + (s.discount || '0%') + '</td>' +
