@@ -5,7 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>متجر كوزمتك</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;900&display=swap');
+        @import url('https://fonts.googleapis.com/css2?
+
+family=Tajawal:wght@300;400;500;700;900&display=swap');
 
         * { 
             box-sizing: border-box; 
@@ -626,7 +628,9 @@
         .cart-item-price { font-size: 12px; color: #64748b; margin-top: 3px; font-weight: 600; }
 
         .form-group { margin-top: 14px; }
-        .form-label { display: block; font-size: 12px; color: #475569; margin-bottom: 5px; font-weight: 600; }
+        .form-label { display: block; font-size: 12px; color: #475569; margin-bottom: 5px; font-weight: 
+
+600; }
         .form-input { 
             width: 100%; 
             padding: 11px 14px; 
@@ -702,11 +706,21 @@
 
 <div id="shopPage" class="page">
     
-    <div style="position: sticky; top: 0; background: #f8fafc; z-index: 1000; padding-top: 2px; margin: -12px -12px 10px -12px; padding-left: 12px; padding-right: 12px;">
+    <div style="position: sticky; top: 0; background: #f8fafc; z-index: 1000; padding-top: 2px; margin: 
+
+-12px -12px 10px -12px; padding-left: 12px; padding-right: 12px;">
         <div class="header">
-            <div id="storeHeaderIdentityContainer" style="flex: 1; min-width: 0; margin-left: 12px;"></div>
+            <div id="storeHeaderIdentityContainer" style="flex: 1; min-width: 0; margin-left: 
+
+12px;"></div>
             <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
-                <button onclick="toggleSearchBox()" style="background: #ffffff; color: #0f172a; border: 1px solid #cbd5e1; width: 38px; height: 38px; border-radius: 10px; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 6px rgba(0,0,0,0.05); transition: all 0.2s;" title="بحث">🔍</button>
+                <button onclick="toggleSearchBox()" style="background: #ffffff; color: #0f172a; border: 
+
+1px solid #cbd5e1; width: 38px; height: 38px; border-radius: 10px; cursor: pointer; font-size: 16px; 
+
+display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 6px rgba(0,0,0,0.05); 
+
+transition: all 0.2s;" title="بحث">🔍</button>
                 <button class="cart-icon-btn" onclick="openCartPage()">
                     🛒 السلة <span class="cart-badge" id="cartBadgeCount">0</span>
                 </button>
@@ -714,21 +728,35 @@
         </div>
 
         <div id="searchContainerBox" class="search-container hidden">
-            <input type="text" id="searchInput" class="search-input" placeholder="🔍 ابحث عن منتج أو ماركة..." oninput="onSearchInput()">
+            <input type="text" id="searchInput" class="search-input" placeholder="🔍 ابحث عن منتج أو ماركة..." 
+
+oninput="onSearchInput()">
             <span id="clearSearchBtn" class="clear-search-btn" onclick="clearSearch()">✕</span>
         </div>
 
         <div class="categories-bar" id="categoriesBar"></div>
 
         <!-- شريط التصفية والعودة للرئيسية المثبت بالكامل في الأعلى -->
-        <div id="activeFilterBanner" class="hidden" style="display: flex; justify-content: space-between; align-items: center; background: #ffffff; padding: 10px 16px; border-radius: 12px; margin-top: 8px; margin-bottom: 8px; border: 1px solid #cbd5e1; box-shadow: 0 4px 10px rgba(0,0,0,0.06);">
-            <span id="activeFilterText" style="font-weight: 800; color: #0f172a; font-size: 14px;"></span>
-            <button onclick="resetToHome()" style="background: #ef4444; color: white; border: none; padding: 6px 14px; border-radius: 8px; font-weight: 700; font-size: 12px; cursor: pointer;">✕ العودة للرئيسية</button>
+        <div id="activeFilterBanner" class="hidden" style="display: flex; justify-content: space-
+
+between; align-items: center; background: #ffffff; padding: 10px 16px; border-radius: 12px; margin-top: 
+
+8px; margin-bottom: 8px; border: 1px solid #cbd5e1; box-shadow: 0 4px 10px rgba(0,0,0,0.06);">
+            <span id="activeFilterText" style="font-weight: 800; color: #0f172a; font-size: 
+
+14px;"></span>
+            <button onclick="resetToHome()" style="background: #ef4444; color: white; border: none; 
+
+padding: 6px 14px; border-radius: 8px; font-weight: 700; font-size: 12px; cursor: pointer;">✕ العودة 
+
+للرئيسية</button>
         </div>
     </div>
 
     <!-- السلايد شو العلوي -->
-    <div id="mainSlideshowWrapper" class="slideshow-wrapper hidden" onmouseenter="pauseSlideshow()" onmouseleave="resumeSlideshow()">
+    <div id="mainSlideshowWrapper" class="slideshow-wrapper hidden" onmouseenter="pauseSlideshow()" 
+
+onmouseleave="resumeSlideshow()">
         <div class="slideshow-container" id="slideshowContainer"></div>
         <button class="slideshow-nav prev" onclick="moveSlide(-1)">❯</button>
         <button class="slideshow-nav next" onclick="moveSlide(1)">❮</button>
@@ -738,7 +766,9 @@
     <div id="productsGrid" style="flex: 1;"></div>
 
     <div class="footer">
-        <a href="#" target="_blank" style="color: inherit; text-decoration: none;">Designed by VIWCOD Company</a>
+        <a href="#" target="_blank" style="color: inherit; text-decoration: none;">Designed by VIWCOD 
+
+Company</a>
     </div>
 </div>
 
@@ -759,11 +789,19 @@
     <div id="cartItemsList"></div>
 
     <div id="cartSummarySection">
-        <div style="background: #ffffff; padding: 12px; border-radius: 12px; margin-top: 12px; border: 1px solid #e2e8f0;">
+        <div style="background: #ffffff; padding: 12px; border-radius: 12px; margin-top: 12px; border: 
+
+1px solid #e2e8f0;">
             <label class="form-label">كود الخصم (إن وجد):</label>
             <div style="display: flex; gap: 8px;">
-                <input type="text" id="couponInput" class="form-input" placeholder="أدخل الكود هنا..." style="margin-bottom: 0; text-transform: uppercase;">
-                <button type="button" onclick="applyCoupon()" style="background: #0f172a; color: white; border: none; padding: 0 16px; border-radius: 10px; font-weight: 600; font-size: 13px; cursor: pointer; white-space: nowrap;">تطبيق</button>
+                <input type="text" id="couponInput" class="form-input" placeholder="أدخل الكود هنا..." 
+
+style="margin-bottom: 0; text-transform: uppercase;">
+                <button type="button" onclick="applyCoupon()" style="background: #0f172a; color: white; 
+
+border: none; padding: 0 16px; border-radius: 10px; font-weight: 600; font-size: 13px; cursor: pointer; 
+
+white-space: nowrap;">تطبيق</button>
             </div>
             <div id="couponStatusMsg" style="font-size: 12px; margin-top: 6px; display: none;"></div>
         </div>
@@ -793,7 +831,11 @@
 </div>
 
 <script>
-    var SHEET_API_URL = "https://script.google.com/macros/s/AKfycbyO9pmIfHEU0NATy2DMX2kG2nE3PKC4CqgVQy008X3tSFappOHwR7t86OL3_IRpofSc/exec"; 
+    var SHEET_API_URL = 
+
+"https://script.google.com/macros/s/AKfycbyO9pmIfHEU0NATy2DMX2kG2nE3PKC4CqgVQy008X3tSFappOHwR7t86OL3_IR
+
+pofSc/exec"; 
     var PHARMACY_WA = "9647803342472";
 
     var products = [];
@@ -812,7 +854,9 @@
     var slideshowInterval = null;
     var currentSlideIndex = 0;
     var slideshowSettings = { hideSlideshow: false, speedSeconds: 4, categories: [] };
-    var globalStoreSettings = { headerMode: "text", storeTitle: "", storeSubtitle: "", storeLogo: "", promoBanner: "", promoBannerCategory: "" };
+    var globalStoreSettings = { headerMode: "text", storeTitle: "", storeSubtitle: "", storeLogo: "", 
+
+promoBanner: "", promoBannerCategory: "" };
 
     document.addEventListener('contextmenu', function(e) {
         e.preventDefault();
@@ -820,7 +864,9 @@
 
     // دالة تفعيل السحب والإفلات بالماوس للتمرير الأفقي
     function initDragScroll() {
-        var sliders = document.querySelectorAll('.brands-showcase-bar, .alphabet-bar, .categories-bar');
+        var sliders = document.querySelectorAll('.brands-showcase-bar, .alphabet-bar, .categories-
+
+bar');
         sliders.forEach(function(slider) {
             if (slider.dataset.dragInitialized) return;
             slider.dataset.dragInitialized = 'true';
@@ -907,7 +953,9 @@
 
     async function initStoreData() {
         var container = document.getElementById('productsGrid');
-        container.innerHTML = '<p style="text-align:center; padding:30px; color:#64748b;">جارٍ تحميل المتجر...</p>';
+        container.innerHTML = '<p style="text-align:center; padding:30px; color:#64748b;">جارٍ تحميل 
+
+المتجر...</p>';
 
         try {
             var [settingsRes, productsRes, catRes] = await Promise.all([
@@ -926,7 +974,9 @@
 
                 slideshowSettings.hideSlideshow = !!settingsRes.hideSlideshow;
                 slideshowSettings.speedSeconds = Number(settingsRes.slideshowSpeed) || 4;
-                slideshowSettings.categories = Array.isArray(settingsRes.slideshowCategories) ? settingsRes.slideshowCategories : [];
+                slideshowSettings.categories = Array.isArray(settingsRes.slideshowCategories) ? 
+
+settingsRes.slideshowCategories : [];
             }
 
             products = Array.isArray(productsRes) ? productsRes : [];
@@ -951,7 +1001,9 @@
             renderProducts();
 
         } catch (error) {
-            container.innerHTML = '<p style="text-align:center; color:#ef4444; padding:20px;">تعذر تحميل المتجر، تأكد من اتصال الإنترنت.</p>';
+            container.innerHTML = '<p style="text-align:center; color:#ef4444; padding:20px;">تعذر تحميل المتجر، تأكد 
+
+من اتصال الإنترنت.</p>';
         }
     }
 
@@ -960,7 +1012,9 @@
         if (!container) return;
 
         if (globalStoreSettings.headerMode === "logo" && globalStoreSettings.storeLogo) {
-            container.innerHTML = `<img src="${globalStoreSettings.storeLogo}" alt="Logo" class="header-logo">`;
+            container.innerHTML = `<img src="${globalStoreSettings.storeLogo}" alt="Logo" 
+
+class="header-logo">`;
         } else {
             container.innerHTML = `
                 <h1>${globalStoreSettings.storeTitle || ""}</h1>
@@ -993,14 +1047,20 @@
         var dotsHtml = "";
 
         slideItems.forEach((item, idx) => {
-            var imgTag = item.image ? `<img src="${item.image}" alt="${item.category}">` : `<div style="display:flex; align-items:center; justify-content:center; width:100%; height:100%; background:#1e293b; color:#38bdf8; font-size:24px; font-weight:bold;">📁 ${item.category}</div>`;
+            var imgTag = item.image ? `<img src="${item.image}" alt="${item.category}">` : `<div 
+
+style="display:flex; align-items:center; justify-content:center; width:100%; height:100%; 
+
+background:#1e293b; color:#38bdf8; font-size:24px; font-weight:bold;">📁 ${item.category}</div>`;
 
             html += `
                 <div class="slide-item" onclick="selectCategory('${item.category}')">
                     <div class="slide-img-box">${imgTag}</div>
                 </div>
             `;
-            dotsHtml += `<div class="dot ${idx === 0 ? 'active' : ''}" onclick="goToSlide(${idx})"></div>`;
+            dotsHtml += `<div class="dot ${idx === 0 ? 'active' : ''}" onclick="goToSlide
+
+(${idx})"></div>`;
         });
 
         container.innerHTML = html;
@@ -1089,18 +1149,24 @@
                 }
             }
 
-            if (found.minAmount !== undefined && found.minAmount !== null && found.minAmount !== "" && !isNaN(Number(found.minAmount))) {
+            if (found.minAmount !== undefined && found.minAmount !== null && found.minAmount !== "" && 
+
+!isNaN(Number(found.minAmount))) {
                 if (subTotal < Number(found.minAmount)) {
                     appliedCoupon = null;
                     msg.style.display = "block";
                     msg.style.color = "#ef4444";
-                    msg.innerText = "❌ عذراً، الحد الأدنى لاستخدام هذا الكود هو " + Number(found.minAmount).toLocaleString() + " د.ع";
+                    msg.innerText = "❌ عذراً، الحد الأدنى لاستخدام هذا الكود هو " + Number(found.minAmount).toLocaleString() + " 
+
+د.ع";
                     renderCartItems();
                     return;
                 }
             }
 
-            if (found.usageLimit !== undefined && found.usageLimit !== null && found.usageLimit !== "" && !isNaN(Number(found.usageLimit))) {
+            if (found.usageLimit !== undefined && found.usageLimit !== null && found.usageLimit !== "" 
+
+&& !isNaN(Number(found.usageLimit))) {
                 var couponUses = JSON.parse(localStorage.getItem('coupon_uses') || '{}');
                 var usedCount = couponUses[found.code] || 0;
                 if (usedCount >= Number(found.usageLimit)) {
@@ -1132,7 +1198,9 @@
         for (var i = 0; i < categories.length; i++) {
             var cat = categories[i];
             var activeClass = (cat === activeCategory) ? "active" : "";
-            html += '<div class="category-tab ' + activeClass + '" onclick="selectCategory(\'' + cat + '\')">' + cat + '</div>';
+            html += '<div class="category-tab ' + activeClass + '" onclick="selectCategory(\'' + cat + 
+
+'\')">' + cat + '</div>';
         }
         var bar = document.getElementById('categoriesBar');
         if (bar) {
@@ -1256,9 +1324,15 @@
             uniqueBrands.sort(); 
 
             if (uniqueBrands.length > 0) {
-                html += '<div style="background: #ffffff; border-radius: 16px; border: 1px solid #cbd5e1; padding: 16px; margin-bottom: 25px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);">' +
-                        '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">' +
-                            '<div style="font-weight: 900; font-size: 14px; color: #0f172a;">🌟 ابرز الماركات (A-Z):</div>' +
+                html += '<div style="background: #ffffff; border-radius: 16px; border: 1px solid 
+
+#cbd5e1; padding: 16px; margin-bottom: 25px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);">' +
+                        '<div style="display: flex; justify-content: space-between; align-items: 
+
+center; margin-bottom: 10px;">' +
+                            '<div style="font-weight: 900; font-size: 14px; color: #0f172a;">🌟 ابرز الماركات 
+
+العالمية (A-Z):</div>' +
                         '</div>';
 
                 var availableLetters = ['الكل'];
@@ -1273,7 +1347,9 @@
                 for (var l = 0; l < availableLetters.length; l++) {
                     var letVal = availableLetters[l];
                     var isAct = (activeBrandLetter === letVal) ? 'active' : '';
-                    html += '<div class="alphabet-chip ' + isAct + '" onclick="filterByLetter(\'' + letVal + '\')">' + letVal + '</div>';
+                    html += '<div class="alphabet-chip ' + isAct + '" onclick="filterByLetter(\'' + 
+
+letVal + '\')">' + letVal + '</div>';
                 }
                 html += '</div>';
 
@@ -1282,20 +1358,32 @@
                     return brand.charAt(0).toUpperCase() === activeBrandLetter;
                 });
 
-                html += '<div class="brands-showcase-bar" style="margin: 0; border: none; box-shadow: none; padding: 8px 0;">';
+                html += '<div class="brands-showcase-bar" style="margin: 0; border: none; box-shadow: 
+
+none; padding: 8px 0;">';
                 if (filteredBrands.length > 0) {
                     for (var i = 0; i < filteredBrands.length; i++) {
-                        html += '<div class="brand-chip" onclick="filterByBrand(\'' + filteredBrands[i] + '\')">' + filteredBrands[i] + '</div>';
+                        html += '<div class="brand-chip" onclick="filterByBrand(\'' + filteredBrands[i] 
+
++ '\')">' + filteredBrands[i] + '</div>';
                     }
                 } else {
-                    html += '<div style="color: #64748b; font-size: 13px; padding: 10px;">لا توجد ماركات تبدأ بهذا الحرف</div>';
+                    html += '<div style="color: #64748b; font-size: 13px; padding: 10px;">لا توجد ماركات تبدأ بهذا 
+
+الحرف</div>';
                 }
                 html += '</div></div>';
             }
 
             if (globalStoreSettings.promoBanner) {
-                var bannerClickAttr = globalStoreSettings.promoBannerCategory ? 'onclick="selectCategory(\'' + globalStoreSettings.promoBannerCategory + '\')" style="cursor: pointer;"' : '';
-                html += '<div class="promo-banner-wrapper" ' + bannerClickAttr + '><img src="' + globalStoreSettings.promoBanner + '" alt="Promotional Banner"></div>';
+                var bannerClickAttr = globalStoreSettings.promoBannerCategory ? 
+
+'onclick="selectCategory(\'' + globalStoreSettings.promoBannerCategory + '\')" style="cursor: 
+
+pointer;"' : '';
+                html += '<div class="promo-banner-wrapper" ' + bannerClickAttr + '><img src="' + 
+
+globalStoreSettings.promoBanner + '" alt="Promotional Banner"></div>';
             }
         }
 
@@ -1320,21 +1408,31 @@
 
     function createCategorySection(title, prodList, categoryName) {
         var sectionHtml = '<div style="margin-bottom: 34px;">' +
-            '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding: 0 4px;">' +
+            '<div style="display: flex; justify-content: space-between; align-items: center; margin-
+
+bottom: 12px; padding: 0 4px;">' +
                 '<h3 style="font-size: 16px; font-weight: 800; color: #0f172a;">' + title + '</h3>' +
-                '<span onclick="selectCategory(\'' + categoryName + '\')" style="font-size: 14px; font-weight: 700; color: #2563eb; cursor: pointer;">عرض المزيد ❯</span>' +
+                '<span onclick="selectCategory(\'' + categoryName + '\')" style="font-size: 14px; 
+
+font-weight: 700; color: #2563eb; cursor: pointer;">عرض المزيد ❯</span>' +
             '</div>' +
-            '<div style="display: flex; gap: 10px; overflow-x: auto; padding-bottom: 8px; scrollbar-width: none;">';
+            '<div style="display: flex; gap: 10px; overflow-x: auto; padding-bottom: 8px; scrollbar-
+
+width: none;">';
 
         for (var i = 0; i < prodList.length; i++) {
             var p = prodList[i];
             var qty = cart[p.id] || 0;
             var cardImage = (p.images && p.images.length > 0) ? p.images[0] : p.image;
             var imageContent = (cardImage && cardImage.trim().startsWith('http')) 
-                ? '<img src="' + cardImage + '" alt="' + p.name + '" onerror="this.onerror=null; this.parentNode.innerHTML=\'' + p.icon + '\';">'
+                ? '<img src="' + cardImage + '" alt="' + p.name + '" onerror="this.onerror=null; 
+
+this.parentNode.innerHTML=\'' + p.icon + '\';">'
                 : p.icon;
 
-            sectionHtml += '<div class="product-card" style="flex: 0 0 130px; min-width: 130px;" onclick="openProductDetail(' + p.id + ')">' +
+            sectionHtml += '<div class="product-card" style="flex: 0 0 130px; min-width: 130px;" 
+
+onclick="openProductDetail(' + p.id + ')">' +
                 '<div class="img-box" style="height: 100px;">' + imageContent + '</div>' +
                 '<div class="product-details">' +
                     '<span class="brand-tag">' + p.brand + '</span>' +
@@ -1344,11 +1442,17 @@
                 '<div class="qty-controls" onclick="event.stopPropagation()">';
 
             if (qty > 0) {
-                sectionHtml += '<button class="btn-qty btn-minus" onclick="changeQty(' + p.id + ', -1)">-</button>' +
+                sectionHtml += '<button class="btn-qty btn-minus" onclick="changeQty(' + p.id + ', -
+
+1)">-</button>' +
                         '<span class="qty-number">' + qty + '</span>' +
-                        '<button class="btn-qty btn-plus" style="width:26px;" onclick="changeQty(' + p.id + ', 1)">+</button>';
+                        '<button class="btn-qty btn-plus" style="width:26px;" onclick="changeQty(' + 
+
+p.id + ', 1)">+</button>';
             } else {
-                sectionHtml += '<button class="btn-qty btn-plus" onclick="changeQty(' + p.id + ', 1)">+ إضافة للسلة</button>';
+                sectionHtml += '<button class="btn-qty btn-plus" onclick="changeQty(' + p.id + ', 1)">+ 
+
+إضافة للسلة</button>';
             }
 
             sectionHtml += '</div></div>';
@@ -1366,20 +1470,26 @@
 
         for (var i = 0; i < products.length; i++) {
             var p = products[i];
-            var isPinned = (p.pinned === true || p.pinned === "TRUE" || p.pinned === "true" || p.pinned === 1);
+            var isPinned = (p.pinned === true || p.pinned === "TRUE" || p.pinned === "true" || p.pinned 
+
+=== 1);
             var matchesCategory = (searchQuery !== "" || activeCategory === "الرئيسية" || 
                 (activeCategory === "المنتجات المميزة" ? isPinned : (p.category === activeCategory)));
             
             var pName = (p.name || "").toLowerCase();
             var pBrand = (p.brand || "").toLowerCase();
-            var matchesSearch = (searchQuery === "") || (pName.indexOf(searchQuery) !== -1 || pBrand.indexOf(searchQuery) !== -1);
+            var matchesSearch = (searchQuery === "") || (pName.indexOf(searchQuery) !== -1 || 
+
+pBrand.indexOf(searchQuery) !== -1);
 
             if (matchesCategory && matchesSearch) {
                 matchCount++;
                 var qty = cart[p.id] || 0;
                 var cardImage = (p.images && p.images.length > 0) ? p.images[0] : p.image;
                 var imageContent = (cardImage && cardImage.trim().startsWith('http')) 
-                    ? '<img src="' + cardImage + '" alt="' + p.name + '" onerror="this.onerror=null; this.parentNode.innerHTML=\'' + p.icon + '\';">'
+                    ? '<img src="' + cardImage + '" alt="' + p.name + '" onerror="this.onerror=null; 
+
+this.parentNode.innerHTML=\'' + p.icon + '\';">'
                     : p.icon;
 
                 html += '<div class="product-card" onclick="openProductDetail(' + p.id + ')">' +
@@ -1392,11 +1502,17 @@
                     '<div class="qty-controls" onclick="event.stopPropagation()">';
 
                 if (qty > 0) {
-                    html += '<button class="btn-qty btn-minus" onclick="changeQty(' + p.id + ', -1)">-</button>' +
+                    html += '<button class="btn-qty btn-minus" onclick="changeQty(' + p.id + ', -1)">-
+
+</button>' +
                             '<span class="qty-number">' + qty + '</span>' +
-                            '<button class="btn-qty btn-plus" style="width:26px;" onclick="changeQty(' + p.id + ', 1)">+</button>';
+                            '<button class="btn-qty btn-plus" style="width:26px;" onclick="changeQty(' 
+
++ p.id + ', 1)">+</button>';
                 } else {
-                    html += '<button class="btn-qty btn-plus" onclick="changeQty(' + p.id + ', 1)">+ إضافة للسلة</button>';
+                    html += '<button class="btn-qty btn-plus" onclick="changeQty(' + p.id + ', 1)">+ 
+
+إضافة للسلة</button>';
                 }
 
                 html += '</div></div>';
@@ -1435,14 +1551,18 @@
         document.getElementById('productDetailPage').classList.remove('hidden');
         window.scrollTo(0, 0); 
 
-        var imgList = (p.images && p.images.length > 0) ? p.images : ((p.image && p.image.trim().startsWith('http')) ? [p.image] : []);
+        var imgList = (p.images && p.images.length > 0) ? p.images : ((p.image && p.image.trim
+
+().startsWith('http')) ? [p.image] : []);
         var imageContent = "";
         var imageCount = 0;
 
         if (imgList.length > 0) {
             for (var k = 0; k < imgList.length; k++) {
                 if (imgList[k] && imgList[k].trim().startsWith('http')) {
-                    imageContent += '<img src="' + imgList[k] + '" alt="' + p.name + '" onerror="this.style.display=\'none\';">';
+                    imageContent += '<img src="' + imgList[k] + '" alt="' + p.name + '" 
+
+onerror="this.style.display=\'none\';">';
                     imageCount++;
                 }
             }
@@ -1470,7 +1590,9 @@
             '</div>' +
             '<span class="brand-tag">' + p.brand + '</span>' +
             '<h2 style="color:#0f172a; margin:8px 0; font-size:18px;">' + p.name + '</h2>' +
-            '<div style="color:#0f172a; font-size:18px; font-weight:800;">' + p.price.toLocaleString() + ' د.ع</div>' +
+            '<div style="color:#0f172a; font-size:18px; font-weight:800;">' + p.price.toLocaleString() 
+
++ ' د.ع</div>' +
             '<div class="detail-desc-box">' +
                 '<h3>تفاصيل ومعلومات المنتج:</h3>' +
                 '<p>' + description + '</p>' +
@@ -1490,16 +1612,34 @@
         var html = '<div style="display: flex; flex-direction: column; gap: 8px; margin-top: 12px;">';
         html += '<div class="qty-controls" style="padding: 8px 12px;">';
         if (qty > 0) {
-            html += '<button class="btn-qty btn-minus" style="width:40px; height:40px; font-size:20px;" onclick="changeQty(' + id + ', -1)">-</button>' +
+            html += '<button class="btn-qty btn-minus" style="width:40px; height:40px; font-size:20px;" 
+
+onclick="changeQty(' + id + ', -1)">-</button>' +
                     '<span class="qty-number" style="font-size:18px;">' + qty + '</span>' +
-                    '<button class="btn-qty btn-plus" style="width:40px; height:40px; font-size:20px;" onclick="changeQty(' + id + ', 1)">+</button>';
+                    '<button class="btn-qty btn-plus" style="width:40px; height:40px; font-size:20px;" 
+
+onclick="changeQty(' + id + ', 1)">+</button>';
         } else {
-            html += '<button class="btn-qty btn-plus" style="height:42px; font-size:15px;" onclick="changeQty(' + id + ', 1)">+ إضافة للسلة</button>';
+            html += '<button class="btn-qty btn-plus" style="height:42px; font-size:15px;" 
+
+onclick="changeQty(' + id + ', 1)">+ إضافة للسلة</button>';
         }
         html += '</div>';
 
-        html += '<button onclick="buyNowProduct(' + id + ')" style="width: 100%; padding: 12px; background: #16a34a; color: white; border: none; border-radius: 10px; font-weight: 700; font-size: 14px; cursor: pointer; box-shadow: 0 4px 12px rgba(22, 163, 74, 0.25); transition: all 0.2s ease;">⚡ شراء الآن</button>';
-        html += '<button onclick="openShopPage()" style="width: 100%; padding: 12px; background: #0f172a; color: white; border: none; border-radius: 10px; font-weight: 700; font-size: 14px; cursor: pointer; box-shadow: 0 4px 12px rgba(15, 23, 42, 0.25); transition: all 0.2s ease;">🏠 الصفحة الرئيسية</button>';
+        html += '<button onclick="buyNowProduct(' + id + ')" style="width: 100%; padding: 12px; 
+
+background: #16a34a; color: white; border: none; border-radius: 10px; font-weight: 700; font-size: 
+
+14px; cursor: pointer; box-shadow: 0 4px 12px rgba(22, 163, 74, 0.25); transition: all 0.2s ease;">⚡ شراء 
+
+الآن</button>';
+        html += '<button onclick="openShopPage()" style="width: 100%; padding: 12px; background: 
+
+#0f172a; color: white; border: none; border-radius: 10px; font-weight: 700; font-size: 14px; cursor: 
+
+pointer; box-shadow: 0 4px 12px rgba(15, 23, 42, 0.25); transition: all 0.2s ease;">🏠 الصفحة 
+
+الرئيسية</button>';
         html += '</div>';
         
         box.innerHTML = html;
@@ -1529,7 +1669,9 @@
 
         renderProducts();
         
-        if (!document.getElementById('productDetailPage').classList.contains('hidden') && currentDetailId === id) {
+        if (!document.getElementById('productDetailPage').classList.contains('hidden') && 
+
+currentDetailId === id) {
             renderDetailQtyControls(id);
         }
 
@@ -1586,19 +1728,31 @@
                 html += '<div class="cart-item">' +
                     '<div>' +
                         '<div class="cart-item-title">' + p.name + '</div>' +
-                        '<div class="cart-item-price">' + p.price.toLocaleString() + ' د.ع × ' + qty + ' = ' + itemTotal.toLocaleString() + ' د.ع</div>' +
+                        '<div class="cart-item-price">' + p.price.toLocaleString() + ' د.ع × ' + qty + ' 
+
+= ' + itemTotal.toLocaleString() + ' د.ع</div>' +
                     '</div>' +
                     '<div class="qty-controls">' +
-                        '<button class="btn-qty btn-minus" onclick="changeQty(' + p.id + ', -1)">-</button>' +
+                        '<button class="btn-qty btn-minus" onclick="changeQty(' + p.id + ', -1)">-
+
+</button>' +
                         '<span class="qty-number">' + qty + '</span>' +
-                        '<button class="btn-qty btn-plus" style="width:30px;" onclick="changeQty(' + p.id + ', 1)">+</button>' +
+                        '<button class="btn-qty btn-plus" style="width:30px;" onclick="changeQty(' + 
+
+p.id + ', 1)">+</button>' +
                     '</div>' +
                 '</div>';
             }
         }
 
         if (itemCount === 0) {
-            listContainer.innerHTML = '<div style="text-align:center; padding:30px;"><p style="color:#64748b; margin-bottom:15px;">السلة فارغة حالياً</p><button onclick="openShopPage()" style="background: #0f172a; color: white; border: none; padding: 10px 20px; border-radius: 10px; font-weight: 600; font-size: 13px; cursor: pointer;">تصفح المتجر</button></div>';
+            listContainer.innerHTML = '<div style="text-align:center; padding:30px;"><p 
+
+style="color:#64748b; margin-bottom:15px;">السلة فارغة حالياً</p><button onclick="openShopPage()" 
+
+style="background: #0f172a; color: white; border: none; padding: 10px 20px; border-radius: 10px; font-
+
+weight: 600; font-size: 13px; cursor: pointer;">تصفح المتجر</button></div>';
             document.getElementById('cartSummarySection').style.display = 'none';
             appliedCoupon = null;
             var couponInput = document.getElementById("couponInput");
@@ -1611,7 +1765,9 @@
 
             var discountAmount = 0;
             if (appliedCoupon && appliedCoupon.discount) {
-                if (appliedCoupon.minAmount !== undefined && appliedCoupon.minAmount !== null && appliedCoupon.minAmount !== "" && !isNaN(Number(appliedCoupon.minAmount))) {
+                if (appliedCoupon.minAmount !== undefined && appliedCoupon.minAmount !== null && 
+
+appliedCoupon.minAmount !== "" && !isNaN(Number(appliedCoupon.minAmount))) {
                     if (subTotal < Number(appliedCoupon.minAmount)) {
                         var minAmtVal = Number(appliedCoupon.minAmount);
                         appliedCoupon = null;
@@ -1621,7 +1777,9 @@
                         if (couponStatusMsg) {
                             couponStatusMsg.style.display = "block";
                             couponStatusMsg.style.color = "#ef4444";
-                            couponStatusMsg.innerText = "❌ تم إلغاء كود الخصم لعدم الوصول إلى الحد الأدنى للمبلغ (" + minAmtVal.toLocaleString() + " د.ع)";
+                            couponStatusMsg.innerText = "❌ تم إلغاء كود الخصم لعدم الوصول إلى الحد الأدنى للمبلغ (" + 
+
+minAmtVal.toLocaleString() + " د.ع)";
                         }
                     }
                 }
@@ -1637,9 +1795,15 @@
                 if (discountAmount > 0) {
                     totalBox.innerHTML = '<span>المبلغ الإجمالي:</span>' +
                         '<div style="text-align:left;">' +
-                            '<span style="text-decoration:line-through; color:#94a3b8; font-size:12px; margin-left:6px;">' + subTotal.toLocaleString() + ' د.ع</span>' +
-                            '<span style="color:#16a34a;">' + finalTotal.toLocaleString() + ' د.ع</span>' +
-                            '<div style="font-size:11px; color:#16a34a; font-weight:normal;">(خصم ' + appliedCoupon.discount + '%: -' + discountAmount.toLocaleString() + ' د.ع)</div>' +
+                            '<span style="text-decoration:line-through; color:#94a3b8; font-size:12px; 
+
+margin-left:6px;">' + subTotal.toLocaleString() + ' د.ع</span>' +
+                            '<span style="color:#16a34a;">' + finalTotal.toLocaleString() + ' 
+
+د.ع</span>' +
+                            '<div style="font-size:11px; color:#16a34a; font-weight:normal;">(خصم ' + 
+
+appliedCoupon.discount + '%: -' + discountAmount.toLocaleString() + ' د.ع)</div>' +
                         '</div>';
                 } else {
                     totalBox.innerHTML = '<span>المبلغ الإجمالي:</span>' +
@@ -1688,7 +1852,9 @@
             itemsSummary = itemsSummary.slice(0, -2);
         }
 
-        var discountVal = (appliedCoupon && appliedCoupon.discount) ? appliedCoupon.discount + "%" : "0%";
+        var discountVal = (appliedCoupon && appliedCoupon.discount) ? appliedCoupon.discount + "%" : 
+
+"0%";
         var discountAmount = 0;
         if (appliedCoupon && appliedCoupon.discount) {
             discountAmount = Math.round((subTotal * appliedCoupon.discount) / 100);
