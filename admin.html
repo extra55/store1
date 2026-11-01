@@ -65,7 +65,7 @@
         .btn-support:hover { background: #1da851; }
     </style>
 </head>
-<body oncontextmenu="return false;">
+<body>
 
 <!-- ================= واجهة انتهاء الاشتراك ================= -->
 <div id="expiredCard" class="expired-card hidden">
@@ -104,7 +104,7 @@
 <!-- ================= 2. واجهة التحكم الرئيسية ================= -->
 <div id="dashboardCard" class="card hidden">
     <div class="header-box">
-        <h2 id="dashboardTitle">⚙️ لوحة تحكم المتجر</h2>
+        <h2 id="dashboardTitle">⚙️ إدارة المتجر</h2>
         <button class="btn-logout" onclick="logout()">تسجيل خروج 🚪</button>
     </div>
 
@@ -234,7 +234,13 @@
                 </div>
                 <div class="form-group">
                     <label>الماركة *</label>
-                    <input type="text" id="pBrand" placeholder="مثال: Ordinary" required>
+                    <select id="pBrandSelect" onchange="handleBrandSelectChange()" style="margin-bottom: 8px;" required>
+                        <option value="">اختر الماركة...</option>
+                        <option value="__custom__">➕ ماركة جديدة (كتابة يدوية)...</option>
+                    </select>
+                    <div id="pBrandInputBox" class="hidden">
+                        <input type="text" id="pBrandCustomInput" placeholder="اكتب اسم الماركة الجديدة...">
+                    </div>
                 </div>
             </div>
 
@@ -444,6 +450,9 @@
     var currentStoreIdentity = { mode: "text", title: "متجر كوزمتك", subtitle: "أفضل المنتجات الأصلية والعالمية", logoUrl: "", promoBannerUrl: "", promoBannerCategory: "" };
 
     window.onload = function() {
+        if (sessionStorage.getItem("admin_session")) {
+            showDashboard();
+        }
         checkSubscriptionStatus();
     };
 
@@ -454,18 +463,22 @@
             document.getElementById("expiredMsgText").innerText = message;
         }
         document.getElementById("expiredCard").classList.remove("hidden");
-        localStorage.removeItem("admin_auth");
+        sessionStorage.removeItem("admin_session");
         localStorage.removeItem("cached_products");
         localStorage.removeItem("cached_coupons");
         localStorage.removeItem("cached_categories");
         localStorage.removeItem("cached_hide_all_store");
     }
 
-    async function checkSubscriptionStatus() {
-        if (localStorage.getItem("admin_auth") === "true") {
-            showDashboard();
+    function checkServerResponse(data) {
+        if (data && data.status === "expired") {
+            lockSystem(data.message);
+            return false;
         }
+        return true;
+    }
 
+    async function checkSubscriptionStatus() {
         try {
             var res = await fetch(SHEET_API_URL + "?action=checkSubscription");
             var data = await res.json();
@@ -504,7 +517,7 @@
             }
 
             if (resData.status === "success") {
-                localStorage.setItem("admin_auth", "true");
+                sessionStorage.setItem("admin_session", resData.token);
                 showDashboard();
             } else {
                 throw new Error(resData.message || "بيانات الدخول غير صحيحة");
@@ -556,7 +569,7 @@
 
     function logout() {
         if (!confirm("هل انت متأكد من تسجيل الخروج")) return;
-        localStorage.removeItem("admin_auth");
+        sessionStorage.removeItem("admin_session");
         localStorage.removeItem("cached_products");
         localStorage.removeItem("cached_coupons");
         localStorage.removeItem("cached_categories");
@@ -621,6 +634,7 @@
             if (formTab) formTab.classList.remove("hidden");
             if (tabFormBtn) tabFormBtn.classList.add("active");
             loadCategoriesDropdown();
+            loadBrandDropdown();
         } else if (tabName === 'slideshow') {
             if (slideshowTab) slideshowTab.classList.remove("hidden");
             if (tabSlideshowBtn) tabSlideshowBtn.classList.add("active");
@@ -787,6 +801,7 @@
                 method: "POST",
                 body: JSON.stringify({
                     action: "saveStoreIdentity",
+                    token: sessionStorage.getItem("admin_session"),
                     headerMode: mode,
                     storeTitle: title,
                     storeSubtitle: subtitle,
@@ -796,6 +811,7 @@
                 })
             });
             var data = await res.json();
+            if (!checkServerResponse(data)) return;
             if (data.status === "success") {
                 statusMsg.className = "status-msg status-success";
                 statusMsg.innerText = "✅ تم حفظ إعدادات الهوية والبانر بنجاح";
@@ -904,12 +920,14 @@
                 method: "POST",
                 body: JSON.stringify({
                     action: "saveSlideshowSettings",
+                    token: sessionStorage.getItem("admin_session"),
                     hideSlideshow: hideSlideshow,
                     slideshowSpeed: speed,
                     slideshowCategories: slideshowCategoryRows
                 })
             });
             var data = await res.json();
+            if (!checkServerResponse(data)) return;
             if (data.status === "success") {
                 statusMsg.className = "status-msg status-success";
                 statusMsg.innerText = "✅ تم حفظ إعدادات السلايد شو بنجاح";
@@ -928,7 +946,7 @@
         var container = document.getElementById("ordersContainer");
         container.innerHTML = '<p style="text-align:center; color:#94a3b8; padding:20px;">جار تحميل الطلبات...</p>';
         try {
-            var res = await fetch(SHEET_API_URL + "?action=getOrders");
+            var res = await fetch(SHEET_API_URL + "?action=getOrders&token=" + encodeURIComponent(sessionStorage.getItem("admin_session")));
             var data = await res.json();
             if (data && data.status === "expired") {
                 lockSystem(data.message);
@@ -1008,9 +1026,10 @@
         try {
             var response = await fetch(SHEET_API_URL, {
                 method: "POST",
-                body: JSON.stringify({ action: "updateOrderStatus", invoiceNo: invoiceNo, status: newStatus })
+                body: JSON.stringify({ action: "updateOrderStatus", token: sessionStorage.getItem("admin_session"), invoiceNo: invoiceNo, status: newStatus })
             });
             var resData = await response.json();
+            if (!checkServerResponse(resData)) return;
             if (resData.status === "success") {
                 statusMsg.className = "status-msg status-success";
                 statusMsg.innerText = "✅ تم تحديث حالة الطلب بنجاح";
@@ -1037,9 +1056,10 @@
         try {
             var response = await fetch(SHEET_API_URL, {
                 method: "POST",
-                body: JSON.stringify({ action: "deleteOrder", invoiceNo: invoiceNo })
+                body: JSON.stringify({ action: "deleteOrder", token: sessionStorage.getItem("admin_session"), invoiceNo: invoiceNo })
             });
             var resData = await response.json();
+            if (!checkServerResponse(resData)) return;
             if (resData.status === "success") {
                 statusMsg.className = "status-msg status-success";
                 statusMsg.innerText = "✅ تم حذف الطلب بنجاح";
@@ -1059,7 +1079,7 @@
         var container = document.getElementById("salesContainer");
         container.innerHTML = '<p style="text-align:center; color:#94a3b8; padding:20px;">جار تحميل المبيعات...</p>';
         try {
-            var res = await fetch(SHEET_API_URL + "?action=getSales");
+            var res = await fetch(SHEET_API_URL + "?action=getSales&token=" + encodeURIComponent(sessionStorage.getItem("admin_session")));
             var data = await res.json();
             if (data && data.status === "expired") {
                 lockSystem(data.message);
@@ -1085,7 +1105,6 @@
             var diffTime = now.getTime() - sDate.getTime();
             var diffDays = diffTime / (1000 * 3600 * 24);
 
-            // استبعاد وحذف المبيعات الأقدم من سنة تلقائياً
             if (diffDays > 365) return false;
 
             if (period === "today") {
@@ -1120,7 +1139,6 @@
             '</tr></thead><tbody>';
 
         filtered.forEach(function(s) {
-            // استخراج اليوم والشهر والسنة فقط من التاريخ
             var rawDateObj = new Date(s.date);
             var dateOnlyStr = s.date;
             if (!isNaN(rawDateObj.getTime())) {
@@ -1184,6 +1202,62 @@
             html += `<option value="${cat}">${cat}</option>`;
         });
         selectElement.innerHTML = html;
+    }
+
+    function loadBrandDropdown(selectedBrand = "") {
+        var select = document.getElementById("pBrandSelect");
+        if (!select) return;
+
+        var brands = [];
+        allProducts.forEach(function(p) {
+            if (p.brand && typeof p.brand === 'string') {
+                var b = p.brand.trim();
+                if (b && !brands.includes(b)) {
+                    brands.push(b);
+                }
+            }
+        });
+        brands.sort();
+
+        var html = '<option value="">اختر الماركة...</option>';
+        html += '<option value="__custom__">➕ ماركة جديدة (كتابة يدوية)...</option>';
+        brands.forEach(function(b) {
+            html += `<option value="${b}">${b}</option>`;
+        });
+        select.innerHTML = html;
+
+        var inputBox = document.getElementById("pBrandInputBox");
+        var customInput = document.getElementById("pBrandCustomInput");
+
+        if (selectedBrand) {
+            if (brands.includes(selectedBrand)) {
+                select.value = selectedBrand;
+                inputBox.classList.add("hidden");
+                customInput.value = "";
+            } else {
+                select.value = "__custom__";
+                inputBox.classList.remove("hidden");
+                customInput.value = selectedBrand;
+            }
+        } else {
+            select.value = "";
+            inputBox.classList.add("hidden");
+            customInput.value = "";
+        }
+    }
+
+    function handleBrandSelectChange() {
+        var select = document.getElementById("pBrandSelect");
+        var inputBox = document.getElementById("pBrandInputBox");
+        var customInput = document.getElementById("pBrandCustomInput");
+
+        if (select.value === "__custom__") {
+            inputBox.classList.remove("hidden");
+            customInput.focus();
+        } else {
+            inputBox.classList.add("hidden");
+            customInput.value = "";
+        }
     }
 
     async function loadCategoriesList() {
@@ -1262,15 +1336,11 @@
         try {
             var response = await fetch(SHEET_API_URL, {
                 method: "POST",
-                body: JSON.stringify({ action: "editCategory", oldName: oldName, newName: newName })
+                body: JSON.stringify({ action: "editCategory", token: sessionStorage.getItem("admin_session"), oldName: oldName, newName: newName })
             });
 
             var resData = await response.json();
-
-            if (resData.status === "expired") {
-                lockSystem(resData.message);
-                return;
-            }
+            if (!checkServerResponse(resData)) return;
 
             if (resData.status === "success") {
                 statusMsg.className = "status-msg status-success";
@@ -1306,15 +1376,11 @@
         try {
             var response = await fetch(SHEET_API_URL, {
                 method: "POST",
-                body: JSON.stringify({ action: "addCategory", name: catName })
+                body: JSON.stringify({ action: "addCategory", token: sessionStorage.getItem("admin_session"), name: catName })
             });
 
             var resData = await response.json();
-
-            if (resData.status === "expired") {
-                lockSystem(resData.message);
-                return;
-            }
+            if (!checkServerResponse(resData)) return;
 
             if (resData.status === "success") {
                 statusMsg.className = "status-msg status-success";
@@ -1347,15 +1413,11 @@
         try {
             var response = await fetch(SHEET_API_URL, {
                 method: "POST",
-                body: JSON.stringify({ action: "deleteCategory", name: catName })
+                body: JSON.stringify({ action: "deleteCategory", token: sessionStorage.getItem("admin_session"), name: catName })
             });
 
             var resData = await response.json();
-
-            if (resData.status === "expired") {
-                lockSystem(resData.message);
-                return;
-            }
+            if (!checkServerResponse(resData)) return;
 
             if (resData.status === "success") {
                 statusMsg.className = "status-msg status-success";
@@ -1394,9 +1456,10 @@
         try {
             var response = await fetch(SHEET_API_URL, {
                 method: "POST",
-                body: JSON.stringify({ action: "reorderCategories", categories: allCategories })
+                body: JSON.stringify({ action: "reorderCategories", token: sessionStorage.getItem("admin_session"), categories: allCategories })
             });
             var resData = await response.json();
+            if (!checkServerResponse(resData)) return;
             if (resData.status === "success") {
                 localStorage.setItem("cached_categories", JSON.stringify(allCategories));
                 loadCategoriesDropdown();
@@ -1427,6 +1490,7 @@
         if (cachedProducts) {
             try {
                 allProducts = JSON.parse(cachedProducts);
+                loadBrandDropdown();
                 renderProducts(allProducts.filter(p => !p.hidden && !isStoreHidden));
                 renderHiddenProducts(allProducts.filter(p => p.hidden || isStoreHidden));
             } catch (e) {}
@@ -1438,7 +1502,7 @@
         try {
             await fetchStoreStatus();
 
-            var res = await fetch(SHEET_API_URL + "?action=getAdminProducts");
+            var res = await fetch(SHEET_API_URL + "?action=getAdminProducts&token=" + encodeURIComponent(sessionStorage.getItem("admin_session")));
             var resData = await res.json();
             if (resData && resData.status === "expired") {
                 lockSystem(resData.message);
@@ -1446,6 +1510,7 @@
             }
             allProducts = resData;
             localStorage.setItem("cached_products", JSON.stringify(allProducts));
+            loadBrandDropdown();
             
             renderProducts(allProducts.filter(p => !p.hidden && !isStoreHidden));
             renderHiddenProducts(allProducts.filter(p => p.hidden || isStoreHidden));
@@ -1508,10 +1573,11 @@
         try {
             var response = await fetch(SHEET_API_URL, {
                 method: "POST",
-                body: JSON.stringify({ action: "toggleHideStore", hideAllStore: newStatus })
+                body: JSON.stringify({ action: "toggleHideStore", token: sessionStorage.getItem("admin_session"), hideAllStore: newStatus })
             });
 
             var resData = await response.json();
+            if (!checkServerResponse(resData)) return;
 
             if (resData.status === "success") {
                 isStoreHidden = newStatus;
@@ -1668,7 +1734,7 @@
         }
 
         try {
-            var res = await fetch(SHEET_API_URL + "?action=getCoupons");
+            var res = await fetch(SHEET_API_URL + "?action=getCoupons&token=" + encodeURIComponent(sessionStorage.getItem("admin_session")));
             var resData = await res.json();
             if (resData && resData.status === "expired") {
                 lockSystem(resData.message);
@@ -1736,6 +1802,7 @@
                 method: "POST",
                 body: JSON.stringify({ 
                     action: "addCoupon", 
+                    token: sessionStorage.getItem("admin_session"),
                     code: code, 
                     discount: discount,
                     usageLimit: usageLimit,
@@ -1744,11 +1811,7 @@
             });
 
             var resData = await response.json();
-
-            if (resData.status === "expired") {
-                lockSystem(resData.message);
-                return;
-            }
+            if (!checkServerResponse(resData)) return;
 
             if (resData.status === "success") {
                 statusMsg.className = "status-msg status-success";
@@ -1788,15 +1851,11 @@
         try {
             var response = await fetch(SHEET_API_URL, {
                 method: "POST",
-                body: JSON.stringify({ action: "deleteCoupon", code: code })
+                body: JSON.stringify({ action: "deleteCoupon", token: sessionStorage.getItem("admin_session"), code: code })
             });
 
             var resData = await response.json();
-
-            if (resData.status === "expired") {
-                lockSystem(resData.message);
-                return;
-            }
+            if (!checkServerResponse(resData)) return;
 
             if (resData.status === "success") {
                 statusMsg.className = "status-msg status-success";
@@ -1822,7 +1881,7 @@
         editingCategoryValue = p.category; 
         document.getElementById("pName").value = p.name;
         document.getElementById("pCategory").value = p.category;
-        document.getElementById("pBrand").value = p.brand;
+        loadBrandDropdown(p.brand);
         document.getElementById("pPrice").value = p.price;
         document.getElementById("pIcon").value = p.icon;
         document.getElementById("pDesc").value = p.desc || "";
@@ -1878,6 +1937,8 @@
         document.getElementById("pHidden").checked = false;
         document.getElementById("pPinned").checked = false;
 
+        loadBrandDropdown();
+
         setPreview('prev1', 'removeBtn1', '');
         setPreview('prev2', 'removeBtn2', '');
         setPreview('prev3', 'removeBtn3', '');
@@ -1898,15 +1959,11 @@
         try {
             var response = await fetch(SHEET_API_URL, {
                 method: "POST",
-                body: JSON.stringify({ action: "delete", id: id })
+                body: JSON.stringify({ action: "delete", token: sessionStorage.getItem("admin_session"), id: id })
             });
 
             var resData = await response.json();
-
-            if (resData.status === "expired") {
-                lockSystem(resData.message);
-                return;
-            }
+            if (!checkServerResponse(resData)) return;
 
             if (resData.status === "success") {
                 statusMsg.className = "status-msg status-success";
@@ -2003,12 +2060,21 @@
             var imgData2 = imgFile2 ? await compressAndConvertToBase64(imgFile2) : existingImages[1];
             var imgData3 = imgFile3 ? await compressAndConvertToBase64(imgFile3) : existingImages[2];
 
+            var brandVal = "";
+            var brandSelectVal = document.getElementById('pBrandSelect').value;
+            if (brandSelectVal === "__custom__") {
+                brandVal = document.getElementById('pBrandCustomInput').value.trim();
+            } else {
+                brandVal = brandSelectVal;
+            }
+
             var payload = {
                 action: editingProductId ? "update" : "add",
+                token: sessionStorage.getItem("admin_session"),
                 id: editingProductId,
                 name: document.getElementById('pName').value.trim(),
                 category: document.getElementById('pCategory').value.trim(),
-                brand: document.getElementById('pBrand').value.trim(),
+                brand: brandVal,
                 price: document.getElementById('pPrice').value,
                 icon: document.getElementById('pIcon').value.trim() || "🧴",
                 desc: document.getElementById('pDesc').value.trim(),
@@ -2023,11 +2089,7 @@
             });
 
             var resData = await response.json();
-
-            if (resData.status === "expired") {
-                lockSystem(resData.message);
-                return;
-            }
+            if (!checkServerResponse(resData)) return;
 
             if (resData.status === "success") {
                 statusMsg.className = "status-msg status-success";
