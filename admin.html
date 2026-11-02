@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>لوحة تحكم المتجر - إدارة المنتجات</title>
+    <!-- مكتبة Chart.js للرسوم البيانية التفاعلية -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
         body { background: #0f172a; color: #fff; padding: 10px; max-width: 960px; margin: auto; direction: rtl; }
@@ -30,7 +32,6 @@
         .upload-btn { background: #0284c7; color: white; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; display: inline-block; margin-top: 5px; }
         .preview-img { max-width: 100%; height: 80px; object-fit: contain; margin-top: 8px; border-radius: 6px; display: none; margin-left: auto; margin-right: auto; }
 
-        /* زر حذف الصورة */
         .btn-remove-img { background: #ef4444; color: #fff; border: none; padding: 5px 10px; border-radius: 6px; cursor: pointer; font-size: 11px; font-weight: bold; margin-top: 8px; display: none; }
         .btn-remove-img:hover { background: #dc2626; }
 
@@ -385,7 +386,7 @@
     <!-- تبويب المبيعات -->
     <div id="salesTab" class="hidden">
         <div class="form-group">
-            <label>اختر فترة عرض المبيعات:</label>
+            <label>اختر فترة عرض المبيعات والإحصائيات:</label>
             <select id="salesPeriodSelect" onchange="loadSalesList()" style="background: #0f172a; color: #fff; padding: 10px; border-radius: 8px; border: 1px solid #334155; margin-bottom: 8px;">
                 <option value="today">المبيعات لهذا اليوم</option>
                 <option value="week">آخر أسبوع</option>
@@ -394,6 +395,42 @@
                 <option value="year">آخر سنة</option>
             </select>
         </div>
+
+        <!-- ================= Analytics Dashboard (لوحة الإحصائيات البصرية) ================= -->
+        <div id="analyticsDashboard" style="margin-top: 15px; margin-bottom: 25px;">
+            <!-- كروت ملخص الإحصائيات -->
+            <div style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;">
+                <div style="flex: 1; min-width: 150px; background: #0f172a; padding: 12px; border-radius: 10px; border: 1px solid #334155; text-align: center;">
+                    <span style="font-size: 11px; color: #94a3b8; font-weight: bold;">💵 إجمالي الإيرادات</span>
+                    <h3 id="statTotalRevenue" style="color: #4ade80; margin-top: 5px; font-size: 16px;">0 د.ع</h3>
+                </div>
+                <div style="flex: 1; min-width: 150px; background: #0f172a; padding: 12px; border-radius: 10px; border: 1px solid #334155; text-align: center;">
+                    <span style="font-size: 11px; color: #94a3b8; font-weight: bold;">📅 أكثر الأيام أرباحاً</span>
+                    <h3 id="statBestDay" style="color: #38bdf8; margin-top: 5px; font-size: 15px;">-</h3>
+                </div>
+                <div style="flex: 1; min-width: 150px; background: #0f172a; padding: 12px; border-radius: 10px; border: 1px solid #334155; text-align: center;">
+                    <span style="font-size: 11px; color: #94a3b8; font-weight: bold;">🏆 الأكثر مبيعاً</span>
+                    <h3 id="statTopProduct" style="color: #f59e0b; margin-top: 5px; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">-</h3>
+                </div>
+            </div>
+
+            <!-- حاوية الرسوم البيانية -->
+            <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                <div style="flex: 1; min-width: 280px; background: #0f172a; padding: 12px; border-radius: 10px; border: 1px solid #334155;">
+                    <h4 style="color: #38bdf8; margin-bottom: 10px; font-size: 13px;">📈 مخطط الإيرادات اليومية</h4>
+                    <div style="position: relative; height: 180px;">
+                        <canvas id="salesChart"></canvas>
+                    </div>
+                </div>
+                <div style="flex: 1; min-width: 280px; background: #0f172a; padding: 12px; border-radius: 10px; border: 1px solid #334155;">
+                    <h4 style="color: #38bdf8; margin-bottom: 10px; font-size: 13px;">📦 أكثر المنتجات مبيعاً</h4>
+                    <div style="position: relative; height: 180px;">
+                        <canvas id="productsChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div id="salesContainer">
             <p style="text-align:center; color:#94a3b8; padding:20px;">جار تحميل المبيعات...</p>
         </div>
@@ -432,6 +469,10 @@
     var isStoreHidden = false;
     var slideshowCategoryRows = [];
     var currentStoreIdentity = { mode: "text", title: "متجر كوزمتك", subtitle: "أفضل المنتجات الأصلية والعالمية", logoUrl: "", promoBannerUrl: "", promoBannerCategory: "" };
+
+    // متغيرات حفظ مراجع Chart.js لمنع تداخل الرسوم البيانية عند التحديث
+    var chartInstanceSales = null;
+    var chartInstanceProducts = null;
 
     window.onload = function() {
         if (sessionStorage.getItem("admin_session")) {
@@ -501,6 +542,8 @@
     }
 
     function switchTab(tabName) {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+
         var homeTab = document.getElementById("homeTab");
         var storeSettingsTab = document.getElementById("storeSettingsTab");
         var formTab = document.getElementById("formTab");
@@ -607,13 +650,22 @@
         if (!select) return;
 
         if (allCategories.length === 0) {
-            try {
-                var res = await fetch(SHEET_API_URL + "?action=getCategories");
-                var data = await res.json();
-                if (Array.isArray(data)) {
-                    allCategories = data;
-                }
-            } catch(e) {}
+            var cachedCat = localStorage.getItem("cached_categories");
+            if (cachedCat) {
+                try {
+                    allCategories = JSON.parse(cachedCat);
+                } catch(e) {}
+            }
+            if (allCategories.length === 0) {
+                try {
+                    var res = await fetch(SHEET_API_URL + "?action=getCategories");
+                    var data = await res.json();
+                    if (Array.isArray(data)) {
+                        allCategories = data;
+                        localStorage.setItem("cached_categories", JSON.stringify(allCategories));
+                    }
+                } catch(e) {}
+            }
         }
 
         var html = '<option value="">-- بدون توجيه (عرض فقط) --</option>';
@@ -996,7 +1048,7 @@
 
     async function loadSalesList() {
         var container = document.getElementById("salesContainer");
-        container.innerHTML = '<p style="text-align:center; color:#94a3b8; padding:20px;">جار تحميل المبيعات...</p>';
+        container.innerHTML = '<p style="text-align:center; color:#94a3b8; padding:20px;">جار تحميل المبيعات والإحصائيات...</p>';
         try {
             var res = await fetch(SHEET_API_URL + "?action=getSales&token=" + encodeURIComponent(sessionStorage.getItem("admin_session")));
             var data = await res.json();
@@ -1005,6 +1057,124 @@
             renderSalesList();
         } catch(err) {
             container.innerHTML = '<p style="text-align:center; color:#ef4444; padding:20px;">فشل في جلب المبيعات</p>';
+        }
+    }
+
+    // --- دالة رسم لوحة الإحصائيات البصرية Analytics Dashboard ---
+    function renderAnalyticsDashboard(filteredSales) {
+        var totalRevenue = 0;
+        var salesByDate = {};
+        var productCounts = {};
+
+        filteredSales.forEach(function(s) {
+            var price = Number(s.total) || 0;
+            totalRevenue += price;
+
+            // 1. تجميع الإيرادات حسب التاريخ
+            var rawDateStr = String(s.date).split('T')[0].split(' ')[0];
+            if (rawDateStr) {
+                salesByDate[rawDateStr] = (salesByDate[rawDateStr] || 0) + price;
+            }
+
+            // 2. تحليل وتجميع المنتجات المباعة
+            if (s.items) {
+                // تفتيت العناصر إذا كانت مفصولة بفاصلة أو سطر جديد
+                var itemsList = s.items.split(/,|\n/);
+                itemsList.forEach(function(item) {
+                    var cleaned = item.replace(/\(.*?\)/g, '').replace(/x\d+/gi, '').trim();
+                    if (cleaned) {
+                        productCounts[cleaned] = (productCounts[cleaned] || 0) + 1;
+                    }
+                });
+            }
+        });
+
+        // تحديث كروت الأرقام التلخيصية
+        document.getElementById("statTotalRevenue").innerText = totalRevenue.toLocaleString() + " د.ع";
+
+        // تحديد اليوم الأكثر أرباحاً
+        var dates = Object.keys(salesByDate);
+        var bestDay = "-";
+        if (dates.length > 0) {
+            bestDay = dates.reduce((a, b) => salesByDate[a] > salesByDate[b] ? a : b);
+        }
+        document.getElementById("statBestDay").innerText = bestDay !== "-" ? bestDay : "لا يوجد";
+
+        // تحديد المنتج الأكثر مبيعاً
+        var prods = Object.keys(productCounts);
+        var topProduct = "-";
+        if (prods.length > 0) {
+            topProduct = prods.reduce((a, b) => productCounts[a] > productCounts[b] ? a : b);
+        }
+        document.getElementById("statTopProduct").innerText = topProduct;
+
+        // --- رسم المخطط البياني: الإيرادات حسب الأيام (Line Chart) ---
+        var salesCanvas = document.getElementById('salesChart');
+        if (salesCanvas) {
+            var ctxSales = salesCanvas.getContext('2d');
+            if (chartInstanceSales) chartInstanceSales.destroy();
+            
+            var sortedDates = Object.keys(salesByDate).sort();
+            var salesValues = sortedDates.map(d => salesByDate[d]);
+
+            chartInstanceSales = new Chart(ctxSales, {
+                type: 'line',
+                data: {
+                    labels: sortedDates.length > 0 ? sortedDates : ['لا توجد بيانات'],
+                    datasets: [{
+                        label: 'الإيرادات (د.ع)',
+                        data: salesValues.length > 0 ? salesValues : [0],
+                        borderColor: '#38bdf8',
+                        backgroundColor: 'rgba(56, 189, 248, 0.15)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.3,
+                        pointBackgroundColor: '#0284c7'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { ticks: { color: '#94a3b8', font: { size: 10 } }, grid: { color: '#334155' } },
+                        y: { ticks: { color: '#94a3b8', font: { size: 10 } }, grid: { color: '#334155' } }
+                    }
+                }
+            });
+        }
+
+        // --- رسم المخطط البياني: الأكثر مبيعاً (Bar Chart) ---
+        var productsCanvas = document.getElementById('productsChart');
+        if (productsCanvas) {
+            var ctxProducts = productsCanvas.getContext('2d');
+            if (chartInstanceProducts) chartInstanceProducts.destroy();
+
+            // ترتيب الأقسام للحصول على أعلى 5 منتجات
+            var sortedProducts = Object.keys(productCounts).sort((a, b) => productCounts[b] - productCounts[a]).slice(0, 5);
+            var productValues = sortedProducts.map(p => productCounts[p]);
+
+            chartInstanceProducts = new Chart(ctxProducts, {
+                type: 'bar',
+                data: {
+                    labels: sortedProducts.length > 0 ? sortedProducts : ['لا توجد بيانات'],
+                    datasets: [{
+                        label: 'مرات الشراء',
+                        data: productValues.length > 0 ? productValues : [0],
+                        backgroundColor: '#f59e0b',
+                        borderRadius: 5
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { ticks: { color: '#94a3b8', font: { size: 10 } }, grid: { display: false } },
+                        y: { ticks: { color: '#94a3b8', font: { size: 10 }, stepSize: 1 }, grid: { color: '#334155' } }
+                    }
+                }
+            });
         }
     }
 
@@ -1038,6 +1208,9 @@
             }
             return true;
         });
+
+        // تحديث لوحة الإحصائيات البصرية للبيانات المفترزة
+        renderAnalyticsDashboard(filtered);
 
         if (filtered.length === 0) {
             container.innerHTML = '<p style="text-align:center; color:#94a3b8; padding:20px;">لا توجد مبيعات مسجلة في هذه الفترة</p>';
@@ -1129,6 +1302,12 @@
                 }
             }
         });
+
+        var targetBrand = (selectedBrand && typeof selectedBrand === 'string') ? selectedBrand.trim() : "";
+        if (targetBrand && !brands.includes(targetBrand)) {
+            brands.push(targetBrand);
+        }
+        
         brands.sort();
 
         var html = '<option value="">اختر الماركة...</option>';
@@ -1141,15 +1320,16 @@
         var inputBox = document.getElementById("pBrandInputBox");
         var customInput = document.getElementById("pBrandCustomInput");
 
-        if (selectedBrand) {
-            if (brands.includes(selectedBrand)) {
-                select.value = selectedBrand;
+        if (targetBrand) {
+            var matchedBrand = brands.find(b => b.toLowerCase() === targetBrand.toLowerCase());
+            if (matchedBrand) {
+                select.value = matchedBrand;
                 inputBox.classList.add("hidden");
                 customInput.value = "";
             } else {
                 select.value = "__custom__";
                 inputBox.classList.remove("hidden");
-                customInput.value = selectedBrand;
+                customInput.value = targetBrand;
             }
         } else {
             select.value = "";
@@ -1588,7 +1768,7 @@
         var filtered = allProducts.filter(p => (!p.hidden && !isStoreHidden) && (
             p.name.toLowerCase().includes(q) || 
             p.category.toLowerCase().includes(q) || 
-            p.brand.toLowerCase().includes(q)
+            (p.brand && p.brand.toLowerCase().includes(q))
         ));
         renderProducts(filtered);
     }
@@ -1598,7 +1778,7 @@
         var filtered = allProducts.filter(p => (p.hidden || isStoreHidden) && (
             p.name.toLowerCase().includes(q) || 
             p.category.toLowerCase().includes(q) || 
-            p.brand.toLowerCase().includes(q)
+            (p.brand && p.brand.toLowerCase().includes(q))
         ));
         renderHiddenProducts(filtered);
     }
@@ -1805,6 +1985,7 @@
         document.getElementById("cancelEditBtn").style.display = "block";
 
         switchTab('form');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     function setPreview(elementId, btnId, url) {
