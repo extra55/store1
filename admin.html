@@ -56,27 +56,11 @@
 
         .hidden { display: none !important; }
 
-        /* شاشة انتهاء الاشتراك */
-        .expired-card { text-align: center; border: 1px solid #ef4444; padding: 30px 20px; background: #1e293b; border-radius: 12px; }
-        .expired-icon { font-size: 50px; margin-bottom: 15px; }
-        .expired-title { color: #ef4444; font-size: 20px; margin-bottom: 12px; font-weight: bold; }
-        .expired-text { color: #cbd5e1; font-size: 14px; line-height: 1.6; margin-bottom: 20px; }
         .btn-support { display: inline-block; background: #25d366; color: #fff; text-decoration: none; padding: 12px 24px; border-radius: 10px; font-weight: bold; font-size: 14px; transition: background 0.2s; }
         .btn-support:hover { background: #1da851; }
     </style>
 </head>
 <body>
-
-<!-- ================= واجهة انتهاء الاشتراك ================= -->
-<div id="expiredCard" class="expired-card hidden">
-    <div class="expired-icon">⚠️</div>
-    <div class="expired-title">عذراً، انتهى الاشتراك الشهري</div>
-    <p class="expired-text" id="expiredMsgText">
-        لقد انتهت فترة الاشتراك الخاصة بملف لوحة التحكم.<br>
-        يرجى التواصل مع مدير الخدمة لتجديد الاشتراك وإعادة تفعيل الصفحة.
-    </p>
-    <a href="https://wa.me/9647803342472" target="_blank" class="btn-support">💬 التواصل مع الدعم </a>
-</div>
 
 <!-- ================= 1. واجهة تسجيل الدخول ================= -->
 <div id="loginCard" class="card">
@@ -104,7 +88,7 @@
 <!-- ================= 2. واجهة التحكم الرئيسية ================= -->
 <div id="dashboardCard" class="card hidden">
     <div class="header-box">
-        <h2 id="dashboardTitle">⚙️ لوحة تحكم المتجر</h2>
+        <h2 id="dashboardTitle">⚙️  لوحة تحكم المتجر</h2>
         <button class="btn-logout" onclick="logout()">تسجيل خروج 🚪</button>
     </div>
 
@@ -125,9 +109,9 @@
     <!-- تبويب الصفحة الرئيسية لوحة التحكم -->
     <div id="homeTab">
         <div style="background: #0f172a; padding: 20px; border-radius: 12px; border: 1px solid #334155; text-align: center; margin-bottom: 10px;">
-            <div style="font-size: 36px; margin-bottom: 10px;">📅</div>
-            <h3 style="color: #38bdf8; font-size: 16px; margin-bottom: 8px;">حالة الاشتراك الشهري</h3>
-            <p id="subscriptionInfoText" style="color: #cbd5e1; font-size: 14px; margin-bottom: 15px;">جاري جلب تاريخ انتهاء الاشتراك...</p>
+            <div style="font-size: 36px; margin-bottom: 10px;">⚙️</div>
+            <h3 style="color: #38bdf8; font-size: 16px; margin-bottom: 8px;">مرحباً بك في لوحة التحكم</h3>
+            <p style="color: #cbd5e1; font-size: 14px; margin-bottom: 15px;">يمكنك إدارة منتجاتك، طلباتك، وأقسامك بكل سهولة وأمان.</p>
             <a href="https://wa.me/9647803342472" target="_blank" class="btn-support" style="display: inline-block; background: #25d366; color: #fff; text-decoration: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; font-size: 13px;">💬 مراسلة الدعم</a>
         </div>
     </div>
@@ -191,7 +175,7 @@
         </div>
     </div>
 
-    <!-- تبويب التحكم بالسلايد شو (محدث للأقسام والرفع) -->
+    <!-- تبويب التحكم بالسلايد شو -->
     <div id="slideshowTab" class="hidden">
         <div style="background: #0f172a; padding: 15px; border-radius: 10px; border: 1px solid #334155; margin-bottom: 20px;">
             <label style="color: #38bdf8; font-size: 15px; margin-bottom: 12px; display: block;">🎠 إعدادات السلايد شو العلوي (الأقسام والبـنرات)</label>
@@ -453,42 +437,15 @@
         if (sessionStorage.getItem("admin_session")) {
             showDashboard();
         }
-        checkSubscriptionStatus();
     };
-
-    function lockSystem(message) {
-        document.getElementById("loginCard").classList.add("hidden");
-        document.getElementById("dashboardCard").classList.add("hidden");
-        if (message) {
-            document.getElementById("expiredMsgText").innerText = message;
-        }
-        document.getElementById("expiredCard").classList.remove("hidden");
-        sessionStorage.removeItem("admin_session");
-        localStorage.removeItem("cached_products");
-        localStorage.removeItem("cached_coupons");
-        localStorage.removeItem("cached_categories");
-        localStorage.removeItem("cached_hide_all_store");
-    }
 
     function checkServerResponse(data) {
         if (data && data.status === "expired") {
-            lockSystem(data.message);
+            alert(data.message || "انتهت صلاحية الجلسة، يرجى إعادة تسجيل الدخول.");
+            logout();
             return false;
         }
         return true;
-    }
-
-    async function checkSubscriptionStatus() {
-        try {
-            var res = await fetch(SHEET_API_URL + "?action=checkSubscription");
-            var data = await res.json();
-            if (data.status === "expired") {
-                lockSystem(data.message);
-                return;
-            }
-        } catch (err) {
-            console.error("فحص الاشتراك فشل:", err);
-        }
     }
 
     async function handleLogin(event) {
@@ -511,11 +468,6 @@
 
             var resData = await response.json();
 
-            if (resData.status === "expired") {
-                lockSystem(resData.message);
-                return;
-            }
-
             if (resData.status === "success") {
                 sessionStorage.setItem("admin_session", resData.token);
                 showDashboard();
@@ -536,35 +488,6 @@
         switchTab('home');
         loadCategoriesDropdown();
         loadProductsList();
-    }
-
-    async function loadSubscriptionDetails() {
-        var infoText = document.getElementById("subscriptionInfoText");
-        if (!infoText) return;
-        infoText.innerText = "يرجى الانتظار جار جلب تاريخ انتهاء الاشتراك ...";
-        try {
-            var res = await fetch(SHEET_API_URL + "?action=checkSubscription");
-            var data = await res.json();
-            if (data.status === "expired") {
-                lockSystem(data.message);
-                return;
-            }
-            var expiryDateStr = data.expiryDate || data.date || data.expiry || data.message;
-            if (expiryDateStr && expiryDateStr !== "success" && expiryDateStr !== "active" && !expiryDateStr.includes("نجاح")) {
-                var d = new Date(expiryDateStr);
-                if (!isNaN(d.getTime())) {
-                    var year = d.getFullYear();
-                    var month = String(d.getMonth() + 1).padStart(2, '0');
-                    var day = String(d.getDate()).padStart(2, '0');
-                    expiryDateStr = year + '-' + month + '-' + day;
-                }
-                infoText.innerHTML = `تاريخ انتهاء الحساب: <span style="color: #4ade80; font-weight: bold;">${expiryDateStr}</span>`;
-            } else {
-                infoText.innerHTML = `تاريخ انتهاء الحساب: <span style="color: #fca5a5; font-weight: bold;">غير متوفر في الشيت</span>`;
-            }
-        } catch (err) {
-            infoText.innerHTML = `تاريخ انتهاء الحساب: <span style="color: #fca5a5; font-weight: bold;">غير متوفر في الشيت</span>`;
-        }
     }
 
     function logout() {
@@ -625,7 +548,6 @@
         if (tabName === 'home') {
             if (homeTab) homeTab.classList.remove("hidden");
             if (tabHomeBtn) tabHomeBtn.classList.add("active");
-            loadSubscriptionDetails();
         } else if (tabName === 'storeSettings') {
             if (storeSettingsTab) storeSettingsTab.classList.remove("hidden");
             if (tabStoreSettingsBtn) tabStoreSettingsBtn.classList.add("active");
@@ -948,10 +870,7 @@
         try {
             var res = await fetch(SHEET_API_URL + "?action=getOrders&token=" + encodeURIComponent(sessionStorage.getItem("admin_session")));
             var data = await res.json();
-            if (data && data.status === "expired") {
-                lockSystem(data.message);
-                return;
-            }
+            if (!checkServerResponse(data)) return;
             allOrders = Array.isArray(data) ? data : [];
             renderOrders();
         } catch(err) {
@@ -1081,10 +1000,7 @@
         try {
             var res = await fetch(SHEET_API_URL + "?action=getSales&token=" + encodeURIComponent(sessionStorage.getItem("admin_session")));
             var data = await res.json();
-            if (data && data.status === "expired") {
-                lockSystem(data.message);
-                return;
-            }
+            if (!checkServerResponse(data)) return;
             allSales = Array.isArray(data) ? data : [];
             renderSalesList();
         } catch(err) {
@@ -1181,10 +1097,6 @@
         try {
             var res = await fetch(SHEET_API_URL + "?action=getCategories");
             var data = await res.json();
-            if (data && data.status === "expired") {
-                lockSystem(data.message);
-                return;
-            }
             if (Array.isArray(data)) {
                 allCategories = data;
                 localStorage.setItem("cached_categories", JSON.stringify(allCategories));
@@ -1276,10 +1188,6 @@
         try {
             var res = await fetch(SHEET_API_URL + "?action=getCategories");
             var data = await res.json();
-            if (data && data.status === "expired") {
-                lockSystem(data.message);
-                return;
-            }
             if (Array.isArray(data)) {
                 allCategories = data;
                 localStorage.setItem("cached_categories", JSON.stringify(allCategories));
@@ -1504,10 +1412,7 @@
 
             var res = await fetch(SHEET_API_URL + "?action=getAdminProducts&token=" + encodeURIComponent(sessionStorage.getItem("admin_session")));
             var resData = await res.json();
-            if (resData && resData.status === "expired") {
-                lockSystem(resData.message);
-                return;
-            }
+            if (!checkServerResponse(resData)) return;
             allProducts = resData;
             localStorage.setItem("cached_products", JSON.stringify(allProducts));
             loadBrandDropdown();
@@ -1736,10 +1641,7 @@
         try {
             var res = await fetch(SHEET_API_URL + "?action=getCoupons&token=" + encodeURIComponent(sessionStorage.getItem("admin_session")));
             var resData = await res.json();
-            if (resData && resData.status === "expired") {
-                lockSystem(resData.message);
-                return;
-            }
+            if (!checkServerResponse(resData)) return;
             allCoupons = resData;
             localStorage.setItem("cached_coupons", JSON.stringify(allCoupons));
             renderCoupons(allCoupons);
