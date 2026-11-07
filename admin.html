@@ -59,6 +59,11 @@
 
         .btn-support { display: inline-block; background: #25d366; color: #fff; text-decoration: none; padding: 12px 24px; border-radius: 10px; font-weight: bold; font-size: 14px; transition: background 0.2s; }
         .btn-support:hover { background: #1da851; }
+
+        .expired-card { background: #7f1d1d; border: 1px solid #ef4444; border-radius: 12px; padding: 25px; text-align: center; margin-bottom: 15px; }
+        .expired-icon { font-size: 45px; margin-bottom: 10px; }
+        .expired-title { color: #fca5a5; font-size: 20px; margin-bottom: 10px; }
+        .expired-desc { color: #fecaca; font-size: 13px; line-height: 1.6; margin-bottom: 15px; }
     </style>
 </head>
 <body>
@@ -94,7 +99,7 @@
     </div>
 
     <!-- الشريط العلوي للتنقل -->
-    <div class="nav-tabs">
+    <div class="nav-tabs" id="navTabsContainer">
         <button class="tab-btn active" id="tabHomeBtn" onclick="switchTab('home')">🏠 الرئيسية</button>
         <button class="tab-btn" id="tabStoreSettingsBtn" onclick="switchTab('storeSettings')">🏪 الهوية والبانر</button>
         <button class="tab-btn" id="tabFormBtn" onclick="switchTab('form')">➕ إضافة منتج</button>
@@ -109,12 +114,13 @@
 
     <!-- تبويب الصفحة الرئيسية لوحة التحكم -->
     <div id="homeTab">
-        <div style="background: #0f172a; padding: 20px; border-radius: 12px; border: 1px solid #334155; text-align: center; margin-bottom: 10px;">
+        <div id="homeDefaultContent" style="background: #0f172a; padding: 20px; border-radius: 12px; border: 1px solid #334155; text-align: center; margin-bottom: 10px;">
             <div style="font-size: 36px; margin-bottom: 10px;">⚙️</div>
             <h3 style="color: #38bdf8; font-size: 16px; margin-bottom: 8px;">مرحباً بك في لوحة التحكم</h3>
             <p style="color: #cbd5e1; font-size: 14px; margin-bottom: 15px;">يمكنك إدارة منتجاتك، طلباتك، وأقسامك بكل سهولة وأمان.</p>
             <a href="https://wa.me/9647803342472" target="_blank" class="btn-support" style="display: inline-block; background: #25d366; color: #fff; text-decoration: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; font-size: 13px;">💬 مراسلة الدعم</a>
         </div>
+        <div id="homeExpiredContent" class="hidden"></div>
     </div>
 
     <!-- تبويب هوية المتجر والبانر الترويجي -->
@@ -245,13 +251,11 @@
                 <textarea id="pDesc" rows="3" placeholder="اكتب تفاصيل ومميزات المنتج هنا..."></textarea>
             </div>
 
-            <!-- خيار إخفاء هذا المنتج من المتجر -->
             <div class="form-group" style="display: flex; align-items: center; gap: 8px; background: #0f172a; padding: 10px; border-radius: 8px; border: 1px solid #334155; margin-bottom: 10px;">
                 <input type="checkbox" id="pHidden" style="width: 18px; height: 18px; cursor: pointer;">
                 <label for="pHidden" style="margin-bottom: 0; cursor: pointer; color: #fca5a5;">🙈 إخفاء هذا المنتج من المتجر</label>
             </div>
 
-            <!-- خيار المنتجات المميزة -->
             <div class="form-group" style="display: flex; align-items: center; gap: 8px; background: #0f172a; padding: 10px; border-radius: 8px; border: 1px solid #334155;">
                 <input type="checkbox" id="pPinned" style="width: 18px; height: 18px; cursor: pointer;">
                 <label for="pPinned" style="margin-bottom: 0; cursor: pointer; color: #38bdf8;">⭐ تعيين كمنتج مميز (يظهر في قسم المنتجات المميزة)</label>
@@ -396,9 +400,7 @@
             </select>
         </div>
 
-        <!-- ================= Analytics Dashboard (لوحة الإحصائيات البصرية) ================= -->
         <div id="analyticsDashboard" style="margin-top: 15px; margin-bottom: 25px;">
-            <!-- كروت ملخص الإحصائيات -->
             <div style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;">
                 <div style="flex: 1; min-width: 150px; background: #0f172a; padding: 12px; border-radius: 10px; border: 1px solid #334155; text-align: center;">
                     <span style="font-size: 11px; color: #94a3b8; font-weight: bold;">💵 إجمالي الإيرادات</span>
@@ -414,7 +416,6 @@
                 </div>
             </div>
 
-            <!-- حاوية الرسوم البيانية -->
             <div style="display: flex; gap: 12px; flex-wrap: wrap;">
                 <div style="flex: 1; min-width: 280px; background: #0f172a; padding: 12px; border-radius: 10px; border: 1px solid #334155;">
                     <h4 style="color: #38bdf8; margin-bottom: 10px; font-size: 13px;">📈 مخطط الإيرادات اليومية</h4>
@@ -470,9 +471,9 @@
     var slideshowCategoryRows = [];
     var currentStoreIdentity = { mode: "text", title: "متجر كوزمتك", subtitle: "أفضل المنتجات الأصلية والعالمية", logoUrl: "", promoBannerUrl: "", promoBannerCategory: "" };
 
-    // متغيرات حفظ مراجع Chart.js لمنع تداخل الرسوم البيانية عند التحديث
     var chartInstanceSales = null;
     var chartInstanceProducts = null;
+    var isSubscriptionBlocked = false;
 
     window.onload = function() {
         if (sessionStorage.getItem("admin_session")) {
@@ -482,11 +483,59 @@
 
     function checkServerResponse(data) {
         if (data && data.status === "expired") {
-            alert(data.message || "انتهت صلاحية الجلسة، يرجى إعادة تسجيل الدخول.");
-            logout();
+            lockDashboardTabs(data.message);
             return false;
         }
         return true;
+    }
+
+    function lockDashboardTabs(customMsg) {
+        isSubscriptionBlocked = true;
+        
+        // مسح الكاش تماماً لكي لا تظهر أي بيانات قديمة
+        localStorage.removeItem("cached_products");
+        localStorage.removeItem("cached_coupons");
+        localStorage.removeItem("cached_categories");
+        localStorage.removeItem("cached_hide_all_store");
+
+        var tabButtons = document.querySelectorAll("#navTabsContainer .tab-btn");
+        tabButtons.forEach(function(btn) {
+            if (btn.id !== "tabHomeBtn") {
+                btn.style.display = "none";
+            }
+        });
+
+        switchTab('home');
+
+        var defaultContent = document.getElementById("homeDefaultContent");
+        var expiredContent = document.getElementById("homeExpiredContent");
+        
+        if (defaultContent) defaultContent.classList.add("hidden");
+        if (expiredContent) {
+            expiredContent.classList.remove("hidden");
+            expiredContent.innerHTML = `
+                <div class="expired-card">
+                    <div class="expired-icon">⏳</div>
+                    <h2 class="expired-title">عذراً، انتهت فترة الاشتراك!</h2>
+                    <p class="expired-desc">
+                        لتجديد الاشتراك واستعادة صلاحية الوصول لكافة أقسام لوحة التحكم، يرجى التواصل مع الدعم الفني.
+                    </p>
+                    <a href="https://wa.me/9647803342472" target="_blank" class="btn-support">💬 التواصل مع الدعم الفني للتجديد</a>
+                </div>
+            `;
+        }
+    }
+
+    async function checkInitialSubscriptionServer() {
+        try {
+            var res = await fetch(SHEET_API_URL + "?action=getSettings");
+            var data = await res.json();
+            if (data && data.status === "expired") {
+                lockDashboardTabs(data.message);
+                return true;
+            }
+        } catch(e) {}
+        return false;
     }
 
     async function handleLogin(event) {
@@ -511,6 +560,7 @@
 
             if (resData.status === "success") {
                 sessionStorage.setItem("admin_session", resData.token);
+                sessionStorage.setItem("admin_role", resData.role || "Manager");
                 showDashboard();
             } else {
                 throw new Error(resData.message || "بيانات الدخول غير صحيحة");
@@ -523,17 +573,42 @@
         }
     }
 
-    function showDashboard() {
+    async function showDashboard() {
         document.getElementById("loginCard").classList.add("hidden");
         document.getElementById("dashboardCard").classList.remove("hidden");
-        switchTab('home');
-        loadCategoriesDropdown();
-        loadProductsList();
+        
+        var role = sessionStorage.getItem("admin_role") || "Manager";
+        
+        if (role === "Preparer") {
+            // إخفاء الأزرار والتبويبات غير المصرح بها لحساب مجهز الطلبات
+            var tabsToHide = ["tabHomeBtn", "tabStoreSettingsBtn", "tabFormBtn", "tabSlideshowBtn", "tabListBtn", "tabHiddenBtn", "tabCategoriesBtn", "tabCouponsBtn", "tabSalesBtn"];
+            tabsToHide.forEach(function(id) {
+                var el = document.getElementById(id);
+                if(el) el.style.display = "none";
+            });
+            document.getElementById("dashboardTitle").innerText = "📦 لوحة المجهز";
+            switchTab('orders');
+        } else {
+            switchTab('home');
+        }
+
+        // 1. تحقق من الاشتراك وانتظر النتيجة أولاً قبل عرض أي شيء
+        var isExpired = await checkInitialSubscriptionServer();
+        if (isExpired) return;
+
+        // 2. تحميل البيانات العادية فقط إذا كان الاشتراك ساريـاً
+        if (role !== "Preparer") {
+            loadCategoriesDropdown();
+            loadProductsList();
+        } else {
+            loadOrdersList();
+        }
     }
 
     function logout() {
         if (!confirm("هل انت متأكد من تسجيل الخروج")) return;
         sessionStorage.removeItem("admin_session");
+        sessionStorage.removeItem("admin_role");
         localStorage.removeItem("cached_products");
         localStorage.removeItem("cached_coupons");
         localStorage.removeItem("cached_categories");
@@ -542,6 +617,16 @@
     }
 
     function switchTab(tabName) {
+        if (isSubscriptionBlocked && tabName !== 'home') {
+            switchTab('home');
+            return;
+        }
+        
+        var role = sessionStorage.getItem("admin_role") || "Manager";
+        if (role === "Preparer" && tabName !== 'orders') {
+            tabName = 'orders'; // إجبار المجهز على البقاء في الطلبات
+        }
+
         window.scrollTo({ top: 0, behavior: 'smooth' });
 
         var homeTab = document.getElementById("homeTab");
@@ -660,6 +745,7 @@
                 try {
                     var res = await fetch(SHEET_API_URL + "?action=getCategories");
                     var data = await res.json();
+                    if (!checkServerResponse(data)) return;
                     if (Array.isArray(data)) {
                         allCategories = data;
                         localStorage.setItem("cached_categories", JSON.stringify(allCategories));
@@ -680,6 +766,7 @@
         try {
             var res = await fetch(SHEET_API_URL + "?action=getSettings");
             var data = await res.json();
+            if (!checkServerResponse(data)) return;
             if (data) {
                 currentStoreIdentity.mode = data.headerMode || "text";
                 currentStoreIdentity.title = data.storeTitle || "متجر كوزمتك";
@@ -805,6 +892,7 @@
         try {
             var res = await fetch(SHEET_API_URL + "?action=getSettings");
             var settings = await res.json();
+            if (!checkServerResponse(settings)) return;
             if (settings) {
                 document.getElementById("hideSlideshowCheck").checked = !!settings.hideSlideshow;
                 document.getElementById("slideshowSpeedInput").value = settings.slideshowSpeed || 4;
@@ -957,6 +1045,8 @@
         }
 
         var html = "";
+        var role = sessionStorage.getItem("admin_role") || "Manager";
+        
         filtered.forEach(function(o) {
             var statusColor = "#f59e0b";
             if (o.status === "تم التجهيز") statusColor = "#38bdf8";
@@ -980,7 +1070,13 @@
                     <div style="display:flex; gap:6px; flex-wrap:wrap; border-top:1px solid #334155; padding-top:10px;">
                         <button class="btn-action" style="background:#38bdf8; color:#0f172a;" onclick="updateOrderStatus('${o.invoiceNo}', 'تم التجهيز')">🛠️ تم التجهيز</button>
                         <button class="btn-action" style="background:#22c55e; color:#fff;" onclick="updateOrderStatus('${o.invoiceNo}', 'تم التسليم')">✅ تم التسليم</button>
-                        <button class="btn-action btn-delete" onclick="deleteOrderAdmin('${o.invoiceNo}')">🗑️ حذف</button>
+            `;
+            
+            if (role !== "Preparer") {
+                html += `<button class="btn-action btn-delete" onclick="deleteOrderAdmin('${o.invoiceNo}')">🗑️ حذف</button>`;
+            }
+            
+            html += `
                     </div>
                 </div>
             `;
@@ -1060,7 +1156,6 @@
         }
     }
 
-    // --- دالة رسم لوحة الإحصائيات البصرية Analytics Dashboard ---
     function renderAnalyticsDashboard(filteredSales) {
         var totalRevenue = 0;
         var salesByDate = {};
@@ -1070,15 +1165,12 @@
             var price = Number(s.total) || 0;
             totalRevenue += price;
 
-            // 1. تجميع الإيرادات حسب التاريخ
             var rawDateStr = String(s.date).split('T')[0].split(' ')[0];
             if (rawDateStr) {
                 salesByDate[rawDateStr] = (salesByDate[rawDateStr] || 0) + price;
             }
 
-            // 2. تحليل وتجميع المنتجات المباعة
             if (s.items) {
-                // تفتيت العناصر إذا كانت مفصولة بفاصلة أو سطر جديد
                 var itemsList = s.items.split(/,|\n/);
                 itemsList.forEach(function(item) {
                     var cleaned = item.replace(/\(.*?\)/g, '').replace(/x\d+/gi, '').trim();
@@ -1089,10 +1181,8 @@
             }
         });
 
-        // تحديث كروت الأرقام التلخيصية
         document.getElementById("statTotalRevenue").innerText = totalRevenue.toLocaleString() + " د.ع";
 
-        // تحديد اليوم الأكثر أرباحاً
         var dates = Object.keys(salesByDate);
         var bestDay = "-";
         if (dates.length > 0) {
@@ -1100,7 +1190,6 @@
         }
         document.getElementById("statBestDay").innerText = bestDay !== "-" ? bestDay : "لا يوجد";
 
-        // تحديد المنتج الأكثر مبيعاً
         var prods = Object.keys(productCounts);
         var topProduct = "-";
         if (prods.length > 0) {
@@ -1108,7 +1197,6 @@
         }
         document.getElementById("statTopProduct").innerText = topProduct;
 
-        // --- رسم المخطط البياني: الإيرادات حسب الأيام (Line Chart) ---
         var salesCanvas = document.getElementById('salesChart');
         if (salesCanvas) {
             var ctxSales = salesCanvas.getContext('2d');
@@ -1144,13 +1232,11 @@
             });
         }
 
-        // --- رسم المخطط البياني: الأكثر مبيعاً (Bar Chart) ---
         var productsCanvas = document.getElementById('productsChart');
         if (productsCanvas) {
             var ctxProducts = productsCanvas.getContext('2d');
             if (chartInstanceProducts) chartInstanceProducts.destroy();
 
-            // ترتيب الأقسام للحصول على أعلى 5 منتجات
             var sortedProducts = Object.keys(productCounts).sort((a, b) => productCounts[b] - productCounts[a]).slice(0, 5);
             var productValues = sortedProducts.map(p => productCounts[p]);
 
@@ -1209,7 +1295,6 @@
             return true;
         });
 
-        // تحديث لوحة الإحصائيات البصرية للبيانات المفترزة
         renderAnalyticsDashboard(filtered);
 
         if (filtered.length === 0) {
@@ -1270,6 +1355,7 @@
         try {
             var res = await fetch(SHEET_API_URL + "?action=getCategories");
             var data = await res.json();
+            if (!checkServerResponse(data)) return;
             if (Array.isArray(data)) {
                 allCategories = data;
                 localStorage.setItem("cached_categories", JSON.stringify(allCategories));
@@ -1353,6 +1439,7 @@
     }
 
     async function loadCategoriesList() {
+        if (isSubscriptionBlocked) return;
         var container = document.getElementById("categoriesListContainer");
         var cachedCat = localStorage.getItem("cached_categories");
 
@@ -1368,6 +1455,7 @@
         try {
             var res = await fetch(SHEET_API_URL + "?action=getCategories");
             var data = await res.json();
+            if (!checkServerResponse(data)) return;
             if (Array.isArray(data)) {
                 allCategories = data;
                 localStorage.setItem("cached_categories", JSON.stringify(allCategories));
@@ -1565,6 +1653,7 @@
     }
 
     async function loadProductsList() {
+        if (isSubscriptionBlocked) return;
         var container = document.getElementById("productsContainer");
         var hiddenContainer = document.getElementById("hiddenProductsContainer");
 
@@ -1617,6 +1706,7 @@
         try {
             var res = await fetch(SHEET_API_URL + "?action=getSettings");
             var data = await res.json();
+            if (!checkServerResponse(data)) return;
             isStoreHidden = !!data.hideAllStore;
             localStorage.setItem("cached_hide_all_store", isStoreHidden ? "true" : "false");
             updateStoreStatusUI();
