@@ -91,6 +91,74 @@
         body.light-mode tr { background: #ffffff !important; }
         body.light-mode th { background: #e2e8f0 !important; color: #0284c7 !important; border-color: #cbd5e1 !important; }
         body.light-mode td { border-color: #cbd5e1 !important; color: #0f172a !important; }
+
+/* زر الهامبرغر للموبايل (مخفي افتراضياً على الشاشات الكبيرة) */
+.mobile-menu-btn {
+    display: none;
+    background: #1e293b;
+    color: #38bdf8;
+    border: 1px solid #334155;
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+/* الخلفية المظللة */
+.sidebar-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(2px);
+    z-index: 1999;
+}
+.sidebar-overlay.active {
+    display: block;
+}
+
+/* تحويل التبويبات إلى قائمة جانبية في الموبايل */
+@media (max-width: 768px) {
+    .mobile-menu-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    #navTabsContainer {
+        position: fixed;
+        top: 0;
+        right: -280px; /* مخفية خارج الشاشة جهة اليمين */
+        width: 260px;
+        height: 100vh;
+        background: #0f172a;
+        border-left: 1px solid #334155;
+        flex-direction: column;
+        justify-content: flex-start;
+        padding: 60px 15px 20px 15px;
+        gap: 10px;
+        z-index: 2000;
+        transition: right 0.3s ease;
+        overflow-y: auto;
+    }
+
+    /* ظهور القائمة عند التفعيل */
+    #navTabsContainer.active {
+        right: 0;
+    }
+
+    /* جعل الأزرار بعرض كامل داخل القائمة */
+    #navTabsContainer .tab-btn {
+        width: 100%;
+        text-align: right;
+        padding: 12px 15px;
+        border-radius: 8px;
+    }
+}
     </style>
 </head>
 <body>
@@ -122,8 +190,14 @@
 <div id="dashboardCard" class="card hidden">
     <div class="header-box">
         <h2 id="dashboardTitle">⚙️  لوحة تحكم المتجر</h2>
+
         <button class="btn-logout" onclick="logout()">تسجيل خروج 🚪</button>
     </div>
+
+<!-- زر القائمة يظهر في أعلى الشاشة عند استخدام الموبايل -->
+        <button id="menuToggleBtn" class="mobile-menu-btn" onclick="toggleMobileMenu()">
+            ☰ 
+        </button>
 
 <!-- شريط التنبيه العام لجميع التبويبات -->
 <div id="subWarningBanner" class="hidden" style="background: rgba(239, 68, 68, 0.15); border: 1px solid #ef4444; color: #fca5a5; border-radius: 10px; padding: 10px 16px; margin: 15px 15px 0 15px; display: flex; justify-content: space-between; align-items: center; gap: 10px; z-index: 1000;">
@@ -136,6 +210,9 @@
         <button type="button" onclick="dismissWarningBanner()" style="background: none; border: none; color: #fca5a5; cursor: pointer; font-size: 16px; padding: 0 4px; line-height: 1;" title="إغلاق التنبيه مؤقتاً">✕</button>
     </div>
 </div>
+
+    <!-- الخلفية المظللة (مباشرة قبل حاوية التبويبات) -->
+    <div id="sidebarOverlay" class="sidebar-overlay" onclick="closeMobileMenu()"></div>
 
     <!-- الشريط العلوي للتنقل -->
     <div class="nav-tabs" id="navTabsContainer">
@@ -884,6 +961,33 @@
             loadStoreIdentityData(); // 👈 هذا السطر لتحديث بيانات الاشتراك فور فتح التبويب
         }
     }
+
+    function toggleMobileMenu() {
+    var container = document.getElementById("navTabsContainer");
+    var overlay = document.getElementById("sidebarOverlay");
+    if (container && overlay) {
+        container.classList.toggle("active");
+        overlay.classList.toggle("active");
+    }
+}
+
+    function closeMobileMenu() {
+    var container = document.getElementById("navTabsContainer");
+    var overlay = document.getElementById("sidebarOverlay");
+    if (container && overlay) {
+        container.classList.remove("active");
+        overlay.classList.remove("active");
+    }
+}
+
+// تعديل دالة switchTab الحالية لإغلاق القائمة الجانبية تلقائياً عند اختيار تبويب
+var originalSwitchTab = switchTab;
+switchTab = function(tabName) {
+    closeMobileMenu(); // إغلاق القائمة عند اختيار تبويب
+    if (typeof originalSwitchTab === "function") {
+        originalSwitchTab(tabName);
+    }
+};
 
     async function handleChangePassword(event) {
         event.preventDefault();
