@@ -8,26 +8,26 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
-        body { background: #0f172a; color: #fff; padding: 10px; max-width: 960px; margin: auto; direction: rtl; }
+        body { background: #0f172a; color: #fff; padding: 10px; max-width: 960px; margin: auto; direction: rtl; transition: background 0.3s, color 0.3s; }
         
-        .card { background: #1e293b; border-radius: 12px; padding: 20px; border: 1px solid #334155; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+        .card { background: #1e293b; border-radius: 12px; padding: 20px; border: 1px solid #334155; box-shadow: 0 4px 15px rgba(0,0,0,0.3); transition: background 0.3s, border-color 0.3s; }
         .header-box { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #0284c7; padding-bottom: 8px; margin-bottom: 15px; }
         h2 { color: #38bdf8; font-size: 18px; }
         
         /* Nav Tabs */
-        .nav-tabs { display: flex; gap: 6px; margin-bottom: 15px; background: #0f172a; padding: 5px; border-radius: 10px; flex-wrap: wrap; }
+        .nav-tabs { display: flex; gap: 6px; margin-bottom: 15px; background: #0f172a; padding: 5px; border-radius: 10px; flex-wrap: wrap; transition: background 0.3s; }
         .tab-btn { flex: 1; min-width: 95px; padding: 10px 5px; background: transparent; color: #94a3b8; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 12px; transition: 0.2s; text-align: center; }
         .tab-btn.active { background: #0284c7; color: #fff; }
 
         .form-group { margin-bottom: 15px; }
         label { display: block; font-size: 13px; color: #cbd5e1; margin-bottom: 6px; font-weight: bold; }
-        input, select, textarea { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #334155; background: #0f172a; color: #fff; font-size: 13px; outline: none; transition: border-color 0.2s; }
+        input, select, textarea { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #334155; background: #0f172a; color: #fff; font-size: 13px; outline: none; transition: border-color 0.2s, background 0.3s, color 0.3s; }
         input:focus, textarea:focus, select:focus { border-color: #38bdf8; }
         
         .row-2 { display: flex; gap: 10px; }
         .row-2 > div { flex: 1; }
 
-        .upload-box { background: #0f172a; border: 1px dashed #38bdf8; padding: 10px; border-radius: 8px; text-align: center; margin-bottom: 10px; }
+        .upload-box { background: #0f172a; border: 1px dashed #38bdf8; padding: 10px; border-radius: 8px; text-align: center; margin-bottom: 10px; transition: background 0.3s; }
         .upload-box input[type="file"] { display: none; }
         .upload-btn { background: #0284c7; color: white; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; display: inline-block; margin-top: 5px; }
         .preview-img { max-width: 100%; height: 80px; object-fit: contain; margin-top: 8px; border-radius: 6px; display: none; margin-left: auto; margin-right: auto; }
@@ -45,7 +45,7 @@
         .status-loading { background: #1e40af; color: #93c5fd; }
 
         /* Product List Styling */
-        .product-item { display: flex; align-items: center; justify-content: space-between; background: #0f172a; padding: 10px 12px; border-radius: 8px; border: 1px solid #334155; margin-bottom: 10px; gap: 10px; }
+        .product-item { display: flex; align-items: center; justify-content: space-between; background: #0f172a; padding: 10px 12px; border-radius: 8px; border: 1px solid #334155; margin-bottom: 10px; gap: 10px; transition: background 0.3s, border-color 0.3s; }
         .product-item img { width: 50px; height: 50px; object-fit: cover; border-radius: 6px; background: #1e293b; }
         .product-info { flex: 1; }
         .product-info h4 { font-size: 14px; color: #f8fafc; }
@@ -64,6 +64,33 @@
         .expired-icon { font-size: 45px; margin-bottom: 10px; }
         .expired-title { color: #fca5a5; font-size: 20px; margin-bottom: 10px; }
         .expired-desc { color: #fecaca; font-size: 13px; line-height: 1.6; margin-bottom: 15px; }
+
+        /* Light Mode Styles */
+        body.light-mode { background: #f1f5f9; color: #0f172a; }
+        body.light-mode .card { background: #ffffff; border-color: #cbd5e1; box-shadow: 0 4px 15px rgba(0,0,0,0.06); }
+        body.light-mode h2 { color: #0284c7; }
+        body.light-mode label { color: #334155; }
+        body.light-mode input, body.light-mode select, body.light-mode textarea { background: #f8fafc; color: #0f172a; border-color: #cbd5e1; }
+        body.light-mode input:focus, body.light-mode select:focus, body.light-mode textarea:focus { border-color: #0284c7; }
+        body.light-mode .nav-tabs { background: #e2e8f0; }
+        body.light-mode .tab-btn { color: #64748b; }
+        body.light-mode .tab-btn.active { background: #0284c7; color: #ffffff; }
+        body.light-mode .upload-box { background: #f8fafc; border-color: #0284c7; }
+        body.light-mode .upload-box span { color: #475569 !important; }
+        body.light-mode .product-item { background: #f8fafc; border-color: #cbd5e1; }
+        body.light-mode .product-info h4 { color: #0f172a; }
+        body.light-mode #homeDefaultContent { background: #f8fafc !important; border-color: #cbd5e1 !important; }
+        body.light-mode #homeDefaultContent h3 { color: #0284c7 !important; }
+        body.light-mode #homeDefaultContent p { color: #475569 !important; }
+        body.light-mode .account-box { background: #f8fafc !important; border-color: #cbd5e1 !important; }
+        body.light-mode .account-badge-manager { background: #fef3c7 !important; color: #92400e !important; border-color: #f59e0b !important; }
+        body.light-mode .account-badge-preparer { background: #e0f2fe !important; color: #075985 !important; border-color: #0284c7 !important; }
+        body.light-mode .subscription-card { background: #f0fdf4 !important; border-color: #86efac !important; color: #166534 !important; }
+        body.light-mode .subscription-title { color: #15803d !important; }
+        body.light-mode .subscription-desc { color: #166534 !important; }
+        body.light-mode tr { background: #ffffff !important; }
+        body.light-mode th { background: #e2e8f0 !important; color: #0284c7 !important; border-color: #cbd5e1 !important; }
+        body.light-mode td { border-color: #cbd5e1 !important; color: #0f172a !important; }
     </style>
 </head>
 <body>
@@ -110,10 +137,20 @@
         <button class="tab-btn" id="tabCouponsBtn" onclick="switchTab('coupons')">🎟️ الخصم</button>
         <button class="tab-btn" id="tabSalesBtn" onclick="switchTab('sales')">📊 المبيعات</button>
         <button class="tab-btn" id="tabOrdersBtn" onclick="switchTab('orders')">📦 الطلبات</button>
+        <button class="tab-btn" id="tabAccountBtn" onclick="switchTab('account')">👤 حسابي</button>
     </div>
 
     <!-- تبويب الصفحة الرئيسية لوحة التحكم -->
     <div id="homeTab">
+<!-- يوضع داخل #homeDefaultContent في أعلى الصفحة الرئيسية -->
+<div id="subWarningBanner" class="hidden" style="background: rgba(245, 158, 11, 0.15); border: 1px solid #f59e0b; color: #fbbf24; border-radius: 10px; padding: 12px 16px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; gap: 10px;">
+    <div style="font-size: 13px; display: flex; align-items: center; gap: 8px;">
+        <span style="font-size: 18px;">⚠️</span>
+        <span>تنبيه هام: متبقي <strong><span id="bannerDaysLeft">--</span> أيام</strong> فقط على انتهاء الإشتراك !</span>
+    </div>
+    <a href="https://wa.me/9647803342472" target="_blank" style="background: #f59e0b; color: #0f172a; text-decoration: none; padding: 6px 14px; border-radius: 6px; font-weight: bold; font-size: 12px; white-space: nowrap;">💬 تجديد الآن</a>
+</div>
+
         <div id="homeDefaultContent" style="background: #0f172a; padding: 20px; border-radius: 12px; border: 1px solid #334155; text-align: center; margin-bottom: 10px;">
             <div style="font-size: 36px; margin-bottom: 10px;">⚙️</div>
             <h3 style="color: #38bdf8; font-size: 16px; margin-bottom: 8px;">مرحباً بك في لوحة التحكم</h3>
@@ -451,6 +488,68 @@
         </div>
     </div>
 
+    <!-- تبويب إعدادات الحساب -->
+    <div id="accountTab" class="hidden">
+        <!-- 1. البطاقة التعريفية بالصلاحية والمظهر -->
+        <div class="account-box" style="background: #0f172a; padding: 18px; border-radius: 10px; border: 1px solid #334155; margin-bottom: 20px; max-width: 500px; margin-left: auto; margin-right: auto; text-align: center;">
+            <div style="font-size: 42px; margin-bottom: 8px;">👤</div>
+            <h3 id="accountUserNameDisplay" style="color: #38bdf8; font-size: 18px; margin-bottom: 8px;">حساب المستخدم</h3>
+            <div style="margin-bottom: 15px;">
+                <span id="accountRoleBadge" class="account-badge-manager" style="display: inline-block; padding: 4px 14px; border-radius: 20px; font-size: 12px; font-weight: bold; background: #78350f; color: #fef08a; border: 1px solid #f59e0b;">المدير العام ⭐</span>
+            </div>
+            
+            <!-- 2. خيار التبديل بين المظهر الداكن والفاتح -->
+            <div style="display: flex; align-items: center; justify-content: space-between; background: #1e293b; padding: 10px 14px; border-radius: 8px; border: 1px solid #334155; margin-top: 10px;">
+                <span style="font-size: 13px; font-weight: bold; color: #cbd5e1;">🎨 مظهر لوحة التحكم:</span>
+                <select id="themeModeSelect" onchange="changeThemeMode(this.value)" style="width: auto; padding: 6px 12px; font-size: 12px; border-radius: 6px;">
+                    <option value="dark">🌙 المظهر الداكن (Dark)</option>
+                    <option value="light">☀️ المظهر الفاتح (Light)</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- 3. بطاقة حالة الاشتراك (تظهر للمدير فقط) -->
+      <!-- داخل تبويب accountTab -->
+<div id="subscriptionManagerCard" class="subscription-card hidden" style="background: #064e3b; border: 1px solid #22c55e; border-radius: 10px; padding: 18px; max-width: 500px; margin-left: auto; margin-right: auto; margin-bottom: 20px; text-align: center;">
+    <div style="font-size: 30px; margin-bottom: 6px;">💎</div>
+    <h3 class="subscription-title" style="color: #4ade80; font-size: 16px; margin-bottom: 6px;">حالة الاشتراك: نشط ✅</h3>
+    
+    <!-- 👈 إضافة مربع تفاصيل تاريخ الانتهاء -->
+    <div style="background: rgba(15, 23, 42, 0.4); border: 1px solid rgba(34, 197, 94, 0.3); padding: 10px; border-radius: 8px; margin: 12px 0; font-size: 13px;">
+        <div>📅 <strong>تاريخ الانتهاء:</strong> <span id="subExpiryDateDisplay" style="color: #38bdf8; font-weight: bold;">--/--/----</span></div>
+        <div style="margin-top: 4px;">⏳ <strong>الأيام المتبقية:</strong> <span id="subDaysLeftDisplay" style="color: #f59e0b; font-weight: bold;">-- يوم</span></div>
+    </div>
+
+    <p class="subscription-desc" style="color: #a7f3d0; font-size: 12px; line-height: 1.5; margin-bottom: 12px;">اشتراك المتجر فعال ويتم إدارته عبر الدعم الفني. تواصل لتجديد أو استفسارات الاشتراك.</p>
+    <a href="https://wa.me/9647803342472" target="_blank" class="btn-support" style="padding: 8px 18px; font-size: 13px; display: inline-block;">💬 تجديد الاشتراك ومراسلة الدعم</a>
+</div>
+
+        <!-- 4. نموذج تغيير كلمة المرور -->
+        <div class="account-box" style="background: #0f172a; padding: 20px; border-radius: 10px; border: 1px solid #334155; margin-bottom: 20px; max-width: 500px; margin-left: auto; margin-right: auto;">
+            <label style="color: #38bdf8; font-size: 16px; margin-bottom: 15px; display: block; text-align: center;">🔒 تغيير بيانات الدخول</label>
+            <form onsubmit="handleChangePassword(event)">
+                <div class="form-group">
+                    <label>اسم المستخدم الحالي *</label>
+                    <input type="text" id="accOldUser" required>
+                </div>
+                <div class="form-group">
+                    <label>كلمة المرور الحالية *</label>
+                    <input type="password" id="accOldPass" required>
+                </div>
+                <hr style="border: 0; border-top: 1px dashed #334155; margin: 15px 0;">
+                <div class="form-group">
+                    <label>اسم المستخدم الجديد (اختياري)</label>
+                    <input type="text" id="accNewUser" placeholder="اتركه فارغاً إذا لا تريد تغييره">
+                </div>
+                <div class="form-group">
+                    <label>كلمة المرور الجديدة (اختياري)</label>
+                    <input type="password" id="accNewPass" placeholder="اتركها فارغة إذا لا تريد تغييرها">
+                </div>
+                <button type="submit" id="btnChangeAcc" class="btn-submit" style="background:#0284c7;">💾 حفظ التغييرات</button>
+            </form>
+        </div>
+    </div>
+
     <div id="productStatus" class="status-msg"></div>
 </div>
 
@@ -475,15 +574,75 @@
     var chartInstanceProducts = null;
     var isSubscriptionBlocked = false;
 
+    (function initTheme() {
+        var savedTheme = localStorage.getItem("theme_preference") || "dark";
+        if (savedTheme === "light") {
+            document.body.classList.add("light-mode");
+        } else {
+            document.body.classList.remove("light-mode");
+        }
+    })();
+
     window.onload = function() {
+        var savedTheme = localStorage.getItem("theme_preference") || "dark";
+        var themeSelect = document.getElementById("themeModeSelect");
+        if (themeSelect) themeSelect.value = savedTheme;
+
         if (sessionStorage.getItem("admin_session")) {
             showDashboard();
         }
     };
 
+    function changeThemeMode(mode) {
+        if (mode === "light") {
+            document.body.classList.add("light-mode");
+            localStorage.setItem("theme_preference", "light");
+        } else {
+            document.body.classList.remove("light-mode");
+            localStorage.setItem("theme_preference", "dark");
+        }
+    }
+
+    function renderAccountProfileData() {
+        var role = sessionStorage.getItem("admin_role") || "Manager";
+        var nameDisplay = document.getElementById("accountUserNameDisplay");
+        var badgeDisplay = document.getElementById("accountRoleBadge");
+        var subCard = document.getElementById("subscriptionManagerCard");
+
+        if (role === "Preparer") {
+            if (nameDisplay) nameDisplay.innerText = "حساب مجهز الطلبات";
+            if (badgeDisplay) {
+                badgeDisplay.innerText = "مجهز طلبات 📦";
+                badgeDisplay.className = "account-badge-preparer";
+                badgeDisplay.style.background = "#0c4a6e";
+                badgeDisplay.style.color = "#bae6fd";
+                badgeDisplay.style.borderColor = "#0284c7";
+            }
+            if (subCard) subCard.classList.add("hidden");
+        } else {
+            if (nameDisplay) nameDisplay.innerText = "حساب المدير العام";
+            if (badgeDisplay) {
+                badgeDisplay.innerText = "المدير العام ⭐";
+                badgeDisplay.className = "account-badge-manager";
+                badgeDisplay.style.background = "#78350f";
+                badgeDisplay.style.color = "#fef08a";
+                badgeDisplay.style.borderColor = "#f59e0b";
+            }
+            if (subCard) subCard.classList.remove("hidden");
+        }
+    }
+
     function checkServerResponse(data) {
-        if (data && data.status === "expired") {
+        if (!data) return true;
+        if (data.status === "expired") {
             lockDashboardTabs(data.message);
+            return false;
+        }
+        if (data.status === "error" && data.message && data.message.includes("غير مصرح")) {
+            alert("انتهت صلاحية الجلسة، يرجى إعادة تسجيل الدخول.");
+            sessionStorage.removeItem("admin_session");
+            sessionStorage.removeItem("admin_role");
+            location.reload();
             return false;
         }
         return true;
@@ -492,7 +651,6 @@
     function lockDashboardTabs(customMsg) {
         isSubscriptionBlocked = true;
         
-        // مسح الكاش تماماً لكي لا تظهر أي بيانات قديمة
         localStorage.removeItem("cached_products");
         localStorage.removeItem("cached_coupons");
         localStorage.removeItem("cached_categories");
@@ -558,12 +716,12 @@
 
             var resData = await response.json();
 
-            if (resData.status === "success") {
+            if (resData && resData.status === "success") {
                 sessionStorage.setItem("admin_session", resData.token);
                 sessionStorage.setItem("admin_role", resData.role || "Manager");
                 showDashboard();
             } else {
-                throw new Error(resData.message || "بيانات الدخول غير صحيحة");
+                throw new Error((resData && resData.message) ? resData.message : "بيانات الدخول غير صحيحة");
             }
         } catch (err) {
             status.className = "status-msg status-error";
@@ -580,7 +738,6 @@
         var role = sessionStorage.getItem("admin_role") || "Manager";
         
         if (role === "Preparer") {
-            // إخفاء الأزرار والتبويبات غير المصرح بها لحساب مجهز الطلبات
             var tabsToHide = ["tabHomeBtn", "tabStoreSettingsBtn", "tabFormBtn", "tabSlideshowBtn", "tabListBtn", "tabHiddenBtn", "tabCategoriesBtn", "tabCouponsBtn", "tabSalesBtn"];
             tabsToHide.forEach(function(id) {
                 var el = document.getElementById(id);
@@ -592,14 +749,13 @@
             switchTab('home');
         }
 
-        // 1. تحقق من الاشتراك وانتظر النتيجة أولاً قبل عرض أي شيء
         var isExpired = await checkInitialSubscriptionServer();
         if (isExpired) return;
 
-        // 2. تحميل البيانات العادية فقط إذا كان الاشتراك ساريـاً
         if (role !== "Preparer") {
             loadCategoriesDropdown();
             loadProductsList();
+            loadStoreIdentityData(); // 👈 هذا السطر لجلب التاريخ والاشتراك فور الدخول
         } else {
             loadOrdersList();
         }
@@ -623,8 +779,8 @@
         }
         
         var role = sessionStorage.getItem("admin_role") || "Manager";
-        if (role === "Preparer" && tabName !== 'orders') {
-            tabName = 'orders'; // إجبار المجهز على البقاء في الطلبات
+        if (role === "Preparer" && tabName !== 'orders' && tabName !== 'account') {
+            tabName = 'orders';
         }
 
         window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -639,6 +795,7 @@
         var couponsTab = document.getElementById("couponsTab");
         var salesTab = document.getElementById("salesTab");
         var ordersTab = document.getElementById("ordersTab");
+        var accountTab = document.getElementById("accountTab");
 
         var tabHomeBtn = document.getElementById("tabHomeBtn");
         var tabStoreSettingsBtn = document.getElementById("tabStoreSettingsBtn");
@@ -650,6 +807,7 @@
         var tabCouponsBtn = document.getElementById("tabCouponsBtn");
         var tabSalesBtn = document.getElementById("tabSalesBtn");
         var tabOrdersBtn = document.getElementById("tabOrdersBtn");
+        var tabAccountBtn = document.getElementById("tabAccountBtn");
 
         if (homeTab) homeTab.classList.add("hidden");
         if (storeSettingsTab) storeSettingsTab.classList.add("hidden");
@@ -661,6 +819,7 @@
         if (couponsTab) couponsTab.classList.add("hidden");
         if (salesTab) salesTab.classList.add("hidden");
         if (ordersTab) ordersTab.classList.add("hidden");
+        if (accountTab) accountTab.classList.add("hidden");
 
         if (tabHomeBtn) tabHomeBtn.classList.remove("active");
         if (tabStoreSettingsBtn) tabStoreSettingsBtn.classList.remove("active");
@@ -672,6 +831,7 @@
         if (tabCouponsBtn) tabCouponsBtn.classList.remove("active");
         if (tabSalesBtn) tabSalesBtn.classList.remove("active");
         if (tabOrdersBtn) tabOrdersBtn.classList.remove("active");
+        if (tabAccountBtn) tabAccountBtn.classList.remove("active");
 
         if (tabName === 'home') {
             if (homeTab) homeTab.classList.remove("hidden");
@@ -714,6 +874,65 @@
             if (ordersTab) ordersTab.classList.remove("hidden");
             if (tabOrdersBtn) tabOrdersBtn.classList.add("active");
             loadOrdersList();
+        } else if (tabName === 'account') {
+            if (accountTab) accountTab.classList.remove("hidden");
+            if (tabAccountBtn) tabAccountBtn.classList.add("active");
+            renderAccountProfileData();
+            loadStoreIdentityData(); // 👈 هذا السطر لتحديث بيانات الاشتراك فور فتح التبويب
+        }
+    }
+
+    async function handleChangePassword(event) {
+        event.preventDefault();
+        var oldUser = document.getElementById("accOldUser").value.trim();
+        var oldPass = document.getElementById("accOldPass").value.trim();
+        var newUser = document.getElementById("accNewUser").value.trim();
+        var newPass = document.getElementById("accNewPass").value.trim();
+        
+        var btn = document.getElementById("btnChangeAcc");
+        var statusMsg = document.getElementById('productStatus');
+
+        if (!newUser && !newPass) {
+            alert("يرجى إدخال اسم مستخدم جديد أو كلمة مرور جديدة على الأقل.");
+            return;
+        }
+
+        btn.disabled = true;
+        statusMsg.className = "status-msg status-loading";
+        statusMsg.style.display = "block";
+        statusMsg.innerText = "جارِ التحقق وتحديث البيانات...";
+
+        try {
+            var response = await fetch(SHEET_API_URL, {
+                method: "POST",
+                body: JSON.stringify({ 
+                    action: "changePassword", 
+                    token: sessionStorage.getItem("admin_session"),
+                    oldUser: oldUser,
+                    oldPass: oldPass,
+                    newUser: newUser,
+                    newPass: newPass
+                })
+            });
+
+            var resData = await response.json();
+            if (!checkServerResponse(resData)) return;
+
+            if (resData && resData.status === "success") {
+                statusMsg.className = "status-msg status-success";
+                statusMsg.innerText = "✅ تم تغيير بيانات الدخول بنجاح. يرجى تسجيل الدخول بالبيانات الجديدة.";
+                setTimeout(function() { 
+                    logout();
+                }, 3000);
+            } else {
+                throw new Error((resData && resData.message) ? resData.message : "فشل تغيير البيانات");
+            }
+        } catch (err) {
+            statusMsg.className = "status-msg status-error";
+            statusMsg.innerText = "❌ " + err.message;
+            setTimeout(function() { statusMsg.style.display = "none"; }, 3000);
+        } finally {
+            btn.disabled = false;
         }
     }
 
@@ -763,47 +982,81 @@
     }
 
     async function loadStoreIdentityData() {
-        try {
-            var res = await fetch(SHEET_API_URL + "?action=getSettings");
-            var data = await res.json();
-            if (!checkServerResponse(data)) return;
-            if (data) {
-                currentStoreIdentity.mode = data.headerMode || "text";
-                currentStoreIdentity.title = data.storeTitle || "متجر كوزمتك";
-                currentStoreIdentity.subtitle = data.storeSubtitle || "أفضل المنتجات الأصلية والعالمية";
-                currentStoreIdentity.logoUrl = data.storeLogo || "";
-                currentStoreIdentity.promoBannerUrl = data.promoBanner || "";
-                currentStoreIdentity.promoBannerCategory = data.promoBannerCategory || "";
+    try {
+        var res = await fetch(SHEET_API_URL + "?action=getSettings");
+        var data = await res.json();
+        if (!checkServerResponse(data)) return;
+        
+        if (data) {
+            // 1. حساب وعرض تاريخ انتهاء الاشتراك والأيام المتبقية
+            if (data.expiryDate) {
+                var expDate = new Date(data.expiryDate);
+                var today = new Date();
+                var diffTime = expDate.getTime() - today.getTime();
+                var diffDays = Math.ceil(diffTime / (1000 * 3600 * 24));
 
-                document.getElementById("headerModeSelect").value = currentStoreIdentity.mode;
-                document.getElementById("storeTitleInput").value = currentStoreIdentity.title;
-                document.getElementById("storeSubtitleInput").value = currentStoreIdentity.subtitle;
+                // تحديث البيانات في بطاقة الاشتراك (تبويب حسابي)
+                var dateEl = document.getElementById("subExpiryDateDisplay");
+                if (dateEl) dateEl.innerText = data.expiryDate;
 
-                toggleHeaderModeFields();
-                loadPromoBannerCategoryOptions(currentStoreIdentity.promoBannerCategory);
-
-                if (currentStoreIdentity.logoUrl) {
-                    var prev = document.getElementById("storeLogoPrev");
-                    prev.src = currentStoreIdentity.logoUrl;
-                    prev.style.display = "block";
-                    document.getElementById("removeLogoBtn").style.display = "inline-block";
-                } else {
-                    document.getElementById("storeLogoPrev").style.display = "none";
-                    document.getElementById("removeLogoBtn").style.display = "none";
+                var daysEl = document.getElementById("subDaysLeftDisplay");
+                if (daysEl) {
+                    if (diffDays > 0) {
+                        daysEl.innerText = diffDays + " يوم";
+                    } else {
+                        daysEl.innerText = "ينتهي اليوم";
+                        daysEl.style.color = "#ef4444";
+                    }
                 }
 
-                if (currentStoreIdentity.promoBannerUrl) {
-                    var prevP = document.getElementById("promoBannerPrev");
-                    prevP.src = currentStoreIdentity.promoBannerUrl;
-                    prevP.style.display = "block";
-                    document.getElementById("removePromoBtn").style.display = "inline-block";
+                // إظهار/إخفاء شريط التنبيه في الصفحة الرئيسية (إذا كان المتبقي 3 أيام أو أقل)
+                var warningBanner = document.getElementById("subWarningBanner");
+                var daysSpan = document.getElementById("bannerDaysLeft");
+                if (diffDays > 0 && diffDays <= 3) {
+                    if (warningBanner) warningBanner.classList.remove("hidden");
+                    if (daysSpan) daysSpan.innerText = diffDays;
                 } else {
-                    document.getElementById("promoBannerPrev").style.display = "none";
-                    document.getElementById("removePromoBtn").style.display = "none";
+                    if (warningBanner) warningBanner.classList.add("hidden");
                 }
             }
-        } catch(e) {}
-    }
+
+            // 2. تعبئة بيانات هوية المتجر والبانر الترويجي
+            currentStoreIdentity.mode = data.headerMode || "text";
+            currentStoreIdentity.title = data.storeTitle || "متجر كوزمتك";
+            currentStoreIdentity.subtitle = data.storeSubtitle || "أفضل المنتجات الأصلية والعالمية";
+            currentStoreIdentity.logoUrl = data.storeLogo || "";
+            currentStoreIdentity.promoBannerUrl = data.promoBanner || "";
+            currentStoreIdentity.promoBannerCategory = data.promoBannerCategory || "";
+
+            document.getElementById("headerModeSelect").value = currentStoreIdentity.mode;
+            document.getElementById("storeTitleInput").value = currentStoreIdentity.title;
+            document.getElementById("storeSubtitleInput").value = currentStoreIdentity.subtitle;
+
+            toggleHeaderModeFields();
+            loadPromoBannerCategoryOptions(currentStoreIdentity.promoBannerCategory);
+
+            if (currentStoreIdentity.logoUrl) {
+                var prev = document.getElementById("storeLogoPrev");
+                prev.src = currentStoreIdentity.logoUrl;
+                prev.style.display = "block";
+                document.getElementById("removeLogoBtn").style.display = "inline-block";
+            } else {
+                document.getElementById("storeLogoPrev").style.display = "none";
+                document.getElementById("removeLogoBtn").style.display = "none";
+            }
+
+            if (currentStoreIdentity.promoBannerUrl) {
+                var prevP = document.getElementById("promoBannerPrev");
+                prevP.src = currentStoreIdentity.promoBannerUrl;
+                prevP.style.display = "block";
+                document.getElementById("removePromoBtn").style.display = "inline-block";
+            } else {
+                document.getElementById("promoBannerPrev").style.display = "none";
+                document.getElementById("removePromoBtn").style.display = "none";
+            }
+        }
+    } catch(e) {}
+}
 
     async function previewLogoFile(input) {
         var file = input.files[0];
@@ -873,12 +1126,12 @@
             });
             var data = await res.json();
             if (!checkServerResponse(data)) return;
-            if (data.status === "success") {
+            if (data && data.status === "success") {
                 statusMsg.className = "status-msg status-success";
                 statusMsg.innerText = "✅ تم حفظ إعدادات الهوية والبانر بنجاح";
                 setTimeout(() => statusMsg.style.display = "none", 3000);
             } else {
-                throw new Error(data.message || "فشل الحفظ");
+                throw new Error((data && data.message) ? data.message : "فشل الحفظ");
             }
         } catch(err) {
             statusMsg.className = "status-msg status-error";
@@ -990,12 +1243,12 @@
             });
             var data = await res.json();
             if (!checkServerResponse(data)) return;
-            if (data.status === "success") {
+            if (data && data.status === "success") {
                 statusMsg.className = "status-msg status-success";
                 statusMsg.innerText = "✅ تم حفظ إعدادات السلايد شو بنجاح";
                 setTimeout(() => statusMsg.style.display = "none", 3000);
             } else {
-                throw new Error(data.message || "فشل الحفظ");
+                throw new Error((data && data.message) ? data.message : "فشل الحفظ");
             }
         } catch(err) {
             statusMsg.className = "status-msg status-error";
@@ -1097,13 +1350,13 @@
             });
             var resData = await response.json();
             if (!checkServerResponse(resData)) return;
-            if (resData.status === "success") {
+            if (resData && resData.status === "success") {
                 statusMsg.className = "status-msg status-success";
                 statusMsg.innerText = "✅ تم تحديث حالة الطلب بنجاح";
                 loadOrdersList();
                 setTimeout(function() { statusMsg.style.display = "none"; }, 3000);
             } else {
-                throw new Error(resData.message || "فشل التحديث");
+                throw new Error((resData && resData.message) ? resData.message : "فشل التحديث");
             }
         } catch(err) {
             statusMsg.className = "status-msg status-error";
@@ -1127,13 +1380,13 @@
             });
             var resData = await response.json();
             if (!checkServerResponse(resData)) return;
-            if (resData.status === "success") {
+            if (resData && resData.status === "success") {
                 statusMsg.className = "status-msg status-success";
                 statusMsg.innerText = "✅ تم حذف الطلب بنجاح";
                 loadOrdersList();
                 setTimeout(function() { statusMsg.style.display = "none"; }, 3000);
             } else {
-                throw new Error(resData.message || "فشل الحذف");
+                throw new Error((resData && resData.message) ? resData.message : "فشل الحذف");
             }
         } catch(err) {
             statusMsg.className = "status-msg status-error";
@@ -1171,7 +1424,7 @@
             }
 
             if (s.items) {
-                var itemsList = s.items.split(/,|\n/);
+                var itemsList = s.items.split(/,|\r?\n/);
                 itemsList.forEach(function(item) {
                     var cleaned = item.replace(/\(.*?\)/g, '').replace(/x\d+/gi, '').trim();
                     if (cleaned) {
@@ -1518,7 +1771,7 @@
             var resData = await response.json();
             if (!checkServerResponse(resData)) return;
 
-            if (resData.status === "success") {
+            if (resData && resData.status === "success") {
                 statusMsg.className = "status-msg status-success";
                 statusMsg.innerText = "✅ تم تعديل اسم القسم بنجاح";
                 loadCategoriesList();
@@ -1527,7 +1780,7 @@
 
                 setTimeout(function() { statusMsg.style.display = "none"; }, 3000);
             } else {
-                throw new Error(resData.message || "فشل تعديل اسم القسم");
+                throw new Error((resData && resData.message) ? resData.message : "فشل تعديل اسم القسم");
             }
         } catch (err) {
             statusMsg.className = "status-msg status-error";
@@ -1558,7 +1811,7 @@
             var resData = await response.json();
             if (!checkServerResponse(resData)) return;
 
-            if (resData.status === "success") {
+            if (resData && resData.status === "success") {
                 statusMsg.className = "status-msg status-success";
                 statusMsg.innerText = "✅ تم إضافة القسم بنجاح";
                 document.getElementById("categoryNameInput").value = "";
@@ -1567,7 +1820,7 @@
 
                 setTimeout(function() { statusMsg.style.display = "none"; }, 3000);
             } else {
-                throw new Error(resData.message || "فشل الحفظ");
+                throw new Error((resData && resData.message) ? resData.message : "فشل الحفظ");
             }
         } catch (err) {
             statusMsg.className = "status-msg status-error";
@@ -1595,7 +1848,7 @@
             var resData = await response.json();
             if (!checkServerResponse(resData)) return;
 
-            if (resData.status === "success") {
+            if (resData && resData.status === "success") {
                 statusMsg.className = "status-msg status-success";
                 statusMsg.innerText = "✅ تم حذف القسم بنجاح";
                 loadCategoriesList();
@@ -1603,7 +1856,7 @@
 
                 setTimeout(function() { statusMsg.style.display = "none"; }, 3000);
             } else {
-                throw new Error(resData.message || "فشل الحذف");
+                throw new Error((resData && resData.message) ? resData.message : "فشل الحذف");
             }
         } catch (err) {
             statusMsg.className = "status-msg status-error";
@@ -1636,7 +1889,7 @@
             });
             var resData = await response.json();
             if (!checkServerResponse(resData)) return;
-            if (resData.status === "success") {
+            if (resData && resData.status === "success") {
                 localStorage.setItem("cached_categories", JSON.stringify(allCategories));
                 loadCategoriesDropdown();
                 statusMsg.className = "status-msg status-success";
@@ -1667,9 +1920,11 @@
         if (cachedProducts) {
             try {
                 allProducts = JSON.parse(cachedProducts);
-                loadBrandDropdown();
-                renderProducts(allProducts.filter(p => !p.hidden && !isStoreHidden));
-                renderHiddenProducts(allProducts.filter(p => p.hidden || isStoreHidden));
+                if (Array.isArray(allProducts)) {
+                    loadBrandDropdown();
+                    renderProducts(allProducts.filter(p => !p.hidden && !isStoreHidden));
+                    renderHiddenProducts(allProducts.filter(p => p.hidden || isStoreHidden));
+                }
             } catch (e) {}
         } else {
             if (container) container.innerHTML = '<p style="text-align:center; color:#94a3b8; padding:20px;">جار تحميل المنتجات...</p>';
@@ -1682,12 +1937,14 @@
             var res = await fetch(SHEET_API_URL + "?action=getAdminProducts&token=" + encodeURIComponent(sessionStorage.getItem("admin_session")));
             var resData = await res.json();
             if (!checkServerResponse(resData)) return;
-            allProducts = resData;
-            localStorage.setItem("cached_products", JSON.stringify(allProducts));
-            loadBrandDropdown();
             
-            renderProducts(allProducts.filter(p => !p.hidden && !isStoreHidden));
-            renderHiddenProducts(allProducts.filter(p => p.hidden || isStoreHidden));
+            if (Array.isArray(resData)) {
+                allProducts = resData;
+                localStorage.setItem("cached_products", JSON.stringify(allProducts));
+                loadBrandDropdown();
+                renderProducts(allProducts.filter(p => !p.hidden && !isStoreHidden));
+                renderHiddenProducts(allProducts.filter(p => p.hidden || isStoreHidden));
+            }
         } catch (err) {
             if (!cachedProducts) {
                 if (container) container.innerHTML = '<p style="text-align:center; color:#ef4444; padding:20px;">فشل في جلب المنتجات</p>';
@@ -1707,7 +1964,7 @@
             var res = await fetch(SHEET_API_URL + "?action=getSettings");
             var data = await res.json();
             if (!checkServerResponse(data)) return;
-            isStoreHidden = !!data.hideAllStore;
+            isStoreHidden = !!(data && data.hideAllStore);
             localStorage.setItem("cached_hide_all_store", isStoreHidden ? "true" : "false");
             updateStoreStatusUI();
         } catch (e) {}
@@ -1754,13 +2011,15 @@
             var resData = await response.json();
             if (!checkServerResponse(resData)) return;
 
-            if (resData.status === "success") {
+            if (resData && resData.status === "success") {
                 isStoreHidden = newStatus;
                 localStorage.setItem("cached_hide_all_store", newStatus ? "true" : "false");
                 updateStoreStatusUI();
 
-                renderProducts(allProducts.filter(p => !p.hidden && !isStoreHidden));
-                renderHiddenProducts(allProducts.filter(p => p.hidden || isStoreHidden));
+                if (Array.isArray(allProducts)) {
+                    renderProducts(allProducts.filter(p => !p.hidden && !isStoreHidden));
+                    renderHiddenProducts(allProducts.filter(p => p.hidden || isStoreHidden));
+                }
 
                 statusMsg.className = "status-msg status-success";
                 statusMsg.innerText = newStatus 
@@ -1769,7 +2028,7 @@
 
                 setTimeout(function() { statusMsg.style.display = "none"; }, 3000);
             } else {
-                throw new Error(resData.message || "فشل التحديث");
+                throw new Error((resData && resData.message) ? resData.message : "فشل التحديث");
             }
         } catch (err) {
             statusMsg.className = "status-msg status-error";
@@ -1855,6 +2114,7 @@
 
     function filterProducts() {
         var q = document.getElementById("searchBox").value.toLowerCase();
+        if (!Array.isArray(allProducts)) return;
         var filtered = allProducts.filter(p => (!p.hidden && !isStoreHidden) && (
             p.name.toLowerCase().includes(q) || 
             p.category.toLowerCase().includes(q) || 
@@ -1865,6 +2125,7 @@
 
     function filterHiddenProducts() {
         var q = document.getElementById("searchHiddenBox").value.toLowerCase();
+        if (!Array.isArray(allProducts)) return;
         var filtered = allProducts.filter(p => (p.hidden || isStoreHidden) && (
             p.name.toLowerCase().includes(q) || 
             p.category.toLowerCase().includes(q) || 
@@ -1902,7 +2163,7 @@
         if (cachedCoupons) {
             try {
                 allCoupons = JSON.parse(cachedCoupons);
-                renderCoupons(allCoupons);
+                if (Array.isArray(allCoupons)) renderCoupons(allCoupons);
             } catch (e) {}
         } else {
             if (container) container.innerHTML = '<p style="text-align:center; color:#94a3b8; padding:20px;">جار تحميل أكواد الخصم...</p>';
@@ -1912,9 +2173,12 @@
             var res = await fetch(SHEET_API_URL + "?action=getCoupons&token=" + encodeURIComponent(sessionStorage.getItem("admin_session")));
             var resData = await res.json();
             if (!checkServerResponse(resData)) return;
-            allCoupons = resData;
-            localStorage.setItem("cached_coupons", JSON.stringify(allCoupons));
-            renderCoupons(allCoupons);
+            
+            if (Array.isArray(resData)) {
+                allCoupons = resData;
+                localStorage.setItem("cached_coupons", JSON.stringify(allCoupons));
+                renderCoupons(allCoupons);
+            }
         } catch (err) {
             if (!cachedCoupons) {
                 if (container) container.innerHTML = '<p style="text-align:center; color:#ef4444; padding:20px;">فشل في جلب أكواد الخصم</p>';
@@ -1985,7 +2249,7 @@
             var resData = await response.json();
             if (!checkServerResponse(resData)) return;
 
-            if (resData.status === "success") {
+            if (resData && resData.status === "success") {
                 statusMsg.className = "status-msg status-success";
                 statusMsg.innerText = "✅ تم إضافة كود الخصم بنجاح";
                 document.getElementById("couponCode").value = "";
@@ -2001,7 +2265,7 @@
 
                 setTimeout(function() { statusMsg.style.display = "none"; }, 3000);
             } else {
-                throw new Error(resData.message || "فشل الحفظ");
+                throw new Error((resData && resData.message) ? resData.message : "فشل الحفظ");
             }
         } catch (err) {
             statusMsg.className = "status-msg status-error";
@@ -2029,14 +2293,14 @@
             var resData = await response.json();
             if (!checkServerResponse(resData)) return;
 
-            if (resData.status === "success") {
+            if (resData && resData.status === "success") {
                 statusMsg.className = "status-msg status-success";
                 statusMsg.innerText = "✅ تم حذف كود الخصم بنجاح";
                 loadCouponsList();
 
                 setTimeout(function() { statusMsg.style.display = "none"; }, 3000);
             } else {
-                throw new Error(resData.message || "فشل الحذف");
+                throw new Error((resData && resData.message) ? resData.message : "فشل الحذف");
             }
         } catch (err) {
             statusMsg.className = "status-msg status-error";
@@ -2046,6 +2310,7 @@
     }
 
     function startEditProduct(id) {
+        if (!Array.isArray(allProducts)) return;
         var p = allProducts.find(item => String(item.id) === String(id));
         if (!p) return;
 
@@ -2138,13 +2403,13 @@
             var resData = await response.json();
             if (!checkServerResponse(resData)) return;
 
-            if (resData.status === "success") {
+            if (resData && resData.status === "success") {
                 statusMsg.className = "status-msg status-success";
                 statusMsg.innerText = "✅ تم حذف المنتج بنجاح";
                 loadProductsList();
                 setTimeout(function() { statusMsg.style.display = "none"; }, 3000);
             } else {
-                throw new Error(resData.message || "فشل الحذف");
+                throw new Error((resData && resData.message) ? resData.message : "فشل الحذف");
             }
         } catch (err) {
             statusMsg.className = "status-msg status-error";
@@ -2264,7 +2529,7 @@
             var resData = await response.json();
             if (!checkServerResponse(resData)) return;
 
-            if (resData.status === "success") {
+            if (resData && resData.status === "success") {
                 statusMsg.className = "status-msg status-success";
                 statusMsg.innerText = editingProductId ? "✅ تم تعديل المنتج بنجاح!" : "✅ تم إضافة المنتج بنجاح برقم: " + resData.id;
                 
@@ -2273,7 +2538,7 @@
 
                 setTimeout(function() { statusMsg.style.display = "none"; }, 3000);
             } else {
-                throw new Error(resData.message || "حدث خطأ أثناء الحفظ");
+                throw new Error((resData && resData.message) ? resData.message : "حدث خطأ أثناء الحفظ");
             }
 
         } catch (err) {
@@ -2285,6 +2550,5 @@
         }
     }
 </script>
-
 </body>
 </html>
