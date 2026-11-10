@@ -201,7 +201,7 @@
 <!-- ================= 2. واجهة التحكم الرئيسية ================= -->
 <div id="dashboardCard" class="card hidden">
     <div class="header-box">
-        <h2 id="dashboardTitle">⚙️  33لوحة تحكم المتجر</h2>
+        <h2 id="dashboardTitle">⚙️  55لوحة تحكم المتجر</h2>
 
         <button class="btn-logout" onclick="logout()">تسجيل خروج 🚪</button>
     </div>
@@ -978,8 +978,14 @@
     var container = document.getElementById("navTabsContainer");
     var overlay = document.getElementById("sidebarOverlay");
     if (container && overlay) {
-        container.classList.toggle("active");
-        overlay.classList.toggle("active");
+        var isActive = container.classList.toggle("active");
+        overlay.classList.toggle("active", isActive);
+        
+        // 👈 إجبار كروم على تحديث التمرير لحظياً دون انتظار الـ 30 ثانية
+        if (isActive) {
+            container.scrollTop = 0;
+            void container.offsetHeight; // Force Layout Reflow
+        }
     }
 }
 
