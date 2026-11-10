@@ -92,10 +92,35 @@
         body.light-mode th { background: #e2e8f0 !important; color: #0284c7 !important; border-color: #cbd5e1 !important; }
         body.light-mode td { border-color: #cbd5e1 !important; color: #0f172a !important; }
 
+/* إخفاء زر الإغلاق على الشاشات الكبيرة تلقائياً */
+.close-menu-btn {
+    display: none;
+}
+
 /* ================= قائمة الجوال المزدوجة (2 Columns Grid) ================= */
 @media (max-width: 768px) {
 
-    /* زر فتح القائمة (الهامبرغر) */
+    /* 1️⃣ تنسيق زر الإغلاق أعلى القائمة للموبايل */
+    .close-menu-btn {
+        display: block !important;
+        grid-column: 1 / -1 !important; /* جعل الزر يمتد بعرض العمودين كاملاً في أعلى القائمة */
+        background: rgba(239, 68, 68, 0.15) !important;
+        color: #fca5a5 !important;
+        border: 1px solid #ef4444 !important;
+        padding: 5px 9px !important;
+        border-radius: 8px !important;
+        font-size: 12px !important;
+        font-weight: bold !important;
+        text-align: center !important;
+        cursor: pointer !important;
+        margin-bottom: 6px !important;
+    }
+
+    .close-menu-btn:active {
+        background: rgba(239, 68, 68, 0.3) !important;
+    }
+
+    /* 2️⃣ زر فتح القائمة (الهامبرغر) */
     .mobile-menu-btn {
         display: inline-flex !important;
         align-items: center !important;
@@ -110,7 +135,7 @@
         cursor: pointer !important;
     }
 
-    /* الخلفية المظللة */
+    /* 3️⃣ الخلفية المظللة */
     .sidebar-overlay {
         display: none;
         position: fixed !important;
@@ -126,7 +151,7 @@
         display: block !important;
     }
 
-    /* حاوية القائمة: شبكة من عمودين تتسع لجميع التبويبات بدون تمرير */
+    /* 4️⃣ حاوية القائمة: شبكة من عمودين تتسع لجميع التبويبات بدون تمرير */
     #navTabsContainer {
         position: fixed !important;
         top: 0 !important;
@@ -137,13 +162,12 @@
         background: #0f172a !important;
         border-left: 1px solid #334155 !important;
         
-        /* 👈 تحويل الترتيب إلى عمودين متقابلين */
         display: grid !important;
         grid-template-columns: 1fr 1fr !important;
         align-content: start !important;
         
         box-sizing: border-box !important;
-        padding: 60px 10px 20px 10px !important;
+        padding: 20px 10px 20px 10px !important; /* تم تقليل البادينج العلوي ليعود زر الإغلاق للأعلى */
         gap: 8px !important;
         z-index: 99999 !important;
         
@@ -155,7 +179,7 @@
         right: 0 !important;
     }
 
-    /* تنسيق أزرار التبويبات لتكون كبطاقات أنيقة داخل العمودين */
+    /* 5️⃣ تنسيق أزرار التبويبات لتكون كبطاقات أنيقة داخل العمودين */
     #navTabsContainer .tab-btn {
         width: 100% !important;
         box-sizing: border-box !important;
@@ -200,7 +224,7 @@
 <!-- ================= 2. واجهة التحكم الرئيسية ================= -->
 <div id="dashboardCard" class="card hidden">
     <div class="header-box">
-        <h2 id="dashboardTitle">⚙️  Testلوحة تحكم المتجر</h2>
+        <h2 id="dashboardTitle">⚙️  لوحة تحكم المتجر</h2>
 
         <button class="btn-logout" onclick="logout()">تسجيل خروج 🚪</button>
     </div>
@@ -227,6 +251,7 @@
 
     <!-- الشريط العلوي للتنقل -->
     <div class="nav-tabs" id="navTabsContainer">
+        <button type="button" class="close-menu-btn" onclick="closeMobileMenu()">✕ إغلاق القائمة</button>
         <button class="tab-btn active" id="tabHomeBtn" onclick="switchTab('home')">🏠 الرئيسية</button>
         <button class="tab-btn" id="tabStoreSettingsBtn" onclick="switchTab('storeSettings')">🏪 الهوية والبانر</button>
         <button class="tab-btn" id="tabFormBtn" onclick="switchTab('form')">➕ إضافة منتج</button>
