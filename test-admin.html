@@ -132,40 +132,43 @@
    /* التنسيق الخاص بالقائمة الجانبية للموبايل */
 @media (max-width: 768px) {
     #navTabsContainer {
-        position: fixed;
-        top: 0;
-        right: -280px; /* مخفية افتراضياً */
-        width: 270px;
-        height: 100vh;
-        height: 100dvh; /* تتناسب مع شريط عنوان متصفح الكروم */
-        max-height: 100vh;
-        background: #0f172a;
-        border-left: 1px solid #334155;
-        display: flex;
-        flex-direction: column;
-        justify-content: flex-start;
-        padding: 60px 15px 80px 15px; /* زيادة الهامش السفلي لظهور آخر التبويبات */
-        gap: 10px;
-        z-index: 2000;
-        transition: right 0.3s ease;
+        position: fixed !important;
+        top: 0 !important;
+        right: 0 !important;
+        width: 270px !important;
+        height: 100% !important;
+        height: 100dvh !important;
+        background: #0f172a !important;
+        border-left: 1px solid #334155 !important;
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: flex-start !important;
+        box-sizing: border-box !important;
+        padding: 60px 15px 120px 15px !important; /* مساحة سفليّة لظهور حسابي */
+        gap: 8px !important;
+        z-index: 2000 !important;
         
-        /* 👈 الخصائص التي تعالج مشكلة عدم التمرير باللمس على الموبايل */
+        /* 👈 استخدام تسريع الـ GPU لمنع تجميد التمرير أثناء جلب البيانات */
+        transform: translateX(100%) !important; /* إخفاء جهة اليمين */
+        transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        will-change: transform !important;
+        
+        /* تفعيل التمرير الفوري باللمس */
         overflow-y: auto !important;
-        -webkit-overflow-scrolling: touch !important; /* تفعيل اللمس والسحب السلس في كروم والسفاري */
-        touch-action: pan-y !important; /* السماح للسحب العمودي بالأصبع */
+        -webkit-overflow-scrolling: touch !important;
+        touch-action: pan-y !important;
     }
 
-    /* ظهور القائمة عند التفعيل */
+    /* إظهار القائمة فوراً عند إضافة كلاس active */
     #navTabsContainer.active {
-        right: 0;
+        transform: translateX(0) !important;
     }
 
-    /* جعل الأزرار بعرض كامل داخل القائمة */
     #navTabsContainer .tab-btn {
-        width: 100%;
-        text-align: right;
-        padding: 12px 15px;
-        border-radius: 8px;
+        flex-shrink: 0 !important;
+        width: 100% !important;
+        text-align: right !important;
+        padding: 12px 15px !important;
     }
 }
     </style>
