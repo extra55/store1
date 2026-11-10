@@ -92,10 +92,10 @@
         body.light-mode th { background: #e2e8f0 !important; color: #0284c7 !important; border-color: #cbd5e1 !important; }
         body.light-mode td { border-color: #cbd5e1 !important; color: #0f172a !important; }
 
-/* ================= قائمة الموبايل الجانبية المحسّنة ================= */
+/* ================= قائمة الجوال المزدوجة (2 Columns Grid) ================= */
 @media (max-width: 768px) {
 
-    /* 1️⃣ زر فتح القائمة (الهامبرغر) */
+    /* زر فتح القائمة (الهامبرغر) */
     .mobile-menu-btn {
         display: inline-flex !important;
         align-items: center !important;
@@ -110,7 +110,7 @@
         cursor: pointer !important;
     }
 
-    /* 2️⃣ الخلفية المظللة */
+    /* الخلفية المظللة */
     .sidebar-overlay {
         display: none;
         position: fixed !important;
@@ -120,60 +120,56 @@
         height: 100vh !important;
         background: rgba(0, 0, 0, 0.7) !important;
         backdrop-filter: blur(3px) !important;
-        z-index: 99998 !important; /* أقل بـ 1 من القائمة */
+        z-index: 99998 !important;
     }
     .sidebar-overlay.active {
         display: block !important;
     }
 
-    /* 3️⃣ حاوية القائمة الجانبية */
+    /* حاوية القائمة: شبكة من عمودين تتسع لجميع التبويبات بدون تمرير */
     #navTabsContainer {
         position: fixed !important;
         top: 0 !important;
-        right: -300px !important; /* مخفية خارج الشاشة */
-        width: 280px !important;
+        right: -310px !important;
+        width: 300px !important;
         height: 100vh !important;
         height: 100dvh !important;
         background: #0f172a !important;
         border-left: 1px solid #334155 !important;
         
-        display: flex !important;
-        flex-direction: column !important;
-        justify-content: flex-start !important;
+        /* 👈 تحويل الترتيب إلى عمودين متقابلين */
+        display: grid !important;
+        grid-template-columns: 1fr 1fr !important;
+        align-content: start !important;
         
         box-sizing: border-box !important;
-        padding: 65px 15px 120px 15px !important; /* مساحة سفليّة كافية لظهور تبويب حسابي */
-        gap: 10px !important;
-        z-index: 99999 !important; /* أعلى عنصر في الصفحة لمنع التداخل */
+        padding: 60px 10px 20px 10px !important;
+        gap: 8px !important;
+        z-index: 99999 !important;
         
         transition: right 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
-        
-        /* تفعيل التمرير العمودي لجميع الهواتف */
-        overflow-y: scroll !important;
-        -webkit-overflow-scrolling: touch !important;
-        touch-action: pan-y !important;
     }
 
-    /* إظهار القائمة */
+    /* ظهور القائمة */
     #navTabsContainer.active {
         right: 0 !important;
     }
 
-    /* 4️⃣ ⚠️ التعديل الجوهري: السماح للأزرار بنقل حركة السحب للملف الحاوي */
+    /* تنسيق أزرار التبويبات لتكون كبطاقات أنيقة داخل العمودين */
     #navTabsContainer .tab-btn {
-        flex-shrink: 0 !important; /* منع انكماش الأزرار */
         width: 100% !important;
-        text-align: right !important;
-        padding: 13px 16px !important;
-        font-size: 14px !important;
+        box-sizing: border-box !important;
+        text-align: center !important;
+        padding: 10px 4px !important;
+        font-size: 11px !important;
+        font-weight: 600 !important;
         border-radius: 8px !important;
-        
-        /* السماح للسحب بالسلاسة فور لمس أي زر داخل القائمة */
-        touch-action: pan-y !important;
-        -webkit-tap-highlight-color: transparent !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
     }
 }
-        
+
     </style>
 </head>
 <body>
@@ -204,7 +200,7 @@
 <!-- ================= 2. واجهة التحكم الرئيسية ================= -->
 <div id="dashboardCard" class="card hidden">
     <div class="header-box">
-        <h2 id="dashboardTitle">⚙️  222لوحة تحكم المتجر</h2>
+        <h2 id="dashboardTitle">⚙️  Testلوحة تحكم المتجر</h2>
 
         <button class="btn-logout" onclick="logout()">تسجيل خروج 🚪</button>
     </div>
@@ -981,14 +977,8 @@
     var container = document.getElementById("navTabsContainer");
     var overlay = document.getElementById("sidebarOverlay");
     if (container && overlay) {
-        var isActive = container.classList.toggle("active");
-        overlay.classList.toggle("active", isActive);
-        
-        // 👈 إجبار كروم على تحديث التمرير لحظياً دون انتظار الـ 30 ثانية
-        if (isActive) {
-            container.scrollTop = 0;
-            void container.offsetHeight; // Force Layout Reflow
-        }
+        container.classList.toggle("active");
+        overlay.classList.toggle("active");
     }
 }
 
@@ -1123,9 +1113,6 @@ function dismissWarningBanner() {
         if (!checkServerResponse(data)) return;
         
         if (data) {
-            // 👈 1. جلب دور المستخدم الحالي (مدير أم مجهز طلبات)
-            var role = sessionStorage.getItem("admin_role") || "Manager";
-
             // --- 1. معالجة وتحديث حالة الاشتراك وتاريخ الانتهاء ---
             if (data.expiryDate) {
                 var expDate = new Date(data.expiryDate);
@@ -1147,13 +1134,12 @@ function dismissWarningBanner() {
                     }
                 }
 
-                // التنبيه العام: يظهر للمدير فقط (role !== "Preparer") إذا كان المتبقي 3 أيام أو أقل ولم يُغلقه
+                // التنبيه العام: يظهر إذا كان المتبقي 3 أيام أو أقل، ولم يُغلقه المدير مؤقتاً
                 var warningBanner = document.getElementById("subWarningBanner");
                 var daysSpan = document.getElementById("bannerDaysLeft");
                 var isDismissed = sessionStorage.getItem("dismiss_sub_banner") === "true";
 
-                // 👈 2. التعديل هنا: إضافة التنافي مع حساب المجهز (role !== "Preparer")
-                if (role !== "Preparer" && diffDays > 0 && diffDays <= 3 && !isDismissed) {
+                if (diffDays > 0 && diffDays <= 3 && !isDismissed) {
                     if (warningBanner) warningBanner.classList.remove("hidden");
                     if (daysSpan) daysSpan.innerText = diffDays;
                 } else {
