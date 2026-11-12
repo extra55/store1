@@ -92,7 +92,39 @@
         body.light-mode th { background: #e2e8f0 !important; color: #0284c7 !important; border-color: #cbd5e1 !important; }
         body.light-mode td { border-color: #cbd5e1 !important; color: #0f172a !important; }
 
-/* إخفاء زر الإغلاق على الشاشات الكبيرة تلقائياً */
+/* تثبيت الهيدر العلوي (العنوان وزر القائمة) أثناء التمرير */
+.header-box {
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 1000 !important;
+    background: #0f172a !important; /* خلفية معتمة تمنع ظهور المحتوى خلف العنوان */
+    padding-top: 12px !important;
+    padding-bottom: 12px !important;
+    margin-bottom: 15px !important;
+    border-bottom: 1px solid #334155 !important; /* خط فاصل أنيق أسفل الهيدر */
+}
+
+    /* تنسيق زر تسجيل الخروج في أسفل القائمة الجانبية */
+.menu-logout-btn {
+    display: block !important;
+    grid-column: 1 / -1 !important; /* يمتد بعرض العمودين في أسفل القائمة */
+    background: #ef4444 !important;
+    color: #ffffff !important;
+    border: none !important;
+    padding: 10px !important;
+    border-radius: 8px !important;
+    font-size: 12px !important;
+    font-weight: bold !important;
+    text-align: center !important;
+    cursor: pointer !important;
+    margin-top: 6px !important;
+}
+
+.menu-logout-btn:active {
+    background: #dc2626 !important;
+}
+
+/* إخفاء زر القائمة على الشاشات الكبيرة تلقائياً */
 .close-menu-btn {
     display: none;
 }
@@ -223,16 +255,15 @@
 
 <!-- ================= 2. واجهة التحكم الرئيسية ================= -->
 <div id="dashboardCard" class="card hidden">
-    <div class="header-box">
-        <h2 id="dashboardTitle">⚙️  لوحة تحكم المتجر</h2>
-
-        <button class="btn-logout" onclick="logout()">تسجيل خروج 🚪</button>
-    </div>
-
-<!-- زر القائمة يظهر في أعلى الشاشة عند استخدام الموبايل -->
-        <button id="menuToggleBtn" class="mobile-menu-btn" onclick="toggleMobileMenu()">
-            ☰ 
-        </button>
+<!-- الهيدر العلوي: العنوان على اليمين وزر القائمة على اليسار -->
+<div class="header-box" style="display: flex; justify-content: space-between; align-items: center;">
+    <h2 id="dashboardTitle" style="margin:0;">⚙️ sلوحة تحكم المتجر</h2>
+    
+    <!-- زر القائمة أصبح في الهيدر العلوي مباشرة -->
+    <button id="menuToggleBtn" class="mobile-menu-btn" onclick="toggleMobileMenu()">
+        ☰ القائمة
+    </button>
+</div>
 
 <!-- شريط التنبيه العام لجميع التبويبات -->
 <div id="subWarningBanner" class="hidden" style="background: rgba(239, 68, 68, 0.15); border: 1px solid #ef4444; color: #fca5a5; border-radius: 10px; padding: 10px 16px; margin: 15px 15px 0 15px; display: flex; justify-content: space-between; align-items: center; gap: 10px; z-index: 1000;">
@@ -263,6 +294,7 @@
         <button class="tab-btn" id="tabSalesBtn" onclick="switchTab('sales')">📊 المبيعات</button>
         <button class="tab-btn" id="tabOrdersBtn" onclick="switchTab('orders')">📦 الطلبات</button>
         <button class="tab-btn" id="tabAccountBtn" onclick="switchTab('account')">👤 حسابي</button>
+        <button type="button" class="menu-logout-btn" onclick="logout()">تسجيل خروج 🚪</button>
     </div>
 
     <!-- تبويب الصفحة الرئيسية لوحة التحكم -->
@@ -444,7 +476,7 @@
             </div>
 
             <button type="submit" id="submitBtn" class="btn-submit">🚀 حفظ ونشر المنتج</button>
-            <button type="button" id="cancelEditBtn" class="btn-cancel" onclick="resetFormToCreate()">✖ إلغاء التعديل</button>
+            <button type="button" id="cancelEditBtn" class="btn-cancel" onclick="cancelEdit()">✖ إلغاء التعديل</button>
         </form>
     </div>
 
@@ -672,6 +704,8 @@
 <script>
     var SHEET_API_URL = "https://script.google.com/macros/s/AKfycbyO9pmIfHEU0NATy2DMX2kG2nE3PKC4CqgVQy008X3tSFappOHwR7t86OL3_IRpofSc/exec";
 
+    var currentTab = 'home';
+    var previousTabBeforeEdit = 'list'; // التبويب الافتراضي هو المنتجات الظاهرة
     var allProducts = [];
     var allCoupons = [];
     var allCategories = [];
@@ -889,6 +923,7 @@
     }
 
     function switchTab(tabName) {
+        currentTab = tabName;
         if (isSubscriptionBlocked && tabName !== 'home') {
             switchTab('home');
             return;
@@ -1132,83 +1167,84 @@ function dismissWarningBanner() {
 }
 
     async function loadStoreIdentityData() {
-    try {
-        var res = await fetch(SHEET_API_URL + "?action=getSettings");
-        var data = await res.json();
-        if (!checkServerResponse(data)) return;
-        
-        if (data) {
-            // --- 1. معالجة وتحديث حالة الاشتراك وتاريخ الانتهاء ---
-            if (data.expiryDate) {
-                var expDate = new Date(data.expiryDate);
-                var today = new Date();
-                var diffTime = expDate.getTime() - today.getTime();
-                var diffDays = Math.ceil(diffTime / (1000 * 3600 * 24));
+        try {
+            var res = await fetch(SHEET_API_URL + "?action=getSettings");
+            var data = await res.json();
+            if (!checkServerResponse(data)) return;
+            
+            if (data) {
+                // قراءة دور المستخدم الحالي (مدير أم مجهز)
+                var role = sessionStorage.getItem("admin_role") || "Manager";
 
-                // تحديث التاريخ والأيام في بطاقة تبويب (حسابي)
-                var dateEl = document.getElementById("subExpiryDateDisplay");
-                if (dateEl) dateEl.innerText = data.expiryDate;
+                // --- 1. معالجة وتحديث حالة الاشتراك وتاريخ الانتهاء ---
+                if (data.expiryDate) {
+                    var expDate = new Date(data.expiryDate);
+                    var today = new Date();
+                    var diffTime = expDate.getTime() - today.getTime();
+                    var diffDays = Math.ceil(diffTime / (1000 * 3600 * 24));
 
-                var daysEl = document.getElementById("subDaysLeftDisplay");
-                if (daysEl) {
-                    if (diffDays > 0) {
-                        daysEl.innerText = diffDays + " يوم";
+                    // تحديث التاريخ والأيام في بطاقة تبويب (حسابي)
+                    var dateEl = document.getElementById("subExpiryDateDisplay");
+                    if (dateEl) dateEl.innerText = data.expiryDate;
+
+                    var daysEl = document.getElementById("subDaysLeftDisplay");
+                    if (daysEl) {
+                        if (diffDays > 0) {
+                            daysEl.innerText = diffDays + " يوم";
+                        } else {
+                            daysEl.innerText = "ينتهي اليوم";
+                            daysEl.style.color = "#ef4444";
+                        }
+                    }
+
+                    // 👈 التعديل هنا: التنبيه العام يظهر للمدير فقط (role !== "Preparer") إذا كان المتبقي 3 أيام أو أقل
+                    var warningBanner = document.getElementById("subWarningBanner");
+                    var daysSpan = document.getElementById("bannerDaysLeft");
+                    var isDismissed = sessionStorage.getItem("dismiss_sub_banner") === "true";
+
+                    if (role !== "Preparer" && diffDays > 0 && diffDays <= 3 && !isDismissed) {
+                        if (warningBanner) warningBanner.classList.remove("hidden");
+                        if (daysSpan) daysSpan.innerText = diffDays;
                     } else {
-                        daysEl.innerText = "ينتهي اليوم";
-                        daysEl.style.color = "#ef4444";
+                        if (warningBanner) warningBanner.classList.add("hidden");
                     }
                 }
 
-                // التنبيه العام: يظهر إذا كان المتبقي 3 أيام أو أقل، ولم يُغلقه المدير مؤقتاً
-                var warningBanner = document.getElementById("subWarningBanner");
-                var daysSpan = document.getElementById("bannerDaysLeft");
-                var isDismissed = sessionStorage.getItem("dismiss_sub_banner") === "true";
+                // --- 2. تعبئة بقية بيانات هوية المتجر والبانر الترويجي ---
+                currentStoreIdentity.mode = data.headerMode || "text";
+                currentStoreIdentity.title = data.storeTitle || "متجر كوزمتك";
+                currentStoreIdentity.subtitle = data.storeSubtitle || "أفضل المنتجات الأصلية والعالمية";
+                currentStoreIdentity.logoUrl = data.storeLogo || "";
+                currentStoreIdentity.promoBannerUrl = data.promoBanner || "";
+                currentStoreIdentity.promoBannerCategory = data.promoBannerCategory || "";
 
-                if (diffDays > 0 && diffDays <= 3 && !isDismissed) {
-                    if (warningBanner) warningBanner.classList.remove("hidden");
-                    if (daysSpan) daysSpan.innerText = diffDays;
+                if (document.getElementById("headerModeSelect")) document.getElementById("headerModeSelect").value = currentStoreIdentity.mode;
+                if (document.getElementById("storeTitleInput")) document.getElementById("storeTitleInput").value = currentStoreIdentity.title;
+                if (document.getElementById("storeSubtitleInput")) document.getElementById("storeSubtitleInput").value = currentStoreIdentity.subtitle;
+
+                toggleHeaderModeFields();
+                loadPromoBannerCategoryOptions(currentStoreIdentity.promoBannerCategory);
+
+                if (currentStoreIdentity.logoUrl) {
+                    var prev = document.getElementById("storeLogoPrev");
+                    if (prev) { prev.src = currentStoreIdentity.logoUrl; prev.style.display = "block"; }
+                    if (document.getElementById("removeLogoBtn")) document.getElementById("removeLogoBtn").style.display = "inline-block";
                 } else {
-                    if (warningBanner) warningBanner.classList.add("hidden");
+                    if (document.getElementById("storeLogoPrev")) document.getElementById("storeLogoPrev").style.display = "none";
+                    if (document.getElementById("removeLogoBtn")) document.getElementById("removeLogoBtn").style.display = "none";
+                }
+
+                if (currentStoreIdentity.promoBannerUrl) {
+                    var prevP = document.getElementById("promoBannerPrev");
+                    if (prevP) { prevP.src = currentStoreIdentity.promoBannerUrl; prevP.style.display = "block"; }
+                    if (document.getElementById("removePromoBtn")) document.getElementById("removePromoBtn").style.display = "inline-block";
+                } else {
+                    if (document.getElementById("promoBannerPrev")) document.getElementById("promoBannerPrev").style.display = "none";
+                    if (document.getElementById("removePromoBtn")) document.getElementById("removePromoBtn").style.display = "none";
                 }
             }
-
-            // --- 2. تعبئة بقية بيانات هوية المتجر والبانر الترويجي ---
-            currentStoreIdentity.mode = data.headerMode || "text";
-            currentStoreIdentity.title = data.storeTitle || "متجر كوزمتك";
-            currentStoreIdentity.subtitle = data.storeSubtitle || "أفضل المنتجات الأصلية والعالمية";
-            currentStoreIdentity.logoUrl = data.storeLogo || "";
-            currentStoreIdentity.promoBannerUrl = data.promoBanner || "";
-            currentStoreIdentity.promoBannerCategory = data.promoBannerCategory || "";
-
-            document.getElementById("headerModeSelect").value = currentStoreIdentity.mode;
-            document.getElementById("storeTitleInput").value = currentStoreIdentity.title;
-            document.getElementById("storeSubtitleInput").value = currentStoreIdentity.subtitle;
-
-            toggleHeaderModeFields();
-            loadPromoBannerCategoryOptions(currentStoreIdentity.promoBannerCategory);
-
-            if (currentStoreIdentity.logoUrl) {
-                var prev = document.getElementById("storeLogoPrev");
-                prev.src = currentStoreIdentity.logoUrl;
-                prev.style.display = "block";
-                document.getElementById("removeLogoBtn").style.display = "inline-block";
-            } else {
-                document.getElementById("storeLogoPrev").style.display = "none";
-                document.getElementById("removeLogoBtn").style.display = "none";
-            }
-
-            if (currentStoreIdentity.promoBannerUrl) {
-                var prevP = document.getElementById("promoBannerPrev");
-                prevP.src = currentStoreIdentity.promoBannerUrl;
-                prevP.style.display = "block";
-                document.getElementById("removePromoBtn").style.display = "inline-block";
-            } else {
-                document.getElementById("promoBannerPrev").style.display = "none";
-                document.getElementById("removePromoBtn").style.display = "none";
-            }
-        }
-    } catch(e) {}
-}
+        } catch(e) {}
+    }
 
     async function previewLogoFile(input) {
         var file = input.files[0];
@@ -1884,6 +1920,7 @@ function dismissWarningBanner() {
         categories.forEach(function(cat, index) {
             var moveUpBtn = index > 0 ? `<button class="btn-action" style="background:#334155; color:#fff;" onclick="moveCategory('${cat}', 'up')">⬆️</button>` : '';
             var moveDownBtn = index < categories.length - 1 ? `<button class="btn-action" style="background:#334155; color:#fff;" onclick="moveCategory('${cat}', 'down')">⬇️</button>` : '';
+            // 👈 تعديل السطر ليتناسب مع الأقسام لاستدعاء renameCategory
             var editBtn = `<button class="btn-action btn-edit" onclick="renameCategory('${cat}')">✏ تعديل</button>`;
 
             html += `
@@ -2462,6 +2499,7 @@ function dismissWarningBanner() {
     }
 
     function startEditProduct(id) {
+        previousTabBeforeEdit = currentTab || 'list';
         if (!Array.isArray(allProducts)) return;
         var p = allProducts.find(item => String(item.id) === String(id));
         if (!p) return;
@@ -2537,6 +2575,11 @@ function dismissWarningBanner() {
         document.getElementById("submitBtn").style.background = "#22c55e";
         document.getElementById("cancelEditBtn").style.display = "none";
     }
+
+    function cancelEdit() {
+    resetFormToCreate(); // تصفير الحقول وإعادة النموذج لوضع الإضافة
+    switchTab(previousTabBeforeEdit); // العودة التلقائية للتبويب السابق (المنتجات الظاهرة)
+}
 
     async function deleteProduct(id, name) {
         if (!confirm(`هل أنت تأكد من حذف المنتج: "${name}"؟`)) return;
@@ -2631,76 +2674,83 @@ function dismissWarningBanner() {
     }
 
     async function handleProductSubmit(event) {
-        event.preventDefault();
+    event.preventDefault();
 
-        var submitBtn = document.getElementById('submitBtn');
-        var statusMsg = document.getElementById('productStatus');
+    var submitBtn = document.getElementById('submitBtn');
+    var statusMsg = document.getElementById('productStatus');
 
-        submitBtn.disabled = true;
-        statusMsg.className = "status-msg status-loading";
-        statusMsg.style.display = "block";
-        statusMsg.innerText = "جار معالجة البيانات والحفظ...";
+    submitBtn.disabled = true;
+    statusMsg.className = "status-msg status-loading";
+    statusMsg.style.display = "block";
+    statusMsg.innerText = "جار معالجة البيانات والحفظ...";
 
-        try {
-            var imgFile1 = document.getElementById('img1').files[0];
-            var imgFile2 = document.getElementById('img2').files[0];
-            var imgFile3 = document.getElementById('img3').files[0];
+    try {
+        var imgFile1 = document.getElementById('img1').files[0];
+        var imgFile2 = document.getElementById('img2').files[0];
+        var imgFile3 = document.getElementById('img3').files[0];
 
-            var imgData1 = imgFile1 ? await compressAndConvertToBase64(imgFile1) : existingImages[0];
-            var imgData2 = imgFile2 ? await compressAndConvertToBase64(imgFile2) : existingImages[1];
-            var imgData3 = imgFile3 ? await compressAndConvertToBase64(imgFile3) : existingImages[2];
+        var imgData1 = imgFile1 ? await compressAndConvertToBase64(imgFile1) : existingImages[0];
+        var imgData2 = imgFile2 ? await compressAndConvertToBase64(imgFile2) : existingImages[1];
+        var imgData3 = imgFile3 ? await compressAndConvertToBase64(imgFile3) : existingImages[2];
 
-            var brandVal = "";
-            var brandSelectVal = document.getElementById('pBrandSelect').value;
-            if (brandSelectVal === "__custom__") {
-                brandVal = document.getElementById('pBrandCustomInput').value.trim();
-            } else {
-                brandVal = brandSelectVal;
-            }
-
-            var payload = {
-                action: editingProductId ? "update" : "add",
-                token: sessionStorage.getItem("admin_session"),
-                id: editingProductId,
-                name: document.getElementById('pName').value.trim(),
-                category: document.getElementById('pCategory').value.trim(),
-                brand: brandVal,
-                price: document.getElementById('pPrice').value,
-                icon: document.getElementById('pIcon').value.trim() || "🧴",
-                desc: document.getElementById('pDesc').value.trim(),
-                hidden: document.getElementById('pHidden').checked,
-                pinned: document.getElementById('pPinned').checked,
-                images: [imgData1, imgData2, imgData3]
-            };
-
-            var response = await fetch(SHEET_API_URL, {
-                method: "POST",
-                body: JSON.stringify(payload)
-            });
-
-            var resData = await response.json();
-            if (!checkServerResponse(resData)) return;
-
-            if (resData && resData.status === "success") {
-                statusMsg.className = "status-msg status-success";
-                statusMsg.innerText = editingProductId ? "✅ تم تعديل المنتج بنجاح!" : "✅ تم إضافة المنتج بنجاح برقم: " + resData.id;
-                
-                resetFormToCreate();
-                loadProductsList();
-
-                setTimeout(function() { statusMsg.style.display = "none"; }, 3000);
-            } else {
-                throw new Error((resData && resData.message) ? resData.message : "حدث خطأ أثناء الحفظ");
-            }
-
-        } catch (err) {
-            statusMsg.className = "status-msg status-error";
-            statusMsg.innerText = "❌ تعذر إتمام العملية: " + err.message;
-            setTimeout(function() { statusMsg.style.display = "none"; }, 3000);
-        } finally {
-            submitBtn.disabled = false;
+        var brandVal = "";
+        var brandSelectVal = document.getElementById('pBrandSelect').value;
+        if (brandSelectVal === "__custom__") {
+            brandVal = document.getElementById('pBrandCustomInput').value.trim();
+        } else {
+            brandVal = brandSelectVal;
         }
+
+        var isEditMode = Boolean(editingProductId); // حفظ حالة التعديل قبل التصفير
+
+        var payload = {
+            action: editingProductId ? "update" : "add",
+            token: sessionStorage.getItem("admin_session"),
+            id: editingProductId,
+            name: document.getElementById('pName').value.trim(),
+            category: document.getElementById('pCategory').value.trim(),
+            brand: brandVal,
+            price: document.getElementById('pPrice').value,
+            icon: document.getElementById('pIcon').value.trim() || "🧴",
+            desc: document.getElementById('pDesc').value.trim(),
+            hidden: document.getElementById('pHidden').checked,
+            pinned: document.getElementById('pPinned').checked,
+            images: [imgData1, imgData2, imgData3]
+        };
+
+        var response = await fetch(SHEET_API_URL, {
+            method: "POST",
+            body: JSON.stringify(payload)
+        });
+
+        var resData = await response.json();
+        if (!checkServerResponse(resData)) return;
+
+        if (resData && resData.status === "success") {
+            statusMsg.className = "status-msg status-success";
+            statusMsg.innerText = isEditMode ? "✅ تم تعديل المنتج بنجاح!" : "✅ تم إضافة المنتج بنجاح برقم: " + resData.id;
+
+            resetFormToCreate();
+            loadProductsList();
+
+            // 👈 ⚠️ أضف سطر العودة هنا مباشرة بعد تحديث البيانات
+            if (isEditMode) {
+                switchTab(previousTabBeforeEdit); // أو switchTab('list'); للرجوع دائماً للمنتجات الظاهرة
+            }
+
+            setTimeout(function() { statusMsg.style.display = "none"; }, 3000);
+        } else {
+            throw new Error((resData && resData.message) ? resData.message : "حدث خطأ أثناء الحفظ");
+        }
+
+    } catch (err) {
+        statusMsg.className = "status-msg status-error";
+        statusMsg.innerText = "❌ تعذر إتمام العملية: " + err.message;
+        setTimeout(function() { statusMsg.style.display = "none"; }, 3000);
+    } finally {
+        submitBtn.disabled = false;
     }
+}
 </script>
 </body>
 </html>
