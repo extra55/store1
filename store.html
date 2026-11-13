@@ -768,13 +768,20 @@
             <div id="couponStatusMsg" style="font-size: 12px; margin-top: 6px; display: none;"></div>
         </div>
 
+       <div class="form-group" style="margin-top: 15px; margin-bottom: 5px;">
+            <label class="form-label" style="color: #0f172a; font-weight: 800;">📍 اختر المحافظة / المنطقة لحساب التوصيل:</label>
+            <select id="regionSelect" class="form-input" style="border: 2px solid #0f172a;" onchange="renderCartItems()">
+                <option value="">-- يرجى اختيار المنطقة --</option>
+            </select>
+        </div>
+
         <div class="total-box" id="cartGrandTotalBox">
             <span>المبلغ الإجمالي:</span>
             <span id="cartGrandTotal" style="color:#16a34a;">0 د.ع</span>
         </div>
         
         <div class="delivery-note">
-            🚚 ستضاف أجور التوصيل إلى المبلغ الإجمالي
+            🚚 يتم حساب أجور التوصيل تلقائياً عند اختيار المحافظة
         </div>
 
         <div class="form-group">
@@ -793,7 +800,7 @@
 </div>
 
 <script>
-    var SHEET_API_URL = "https://script.google.com/macros/s/AKfycbyO9pmIfHEU0NATy2DMX2kG2nE3PKC4CqgVQy008X3tSFappOHwR7t86OL3_IRpofSc/exec"; 
+    var SHEET_API_URL = "https://script.google.com/macros/s/AKfycbyUCy2ycfdGrBpmO_QyRj97XeTJziU93cOWgQzmmMxDAcu6obIweqRdxXeihfWltLA/exec"; 
     var PHARMACY_WA = "9647803342472";
 
     var products = [];
@@ -804,6 +811,7 @@
     var cart = {};
     var currentDetailId = null;
     var searchQuery = "";
+    var allRegions = [];
 
     var appliedCoupon = null;
     var allCoupons = [];
@@ -905,16 +913,30 @@
         }
     }
 
+    function renderRegionOptions() {
+        var select = document.getElementById("regionSelect");
+        if (!select) return;
+        var html = '<option value="" data-price="0">-- يرجى اختيار المنطقة --</option>';
+        allRegions.forEach(function(r) {
+            html += `<option value="${r.name}" data-price="${r.price}">${r.name} (توصيل: ${r.price.toLocaleString()} د.ع)</option>`;
+        });
+        select.innerHTML = html;
+    }
+
     async function initStoreData() {
         var container = document.getElementById('productsGrid');
         container.innerHTML = '<p style="text-align:center; padding:30px; color:#64748b;">جارٍ تحميل المتجر...</p>';
 
         try {
-            var [settingsRes, productsRes, catRes] = await Promise.all([
+            var [settingsRes, productsRes, catRes, regionsRes] = await Promise.all([
                 fetch(SHEET_API_URL + "?action=getSettings").then(r => r.json()).catch(() => null),
                 fetch(SHEET_API_URL).then(r => r.json()).catch(() => []),
-                fetch(SHEET_API_URL + "?action=getCategories").then(r => r.json()).catch(() => [])
+                fetch(SHEET_API_URL + "?action=getCategories").then(r => r.json()).catch(() => []),
+                fetch(SHEET_API_URL + "?action=getRegions").then(r => r.json()).catch(() => [])
             ]);
+
+            allRegions = Array.isArray(regionsRes) ? regionsRes : [];
+            renderRegionOptions();
 
             if (settingsRes) {
                 globalStoreSettings.headerMode = settingsRes.headerMode || "text";
@@ -1630,21 +1652,35 @@
                     discountAmount = Math.round((subTotal * appliedCoupon.discount) / 100);
                 }
             }
-            var finalTotal = subTotal - discountAmount;
+
+            // قراءة أجرة التوصيل من القائمة المنسدلة
+            var regionSelect = document.getElementById("regionSelect");
+            var deliveryFee = 0;
+            if (regionSelect && regionSelect.selectedIndex > 0) {
+                deliveryFee = Number(regionSelect.options[regionSelect.selectedIndex].getAttribute("data-price")) || 0;
+            }
+
+            var finalTotal = subTotal - discountAmount + deliveryFee;
 
             var totalBox = document.getElementById('cartGrandTotalBox');
             if (totalBox) {
+                var htmlContent = '<span>المبلغ الإجمالي:</span><div style="text-align:left;">';
+                
                 if (discountAmount > 0) {
-                    totalBox.innerHTML = '<span>المبلغ الإجمالي:</span>' +
-                        '<div style="text-align:left;">' +
-                            '<span style="text-decoration:line-through; color:#94a3b8; font-size:12px; margin-left:6px;">' + subTotal.toLocaleString() + ' د.ع</span>' +
-                            '<span style="color:#16a34a;">' + finalTotal.toLocaleString() + ' د.ع</span>' +
-                            '<div style="font-size:11px; color:#16a34a; font-weight:normal;">(خصم ' + appliedCoupon.discount + '%: -' + discountAmount.toLocaleString() + ' د.ع)</div>' +
-                        '</div>';
-                } else {
-                    totalBox.innerHTML = '<span>المبلغ الإجمالي:</span>' +
-                        '<span style="color:#16a34a;">' + subTotal.toLocaleString() + ' د.ع</span>';
+                    htmlContent += '<span style="text-decoration:line-through; color:#94a3b8; font-size:12px; margin-left:6px;">' + subTotal.toLocaleString() + ' د.ع</span>';
                 }
+                
+                htmlContent += '<span style="color:#16a34a; font-size: 16px;">' + finalTotal.toLocaleString() + ' د.ع</span>';
+                
+                if (discountAmount > 0) {
+                    htmlContent += '<div style="font-size:11px; color:#16a34a; font-weight:normal;">(خصم ' + appliedCoupon.discount + '%: -' + discountAmount.toLocaleString() + ' د.ع)</div>';
+                }
+                if (deliveryFee > 0) {
+                    htmlContent += '<div style="font-size:11px; color:#0f172a; font-weight:bold;">(متضمن أجور التوصيل: +' + deliveryFee.toLocaleString() + ' د.ع)</div>';
+                }
+                
+                htmlContent += '</div>';
+                totalBox.innerHTML = htmlContent;
             }
         }
     }
@@ -1660,6 +1696,16 @@
         var name = document.getElementById('custName').value.trim();
         var phone = document.getElementById('custPhone').value.trim();
         var address = document.getElementById('custAddress').value.trim();
+
+        // --- التعديل الجديد: التحقق من اختيار المنطقة وجلب أجرة التوصيل ---
+        var regionSelect = document.getElementById("regionSelect");
+        if (!regionSelect || regionSelect.value === "") {
+            alert('يرجى اختيار المحافظة / المنطقة أولاً لتحديد أجرة التوصيل');
+            return;
+        }
+        var deliveryFee = Number(regionSelect.options[regionSelect.selectedIndex].getAttribute("data-price")) || 0;
+        var regionName = regionSelect.value;
+        // -------------------------------------------------------------
 
         if (Object.keys(cart).length === 0) {
             alert('السلة فارغة!');
@@ -1693,7 +1739,12 @@
         if (appliedCoupon && appliedCoupon.discount) {
             discountAmount = Math.round((subTotal * appliedCoupon.discount) / 100);
         }
-        var finalTotal = subTotal - discountAmount;
+        
+        // التعديل: إضافة أجرة التوصيل إلى المجموع النهائي
+        var finalTotal = subTotal - discountAmount + deliveryFee;
+
+        // التعديل: دمج المنطقة وأجرة التوصيل مع العنوان ليتم حفظها في الشيت
+        var fullAddress = address + " (المنطقة: " + regionName + " - توصيل: " + deliveryFee + " د.ع)";
 
         var invoiceNo = "INV-" + Math.floor(100000 + Math.random() * 900000);
 
@@ -1704,10 +1755,10 @@
                 invoiceNo: invoiceNo,
                 name: name,
                 phone: phone,
-                address: address,
+                address: fullAddress, // إرسال العنوان الكامل (مدمج مع المحافظة)
                 items: itemsSummary,
                 discount: discountVal,
-                total: finalTotal
+                total: finalTotal     // إرسال المجموع الكلي الحقيقي (متضمن التوصيل)
             })
         }).catch(function(err) { console.log(err); });
 
