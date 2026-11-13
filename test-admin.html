@@ -124,8 +124,8 @@
     background: #dc2626 !important;
 }
 
-/* إخفاء زر القائمة على الشاشات الكبيرة تلقائياً */
-.close-menu-btn {
+/* إخفاء أزرار القائمة على الشاشات الكبيرة تلقائياً */
+.close-menu-btn, .mobile-menu-btn {
     display: none;
 }
 
@@ -257,7 +257,7 @@
 <div id="dashboardCard" class="card hidden">
 <!-- الهيدر العلوي: العنوان على اليمين وزر القائمة على اليسار -->
 <div class="header-box" style="display: flex; justify-content: space-between; align-items: center;">
-    <h2 id="dashboardTitle" style="margin:0;">⚙️ sلوحة تحكم المتجر</h2>
+    <h2 id="dashboardTitle" style="margin:0;">⚙️ Cلوحة تحكم المتجر</h2>
     
     <!-- زر القائمة أصبح في الهيدر العلوي مباشرة -->
     <button id="menuToggleBtn" class="mobile-menu-btn" onclick="toggleMobileMenu()">
@@ -294,6 +294,7 @@
         <button class="tab-btn" id="tabSalesBtn" onclick="switchTab('sales')">📊 المبيعات</button>
         <button class="tab-btn" id="tabOrdersBtn" onclick="switchTab('orders')">📦 الطلبات</button>
         <button class="tab-btn" id="tabAccountBtn" onclick="switchTab('account')">👤 حسابي</button>
+        <button class="tab-btn" id="tabRegionsBtn" onclick="switchTab('regions')">🚚 التوصيل</button>
         <button type="button" class="menu-logout-btn" onclick="logout()">تسجيل خروج 🚪</button>
     </div>
 
@@ -636,6 +637,31 @@
         </div>
     </div>
 
+    <!-- تبويب إدارة مناطق التوصيل -->
+    <div id="regionsTab" class="hidden">
+        <div style="background: #0f172a; padding: 15px; border-radius: 10px; border: 1px solid #334155; margin-bottom: 20px;">
+            <label style="color: #38bdf8; font-size: 14px; margin-bottom: 12px; display: block;">➕ إضافة منطقة توصيل جديدة</label>
+            <form onsubmit="handleAddRegion(event)">
+                <div class="row-2">
+                    <div class="form-group">
+                        <label>اسم المحافظة / المنطقة *</label>
+                        <input type="text" id="regionNameInput" placeholder="مثال: بغداد" required>
+                    </div>
+                    <div class="form-group">
+                        <label>أجور التوصيل (د.ع) *</label>
+                        <input type="number" id="regionPriceInput" placeholder="مثال: 5000" min="0" required>
+                    </div>
+                </div>
+                <button type="submit" id="saveRegionBtn" class="btn-submit" style="background:#0284c7; margin-top:5px;">💾 حفظ المنطقة</button>
+            </form>
+        </div>
+
+        <label style="color: #38bdf8; font-size: 14px; margin-bottom: 10px; display: block;">🚚 مناطق التوصيل المحفوظة</label>
+        <div id="regionsListContainer">
+            <p style="text-align:center; color:#94a3b8; padding:20px;">جار تحميل المناطق...</p>
+        </div>
+    </div>
+
     <!-- تبويب إعدادات الحساب -->
     <div id="accountTab" class="hidden">
         <!-- 1. البطاقة التعريفية بالصلاحية والمظهر -->
@@ -702,7 +728,7 @@
 </div>
 
 <script>
-    var SHEET_API_URL = "https://script.google.com/macros/s/AKfycbyO9pmIfHEU0NATy2DMX2kG2nE3PKC4CqgVQy008X3tSFappOHwR7t86OL3_IRpofSc/exec";
+    var SHEET_API_URL = "https://script.google.com/macros/s/AKfycbyUCy2ycfdGrBpmO_QyRj97XeTJziU93cOWgQzmmMxDAcu6obIweqRdxXeihfWltLA/exec";
 
     var currentTab = 'home';
     var previousTabBeforeEdit = 'list'; // التبويب الافتراضي هو المنتجات الظاهرة
@@ -947,6 +973,7 @@
         var salesTab = document.getElementById("salesTab");
         var ordersTab = document.getElementById("ordersTab");
         var accountTab = document.getElementById("accountTab");
+        var regionsTab = document.getElementById("regionsTab");
 
         var tabHomeBtn = document.getElementById("tabHomeBtn");
         var tabStoreSettingsBtn = document.getElementById("tabStoreSettingsBtn");
@@ -959,6 +986,7 @@
         var tabSalesBtn = document.getElementById("tabSalesBtn");
         var tabOrdersBtn = document.getElementById("tabOrdersBtn");
         var tabAccountBtn = document.getElementById("tabAccountBtn");
+        var tabRegionsBtn = document.getElementById("tabRegionsBtn");
 
         if (homeTab) homeTab.classList.add("hidden");
         if (storeSettingsTab) storeSettingsTab.classList.add("hidden");
@@ -971,6 +999,7 @@
         if (salesTab) salesTab.classList.add("hidden");
         if (ordersTab) ordersTab.classList.add("hidden");
         if (accountTab) accountTab.classList.add("hidden");
+        if (regionsTab) regionsTab.classList.add("hidden");
 
         if (tabHomeBtn) tabHomeBtn.classList.remove("active");
         if (tabStoreSettingsBtn) tabStoreSettingsBtn.classList.remove("active");
@@ -983,6 +1012,7 @@
         if (tabSalesBtn) tabSalesBtn.classList.remove("active");
         if (tabOrdersBtn) tabOrdersBtn.classList.remove("active");
         if (tabAccountBtn) tabAccountBtn.classList.remove("active");
+        if (tabRegionsBtn) tabRegionsBtn.classList.remove("active");
 
         if (tabName === 'home') {
             if (homeTab) homeTab.classList.remove("hidden");
@@ -1030,7 +1060,12 @@
             if (tabAccountBtn) tabAccountBtn.classList.add("active");
             renderAccountProfileData();
             loadStoreIdentityData(); // 👈 هذا السطر لتحديث بيانات الاشتراك فور فتح التبويب
-        }
+        } else if (tabName === 'regions') {
+            if (regionsTab) regionsTab.classList.remove("hidden");
+            if (tabRegionsBtn) tabRegionsBtn.classList.add("active");
+            loadRegionsList();
+}
+          
     }
 
     function toggleMobileMenu() {
@@ -2751,6 +2786,134 @@ function dismissWarningBanner() {
         submitBtn.disabled = false;
     }
 }
+
+var allRegions = [];
+
+    async function loadRegionsList() {
+        var container = document.getElementById("regionsListContainer");
+        container.innerHTML = '<p style="text-align:center; color:#94a3b8; padding:20px;">جار تحميل المناطق...</p>';
+        try {
+            var res = await fetch(SHEET_API_URL + "?action=getRegions");
+            var data = await res.json();
+            if (!checkServerResponse(data)) return;
+            allRegions = Array.isArray(data) ? data : [];
+            renderRegionsList(allRegions);
+        } catch(err) {
+            container.innerHTML = '<p style="text-align:center; color:#ef4444; padding:20px;">فشل في جلب المناطق</p>';
+        }
+    }
+
+    function renderRegionsList(regions) {
+        var container = document.getElementById("regionsListContainer");
+        if (regions.length === 0) {
+            container.innerHTML = '<p style="text-align:center; color:#94a3b8; padding:20px;">لا توجد مناطق مضافة حالياً</p>';
+            return;
+        }
+        var html = "";
+        regions.forEach(function(r) {
+            html += `
+                <div class="product-item" style="background:#0f172a; border:1px solid #334155; padding:12px; border-radius:8px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
+                    <div>
+                        <span style="font-weight:bold; color:#38bdf8; font-size:15px;">📍 ${r.name}</span>
+                        <div style="color:#4ade80; font-size:13px; font-weight:bold; margin-top:4px;">💰 ${r.price.toLocaleString()} د.ع</div>
+                    </div>
+                    <div style="display:flex; gap:6px;">
+                        <button class="btn-action btn-edit" onclick="editRegion('${r.name}', ${r.price})">✏ تعديل</button>
+                        <button class="btn-action btn-delete" onclick="deleteRegion('${r.name}')">🗑️ حذف</button>
+                    </div>
+                </div>
+            `;
+        });
+        container.innerHTML = html;
+    }
+
+    async function handleAddRegion(event) {
+        event.preventDefault();
+        var name = document.getElementById("regionNameInput").value.trim();
+        var price = document.getElementById("regionPriceInput").value;
+        var btn = document.getElementById("saveRegionBtn");
+        var statusMsg = document.getElementById('productStatus');
+
+        btn.disabled = true;
+        statusMsg.className = "status-msg status-loading";
+        statusMsg.style.display = "block";
+        statusMsg.innerText = "جار حفظ المنطقة...";
+
+        try {
+            var response = await fetch(SHEET_API_URL, {
+                method: "POST",
+                body: JSON.stringify({ action: "addRegion", token: sessionStorage.getItem("admin_session"), name: name, price: price })
+            });
+            var resData = await response.json();
+            if (!checkServerResponse(resData)) return;
+            if (resData.status === "success") {
+                statusMsg.className = "status-msg status-success";
+                statusMsg.innerText = "✅ تم إضافة المنطقة بنجاح";
+                document.getElementById("regionNameInput").value = "";
+                document.getElementById("regionPriceInput").value = "";
+                loadRegionsList();
+            } else { throw new Error(resData.message); }
+        } catch (err) {
+            statusMsg.className = "status-msg status-error";
+            statusMsg.innerText = "❌ تعذر الحفظ: " + err.message;
+        } finally {
+            setTimeout(() => statusMsg.style.display = "none", 3000);
+            btn.disabled = false;
+        }
+    }
+
+    async function editRegion(oldName, oldPrice) {
+        var newName = prompt(`تعديل اسم المنطقة (${oldName}):`, oldName);
+        if (!newName || !newName.trim()) return;
+        var newPrice = prompt(`تعديل سعر التوصيل للمنطقة (${newName}):`, oldPrice);
+        if (newPrice === null || newPrice.trim() === "" || isNaN(newPrice)) return;
+
+        var statusMsg = document.getElementById('productStatus');
+        statusMsg.className = "status-msg status-loading";
+        statusMsg.style.display = "block";
+        statusMsg.innerText = "جار التعديل...";
+
+        try {
+            var response = await fetch(SHEET_API_URL, {
+                method: "POST",
+                body: JSON.stringify({ action: "editRegion", token: sessionStorage.getItem("admin_session"), oldName: oldName, newName: newName, newPrice: newPrice })
+            });
+            var resData = await response.json();
+            if (resData.status === "success") {
+                statusMsg.className = "status-msg status-success";
+                statusMsg.innerText = "✅ تم التعديل بنجاح";
+                loadRegionsList();
+            } else { throw new Error(resData.message); }
+        } catch (err) {
+            statusMsg.className = "status-msg status-error";
+            statusMsg.innerText = "❌ تعذر التعديل: " + err.message;
+        }
+        setTimeout(() => statusMsg.style.display = "none", 3000);
+    }
+
+    async function deleteRegion(name) {
+        if (!confirm(`هل أنت متأكد من حذف منطقة "${name}"؟`)) return;
+        var statusMsg = document.getElementById('productStatus');
+        statusMsg.className = "status-msg status-loading";
+        statusMsg.style.display = "block";
+        statusMsg.innerText = "جار الحذف...";
+        try {
+            var response = await fetch(SHEET_API_URL, {
+                method: "POST",
+                body: JSON.stringify({ action: "deleteRegion", token: sessionStorage.getItem("admin_session"), name: name })
+            });
+            var resData = await response.json();
+            if (resData.status === "success") {
+                statusMsg.className = "status-msg status-success";
+                statusMsg.innerText = "✅ تم الحذف بنجاح";
+                loadRegionsList();
+            } else { throw new Error(resData.message); }
+        } catch (err) {
+            statusMsg.className = "status-msg status-error";
+            statusMsg.innerText = "❌ تعذر الحذف: " + err.message;
+        }
+        setTimeout(() => statusMsg.style.display = "none", 3000);
+    }
 </script>
 </body>
 </html>
