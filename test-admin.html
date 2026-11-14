@@ -257,7 +257,7 @@
 <div id="dashboardCard" class="card hidden">
 <!-- الهيدر العلوي: العنوان على اليمين وزر القائمة على اليسار -->
 <div class="header-box" style="display: flex; justify-content: space-between; align-items: center;">
-    <h2 id="dashboardTitle" style="margin:0;">⚙️ Cلوحة تحكم المتجر</h2>
+    <h2 id="dashboardTitle" style="margin:0;">⚙️ kلوحة تحكم المتجر</h2>
     
     <!-- زر القائمة أصبح في الهيدر العلوي مباشرة -->
     <button id="menuToggleBtn" class="mobile-menu-btn" onclick="toggleMobileMenu()">
@@ -361,6 +361,17 @@
                     <select id="promoBannerCategorySelect">
                         <option value="">-- بدون توجيه (عرض فقط) --</option>
                     </select>
+                </div>
+
+                <hr style="border: 0; border-top: 1px solid #334155; margin: 20px 0;">
+
+                <div class="form-group">
+                    <label>📱 رقم واتساب استقبال الطلبات:</label>
+                    <div style="display: flex; gap: 8px; align-items: center;">
+                        <input type="tel" id="storeWhatsAppInput" dir="ltr" placeholder="مثال: 07801234567" oninput="updateWhatsAppPreviewHint()" style="text-align: left; flex: 1;">
+                        <button type="button" onclick="testStoreWhatsApp()" style="background: #25d366; color: #fff; border: none; padding: 10px 14px; border-radius: 8px; font-weight: bold; font-size: 12px; cursor: pointer; white-space: nowrap;">💬 تجربة الرقم</button>
+                    </div>
+                    <small id="whatsAppFormattedHint" style="display: block; color: #94a3b8; font-size: 11px; margin-top: 6px;">يتم تحويل الرقم العراقي (07...) تلقائياً إلى الصيغة الدولية (9647...)</small>
                 </div>
 
                 <button type="submit" id="saveStoreIdentityBtn" class="btn-submit" style="background:#0284c7; margin-top:10px;">💾 حفظ إعدادات الهوية والبانر</button>
@@ -1201,6 +1212,71 @@ function dismissWarningBanner() {
     sessionStorage.setItem("dismiss_sub_banner", "true");
 }
 
+    function formatStoreWhatsAppNumber(raw) {
+        if (!raw) return "";
+        // تحويل الأرقام العربية/الفارسية إلى إنجليزية
+        var normalized = String(raw).replace(/[٠-٩]/g, function(d) {
+            return "٠١٢٣٤٥٦٧٨٩".indexOf(d);
+        }).replace(/[۰-۹]/g, function(d) {
+            return "۰۱۲۳۴۵۶۷۸۹".indexOf(d);
+        });
+
+        // إزالة المسافات والرموز مثل + أو -
+        var digits = normalized.replace(/\D/g, "");
+        if (!digits) return "";
+
+        // إزالة 00 الدولية إن وجدت
+        if (digits.indexOf("00") === 0) {
+            digits = digits.substring(2);
+        }
+
+        // معالجة خطأ كتابة 96407...
+        if (digits.indexOf("9640") === 0 && digits.length === 14) {
+            digits = "964" + digits.substring(4);
+        }
+        // تحويل الرقم المحلي العراقي 07XXXXXXXXX (11 رقماً) إلى 9647XXXXXXXXX
+        else if (digits.indexOf("0") === 0 && digits.length === 11) {
+            digits = "964" + digits.substring(1);
+        }
+        // تحويل الرقم العراقي المكتوب بدون صفر 7XXXXXXXXX (10 أرقام) إلى 9647XXXXXXXXX
+        else if (digits.indexOf("7") === 0 && digits.length === 10) {
+            digits = "964" + digits;
+        }
+
+        return digits;
+    }
+
+    function updateWhatsAppPreviewHint() {
+        var input = document.getElementById("storeWhatsAppInput");
+        var hint = document.getElementById("whatsAppFormattedHint");
+        if (!input || !hint) return;
+
+        var formatted = formatStoreWhatsAppNumber(input.value);
+        if (formatted) {
+            hint.innerText = "✅ الصيغة الدولية المعتمدة للواتساب: " + formatted;
+            hint.style.color = "#4ade80";
+        } else {
+            hint.innerText = "يتم تحويل الرقم العراقي (07...) تلقائياً إلى الصيغة الدولية (9647...)";
+            hint.style.color = "#94a3b8";
+        }
+    }
+
+    function testStoreWhatsApp() {
+        var input = document.getElementById("storeWhatsAppInput");
+        if (!input) return;
+
+        var formatted = formatStoreWhatsAppNumber(input.value);
+        if (!formatted || formatted.length < 10) {
+            alert("يرجى إدخال رقم واتساب صحيح أولاً لتجربته.");
+            input.focus();
+            return;
+        }
+
+        input.value = formatted;
+        updateWhatsAppPreviewHint();
+        window.open("https://wa.me/" + formatted, "_blank");
+    }
+
     async function loadStoreIdentityData() {
         try {
             var res = await fetch(SHEET_API_URL + "?action=getSettings");
@@ -1208,7 +1284,6 @@ function dismissWarningBanner() {
             if (!checkServerResponse(data)) return;
             
             if (data) {
-                // قراءة دور المستخدم الحالي (مدير أم مجهز)
                 var role = sessionStorage.getItem("admin_role") || "Manager";
 
                 // --- 1. معالجة وتحديث حالة الاشتراك وتاريخ الانتهاء ---
@@ -1218,7 +1293,6 @@ function dismissWarningBanner() {
                     var diffTime = expDate.getTime() - today.getTime();
                     var diffDays = Math.ceil(diffTime / (1000 * 3600 * 24));
 
-                    // تحديث التاريخ والأيام في بطاقة تبويب (حسابي)
                     var dateEl = document.getElementById("subExpiryDateDisplay");
                     if (dateEl) dateEl.innerText = data.expiryDate;
 
@@ -1232,7 +1306,6 @@ function dismissWarningBanner() {
                         }
                     }
 
-                    // 👈 التعديل هنا: التنبيه العام يظهر للمدير فقط (role !== "Preparer") إذا كان المتبقي 3 أيام أو أقل
                     var warningBanner = document.getElementById("subWarningBanner");
                     var daysSpan = document.getElementById("bannerDaysLeft");
                     var isDismissed = sessionStorage.getItem("dismiss_sub_banner") === "true";
@@ -1245,17 +1318,22 @@ function dismissWarningBanner() {
                     }
                 }
 
-                // --- 2. تعبئة بقية بيانات هوية المتجر والبانر الترويجي ---
+                // --- 2. تعبئة بقية بيانات هوية المتجر والبانر الترويجي ورقم الواتساب ---
                 currentStoreIdentity.mode = data.headerMode || "text";
                 currentStoreIdentity.title = data.storeTitle || "متجر كوزمتك";
                 currentStoreIdentity.subtitle = data.storeSubtitle || "أفضل المنتجات الأصلية والعالمية";
                 currentStoreIdentity.logoUrl = data.storeLogo || "";
                 currentStoreIdentity.promoBannerUrl = data.promoBanner || "";
                 currentStoreIdentity.promoBannerCategory = data.promoBannerCategory || "";
+                currentStoreIdentity.whatsapp = data.storeWhatsApp || "";
 
                 if (document.getElementById("headerModeSelect")) document.getElementById("headerModeSelect").value = currentStoreIdentity.mode;
                 if (document.getElementById("storeTitleInput")) document.getElementById("storeTitleInput").value = currentStoreIdentity.title;
                 if (document.getElementById("storeSubtitleInput")) document.getElementById("storeSubtitleInput").value = currentStoreIdentity.subtitle;
+                if (document.getElementById("storeWhatsAppInput")) {
+                    document.getElementById("storeWhatsAppInput").value = currentStoreIdentity.whatsapp;
+                    updateWhatsAppPreviewHint();
+                }
 
                 toggleHeaderModeFields();
                 loadPromoBannerCategoryOptions(currentStoreIdentity.promoBannerCategory);
@@ -1324,6 +1402,23 @@ function dismissWarningBanner() {
     async function handleSaveStoreIdentity(event) {
         event.preventDefault();
         var statusMsg = document.getElementById('productStatus');
+
+        var waInput = document.getElementById("storeWhatsAppInput");
+        var formattedWa = waInput ? formatStoreWhatsAppNumber(waInput.value) : "";
+
+        if (waInput && waInput.value.trim() !== "" && formattedWa.length < 10) {
+            statusMsg.className = "status-msg status-error";
+            statusMsg.style.display = "block";
+            statusMsg.innerText = "❌ رقم الواتساب المدخل غير مكتمل، يرجى التأكد منه";
+            setTimeout(() => statusMsg.style.display = "none", 3000);
+            return;
+        }
+
+        if (waInput) {
+            waInput.value = formattedWa;
+            updateWhatsAppPreviewHint();
+        }
+
         statusMsg.className = "status-msg status-loading";
         statusMsg.style.display = "block";
         statusMsg.innerText = "جارِ حفظ إعدادات الهوية والبانر...";
@@ -1344,12 +1439,14 @@ function dismissWarningBanner() {
                     storeSubtitle: subtitle,
                     storeLogo: currentStoreIdentity.logoUrl,
                     promoBanner: currentStoreIdentity.promoBannerUrl,
-                    promoBannerCategory: promoCategory
+                    promoBannerCategory: promoCategory,
+                    storeWhatsApp: formattedWa
                 })
             });
             var data = await res.json();
             if (!checkServerResponse(data)) return;
             if (data && data.status === "success") {
+                currentStoreIdentity.whatsapp = formattedWa;
                 statusMsg.className = "status-msg status-success";
                 statusMsg.innerText = "✅ تم حفظ إعدادات الهوية والبانر بنجاح";
                 setTimeout(() => statusMsg.style.display = "none", 3000);
