@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>1متجر كوزمتك</title>
+    <title>متجر كوزمتك</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;900&display=swap');
 
@@ -931,9 +931,6 @@
                 fetch(SHEET_API_URL + "?action=getRegions").then(r => r.json()).catch(() => [])
             ]);
 
-            allRegions = Array.isArray(regionsRes) ? regionsRes : [];
-            renderRegionOptions();
-
             if (settingsRes) {
                 globalStoreSettings.headerMode = settingsRes.headerMode || "text";
                 globalStoreSettings.storeTitle = settingsRes.storeTitle || "";
@@ -950,6 +947,29 @@
                 slideshowSettings.speedSeconds = Number(settingsRes.slideshowSpeed) || 4;
                 slideshowSettings.categories = Array.isArray(settingsRes.slideshowCategories) ? settingsRes.slideshowCategories : [];
             }
+
+            // إغلاق واجهة المتجر وعرض رسالة محايدة للزبائن عند انتهاء الاشتراك
+            if (settingsRes && settingsRes.status === "expired") {
+                renderStoreIdentity();
+                var catBar = document.getElementById('categoriesBar');
+                if (catBar) catBar.classList.add('hidden');
+                var slideWrap = document.getElementById('mainSlideshowWrapper');
+                if (slideWrap) slideWrap.classList.add('hidden');
+                var searchBox = document.getElementById('searchContainerBox');
+                if (searchBox) searchBox.classList.add('hidden');
+                var headerActions = document.querySelector('.header > div:last-child');
+                if (headerActions) headerActions.style.display = 'none';
+
+                container.innerHTML = '<div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:16px; padding:40px 20px; text-align:center; margin:20px auto; max-width:480px; box-shadow:0 4px 15px rgba(0,0,0,0.04);">' +
+                    '<div style="font-size:46px; margin-bottom:12px;">🛍️</div>' +
+                    '<h2 style="color:#0f172a; font-size:18px; font-weight:800; margin-bottom:8px;">المتجر مغلق مؤقتاً للتحديث</h2>' +
+                    '<p style="color:#64748b; font-size:13px; line-height:1.6;">نعمل حالياً على تحديث المتجر وتجهيز المنتجات، سنعود للعمل قريباً. شكراً لتفهمكم!</p>' +
+                '</div>';
+                return;
+            }
+
+            allRegions = Array.isArray(regionsRes) ? regionsRes : [];
+            renderRegionOptions();
 
             products = Array.isArray(productsRes) ? productsRes : [];
 
