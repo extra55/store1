@@ -257,7 +257,7 @@
 <div id="dashboardCard" class="card hidden">
 <!-- الهيدر العلوي: العنوان على اليمين وزر القائمة على اليسار -->
 <div class="header-box" style="display: flex; justify-content: space-between; align-items: center;">
-    <h2 id="dashboardTitle" style="margin:0;">⚙️ kلوحة تحكم المتجر</h2>
+    <h2 id="dashboardTitle" style="margin:0;">⚙️ sلوحة تحكم المتجر</h2>
     
     <!-- زر القائمة أصبح في الهيدر العلوي مباشرة -->
     <button id="menuToggleBtn" class="mobile-menu-btn" onclick="toggleMobileMenu()">
@@ -266,14 +266,15 @@
 </div>
 
 <!-- شريط التنبيه العام لجميع التبويبات -->
-<div id="subWarningBanner" class="hidden" style="background: rgba(239, 68, 68, 0.15); border: 1px solid #ef4444; color: #fca5a5; border-radius: 10px; padding: 10px 16px; margin: 15px 15px 0 15px; display: flex; justify-content: space-between; align-items: center; gap: 10px; z-index: 1000;">
-    <div style="font-size: 13px; display: flex; align-items: center; gap: 8px;">
+<div id="subWarningBanner" class="hidden" style="background: rgba(239, 68, 68, 0.15); border: 1px solid #ef4444; color: #fca5a5; border-radius: 10px; padding: 10px 16px; margin: 15px 15px 0 15px; display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; z-index: 1000;">
+    <div id="subBannerText" style="font-size: 13px; display: flex; align-items: center; gap: 8px;">
         <span style="font-size: 18px;">🚨</span>
         <span>تنبيه: متبقي <strong><span id="bannerDaysLeft">--</span> أيام</strong> فقط على انتهاء الإشتراك!</span>
     </div>
-    <div style="display: flex; align-items: center; gap: 8px;">
-        <a href="https://wa.me/9647803342472" target="_blank" style="background: #ef4444; color: #ffffff; text-decoration: none; padding: 5px 12px; border-radius: 6px; font-weight: bold; font-size: 12px; white-space: nowrap;">💬 تجديد الآن</a>
-        <button type="button" onclick="dismissWarningBanner()" style="background: none; border: none; color: #fca5a5; cursor: pointer; font-size: 16px; padding: 0 4px; line-height: 1;" title="إغلاق التنبيه مؤقتاً">✕</button>
+    <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+        <a id="bannerRenewLink" href="https://wa.me/9647803342472" target="_blank" style="background: #ef4444; color: #ffffff; text-decoration: none; padding: 5px 12px; border-radius: 6px; font-weight: bold; font-size: 12px; white-space: nowrap;">💬 تجديد الآن</a>
+        <a id="bannerSupportLink" href="https://wa.me/9647803342472" target="_blank" class="hidden" style="background: #25d366; color: #ffffff; text-decoration: none; padding: 5px 12px; border-radius: 6px; font-weight: bold; font-size: 12px; white-space: nowrap;">🛠️ الدعم الفني</a>
+        <button type="button" id="bannerDismissBtn" onclick="dismissWarningBanner()" style="background: none; border: none; color: #fca5a5; cursor: pointer; font-size: 16px; padding: 0 4px; line-height: 1;" title="إغلاق التنبيه مؤقتاً">✕</button>
     </div>
 </div>
 
@@ -304,7 +305,7 @@
             <div style="font-size: 36px; margin-bottom: 10px;">⚙️</div>
             <h3 style="color: #38bdf8; font-size: 16px; margin-bottom: 8px;">مرحباً بك في لوحة التحكم</h3>
             <p style="color: #cbd5e1; font-size: 14px; margin-bottom: 15px;">يمكنك إدارة منتجاتك، طلباتك، وأقسامك بكل سهولة وأمان.</p>
-            <a href="https://wa.me/9647803342472" target="_blank" class="btn-support" style="display: inline-block; background: #25d366; color: #fff; text-decoration: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; font-size: 13px;">💬 مراسلة الدعم</a>
+            <a id="homeSupportLink" href="https://wa.me/9647803342472" target="_blank" class="btn-support" style="display: inline-block; background: #25d366; color: #fff; text-decoration: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; font-size: 13px;">💬 مراسلة الدعم</a>
         </div>
         <div id="homeExpiredContent" class="hidden"></div>
     </div>
@@ -697,7 +698,7 @@
       <!-- داخل تبويب accountTab -->
 <div id="subscriptionManagerCard" class="subscription-card hidden" style="background: #064e3b; border: 1px solid #22c55e; border-radius: 10px; padding: 18px; max-width: 500px; margin-left: auto; margin-right: auto; margin-bottom: 20px; text-align: center;">
     <div style="font-size: 30px; margin-bottom: 6px;">💎</div>
-    <h3 class="subscription-title" style="color: #4ade80; font-size: 16px; margin-bottom: 6px;">حالة الاشتراك: نشط ✅</h3>
+    <h3 id="subCardTitle" class="subscription-title" style="color: #4ade80; font-size: 16px; margin-bottom: 6px;">حالة الاشتراك: نشط ✅</h3>
     
     <!-- 👈 إضافة مربع تفاصيل تاريخ الانتهاء -->
     <div style="background: rgba(15, 23, 42, 0.4); border: 1px solid rgba(34, 197, 94, 0.3); padding: 10px; border-radius: 8px; margin: 12px 0; font-size: 13px;">
@@ -706,7 +707,7 @@
     </div>
 
     <p class="subscription-desc" style="color: #a7f3d0; font-size: 12px; line-height: 1.5; margin-bottom: 12px;">اشتراك المتجر فعال ويتم إدارته عبر الدعم الفني. تواصل لتجديد أو استفسارات الاشتراك.</p>
-    <a href="https://wa.me/9647803342472" target="_blank" class="btn-support" style="padding: 8px 18px; font-size: 13px; display: inline-block;">💬 تجديد الاشتراك ومراسلة الدعم</a>
+    <a id="subCardRenewLink" href="https://wa.me/9647803342472" target="_blank" class="btn-support" style="padding: 8px 18px; font-size: 13px; display: inline-block;">💬 تجديد الاشتراك ومراسلة الدعم</a>
 </div>
 
         <!-- 4. نموذج تغيير كلمة المرور -->
@@ -835,39 +836,87 @@
         return true;
     }
 
+    var DEFAULT_SUPPORT_WA = "9647803342472";
+    var LOCKED_TABS_ON_EXPIRE = ["form", "list", "sales", "orders"];
+
+    function applySupportAndRenewalLinks(supportWa, renewalLink) {
+        var cleanSupport = formatStoreWhatsAppNumber(supportWa) || DEFAULT_SUPPORT_WA;
+        var supportHref = "https://wa.me/" + cleanSupport;
+
+        var renewalHref = "";
+        var rawRenewal = String(renewalLink || "").trim();
+        if (rawRenewal) {
+            if (rawRenewal.indexOf("http://") === 0 || rawRenewal.indexOf("https://") === 0) {
+                renewalHref = rawRenewal;
+            } else {
+                var cleanRenewWa = formatStoreWhatsAppNumber(rawRenewal) || cleanSupport;
+                renewalHref = "https://wa.me/" + cleanRenewWa + "?text=" + encodeURIComponent("مرحباً، أرغب بتجديد اشتراك المتجر");
+            }
+        } else {
+            renewalHref = "https://wa.me/" + cleanSupport + "?text=" + encodeURIComponent("مرحباً، أرغب بتجديد اشتراك المتجر");
+        }
+
+        var homeSupportEl = document.getElementById("homeSupportLink");
+        if (homeSupportEl) homeSupportEl.href = supportHref;
+
+        var bannerSupportEl = document.getElementById("bannerSupportLink");
+        if (bannerSupportEl) bannerSupportEl.href = supportHref;
+
+        var bannerRenewEl = document.getElementById("bannerRenewLink");
+        if (bannerRenewEl) bannerRenewEl.href = renewalHref;
+
+        var subCardRenewEl = document.getElementById("subCardRenewLink");
+        if (subCardRenewEl) subCardRenewEl.href = renewalHref;
+    }
+
     function lockDashboardTabs(customMsg) {
         isSubscriptionBlocked = true;
-        
+
         localStorage.removeItem("cached_products");
-        localStorage.removeItem("cached_coupons");
-        localStorage.removeItem("cached_categories");
         localStorage.removeItem("cached_hide_all_store");
 
-        var tabButtons = document.querySelectorAll("#navTabsContainer .tab-btn");
-        tabButtons.forEach(function(btn) {
-            if (btn.id !== "tabHomeBtn") {
-                btn.style.display = "none";
+        // قفل التبويبات الأربعة فقط ووضع أيقونة قفل عليها
+        var lockedBtnIds = ["tabFormBtn", "tabListBtn", "tabSalesBtn", "tabOrdersBtn"];
+        lockedBtnIds.forEach(function(btnId) {
+            var btn = document.getElementById(btnId);
+            if (btn && !btn.dataset.locked) {
+                btn.dataset.locked = "true";
+                btn.innerText = "🔒 " + btn.innerText;
+                btn.style.opacity = "0.6";
+                btn.style.cursor = "not-allowed";
             }
         });
 
-        switchTab('home');
+        // تحويل الشريط العلوي إلى شريط تنبيه أحمر ثابت بدون زر إغلاق
+        var warningBanner = document.getElementById("subWarningBanner");
+        var bannerText = document.getElementById("subBannerText");
+        var bannerDismiss = document.getElementById("bannerDismissBtn");
+        var bannerSupport = document.getElementById("bannerSupportLink");
+        var bannerRenew = document.getElementById("bannerRenewLink");
 
-        var defaultContent = document.getElementById("homeDefaultContent");
-        var expiredContent = document.getElementById("homeExpiredContent");
-        
-        if (defaultContent) defaultContent.classList.add("hidden");
-        if (expiredContent) {
-            expiredContent.classList.remove("hidden");
-            expiredContent.innerHTML = `
-                <div class="expired-card">
-                    <div class="expired-icon">⏳</div>
-                    <h2 class="expired-title">عذراً، انتهت فترة الاشتراك!</h2>
-                    <p class="expired-desc">
-                        لتجديد الاشتراك واستعادة صلاحية الوصول لكافة أقسام لوحة التحكم، يرجى التواصل مع الدعم الفني.
-                    </p>
-                    <a href="https://wa.me/9647803342472" target="_blank" class="btn-support">💬 التواصل مع الدعم الفني للتجديد</a>
-                </div>
-            `;
+        if (warningBanner) {
+            warningBanner.classList.remove("hidden");
+            warningBanner.style.background = "rgba(185, 28, 28, 0.25)";
+            warningBanner.style.borderColor = "#ef4444";
+        }
+        if (bannerText) {
+            bannerText.innerHTML = '<span style="font-size: 18px;">⛔</span><span><strong>انتهت فترة الاشتراك!</strong> تم قفل أقسام (إضافة منتج، المنتجات الظاهرة، المبيعات، الطلبات) لحين التجديد.</span>';
+        }
+        if (bannerDismiss) bannerDismiss.classList.add("hidden");
+        if (bannerSupport) bannerSupport.classList.remove("hidden");
+        if (bannerRenew) bannerRenew.innerText = "🔄 تجديد الاشتراك";
+
+        // تحديث حالة الاشتراك في بطاقة حسابي
+        var subCardTitle = document.getElementById("subCardTitle");
+        if (subCardTitle) {
+            subCardTitle.innerText = "حالة الاشتراك: منتهي ⏳";
+            subCardTitle.style.color = "#ef4444";
+        }
+
+        // إذا كان المستخدم واقفاً على أحد التبويبات المقفلة، يتم توجيهه لقسم مفتوح
+        var role = sessionStorage.getItem("admin_role") || "Manager";
+        if (LOCKED_TABS_ON_EXPIRE.indexOf(currentTab) !== -1) {
+            switchTab(role === "Preparer" ? "account" : "home");
         }
     }
 
@@ -875,9 +924,12 @@
         try {
             var res = await fetch(SHEET_API_URL + "?action=getSettings");
             var data = await res.json();
-            if (data && data.status === "expired") {
-                lockDashboardTabs(data.message);
-                return true;
+            if (data) {
+                applySupportAndRenewalLinks(data.supportWhatsApp, data.renewalLink);
+                if (data.status === "expired") {
+                    lockDashboardTabs(data.message);
+                    return true;
+                }
             }
         } catch(e) {}
         return false;
@@ -937,14 +989,17 @@
         }
 
         var isExpired = await checkInitialSubscriptionServer();
-        if (isExpired) return;
 
         if (role !== "Preparer") {
             loadCategoriesDropdown();
-            loadProductsList();
-            loadStoreIdentityData(); // 👈 هذا السطر لجلب التاريخ والاشتراك فور الدخول
+            loadStoreIdentityData();
+            if (!isExpired) {
+                loadProductsList();
+            }
         } else {
-            loadOrdersList();
+            if (!isExpired) {
+                loadOrdersList();
+            }
         }
     }
 
@@ -960,11 +1015,17 @@
     }
 
     function switchTab(tabName) {
-        currentTab = tabName;
-        if (isSubscriptionBlocked && tabName !== 'home') {
-            switchTab('home');
+        if (isSubscriptionBlocked && LOCKED_TABS_ON_EXPIRE.indexOf(tabName) !== -1) {
+            var statusMsg = document.getElementById('productStatus');
+            if (statusMsg) {
+                statusMsg.className = "status-msg status-error";
+                statusMsg.style.display = "block";
+                statusMsg.innerText = "🔒 هذا القسم مقفل بسبب انتهاء الاشتراك. يرجى تجديد الاشتراك لفتحه.";
+                setTimeout(function() { statusMsg.style.display = "none"; }, 3500);
+            }
             return;
         }
+        currentTab = tabName;
         
         var role = sessionStorage.getItem("admin_role") || "Manager";
         if (role === "Preparer" && tabName !== 'orders' && tabName !== 'account') {
@@ -1281,10 +1342,16 @@ function dismissWarningBanner() {
         try {
             var res = await fetch(SHEET_API_URL + "?action=getSettings");
             var data = await res.json();
-            if (!checkServerResponse(data)) return;
             
             if (data) {
                 var role = sessionStorage.getItem("admin_role") || "Manager";
+                applySupportAndRenewalLinks(data.supportWhatsApp, data.renewalLink);
+
+                if (data.status === "expired") {
+                    lockDashboardTabs(data.message);
+                } else if (!checkServerResponse(data)) {
+                    return;
+                }
 
                 // --- 1. معالجة وتحديث حالة الاشتراك وتاريخ الانتهاء ---
                 if (data.expiryDate) {
@@ -1298,23 +1365,28 @@ function dismissWarningBanner() {
 
                     var daysEl = document.getElementById("subDaysLeftDisplay");
                     if (daysEl) {
-                        if (diffDays > 0) {
+                        if (diffDays > 0 && !isSubscriptionBlocked) {
                             daysEl.innerText = diffDays + " يوم";
-                        } else {
+                        } else if (diffDays === 0 && !isSubscriptionBlocked) {
                             daysEl.innerText = "ينتهي اليوم";
+                            daysEl.style.color = "#ef4444";
+                        } else {
+                            daysEl.innerText = "منتهي";
                             daysEl.style.color = "#ef4444";
                         }
                     }
 
-                    var warningBanner = document.getElementById("subWarningBanner");
-                    var daysSpan = document.getElementById("bannerDaysLeft");
-                    var isDismissed = sessionStorage.getItem("dismiss_sub_banner") === "true";
+                    if (!isSubscriptionBlocked) {
+                        var warningBanner = document.getElementById("subWarningBanner");
+                        var daysSpan = document.getElementById("bannerDaysLeft");
+                        var isDismissed = sessionStorage.getItem("dismiss_sub_banner") === "true";
 
-                    if (role !== "Preparer" && diffDays > 0 && diffDays <= 3 && !isDismissed) {
-                        if (warningBanner) warningBanner.classList.remove("hidden");
-                        if (daysSpan) daysSpan.innerText = diffDays;
-                    } else {
-                        if (warningBanner) warningBanner.classList.add("hidden");
+                        if (role !== "Preparer" && diffDays > 0 && diffDays <= 3 && !isDismissed) {
+                            if (warningBanner) warningBanner.classList.remove("hidden");
+                            if (daysSpan) daysSpan.innerText = diffDays;
+                        } else {
+                            if (warningBanner) warningBanner.classList.add("hidden");
+                        }
                     }
                 }
 
