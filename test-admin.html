@@ -257,7 +257,7 @@
 <div id="dashboardCard" class="card hidden">
 <!-- الهيدر العلوي: العنوان على اليمين وزر القائمة على اليسار -->
 <div class="header-box" style="display: flex; justify-content: space-between; align-items: center;">
-    <h2 id="dashboardTitle" style="margin:0;">⚙️ sلوحة تحكم المتجر</h2>
+    <h2 id="dashboardTitle" style="margin:0;">⚙️ لوحة تحكم المتجر</h2>
     
     <!-- زر القائمة أصبح في الهيدر العلوي مباشرة -->
     <button id="menuToggleBtn" class="mobile-menu-btn" onclick="toggleMobileMenu()">
@@ -285,7 +285,7 @@
     <div class="nav-tabs" id="navTabsContainer">
         <button type="button" class="close-menu-btn" onclick="closeMobileMenu()">✕ إغلاق القائمة</button>
         <button class="tab-btn active" id="tabHomeBtn" onclick="switchTab('home')">🏠 الرئيسية</button>
-        <button class="tab-btn" id="tabStoreSettingsBtn" onclick="switchTab('storeSettings')">🏪 الهوية والبانر</button>
+        <button class="tab-btn" id="tabStoreSettingsBtn" onclick="switchTab('storeSettings')">⚙️ الإعدادات</button>
         <button class="tab-btn" id="tabFormBtn" onclick="switchTab('form')">➕ إضافة منتج</button>
         <button class="tab-btn" id="tabSlideshowBtn" onclick="switchTab('slideshow')">🎠 السلايد شو</button>
         <button class="tab-btn" id="tabListBtn" onclick="switchTab('list')">📦 المنتجات الظاهرة</button>
@@ -375,7 +375,7 @@
                     <small id="whatsAppFormattedHint" style="display: block; color: #94a3b8; font-size: 11px; margin-top: 6px;">يتم تحويل الرقم العراقي (07...) تلقائياً إلى الصيغة الدولية (9647...)</small>
                 </div>
 
-                <button type="submit" id="saveStoreIdentityBtn" class="btn-submit" style="background:#0284c7; margin-top:10px;">💾 حفظ إعدادات الهوية والبانر</button>
+                <button type="submit" id="saveStoreIdentityBtn" class="btn-submit" style="background:#0284c7; margin-top:10px;">💾 حفظ الإعدادات</button>
             </form>
         </div>
     </div>
@@ -900,7 +900,7 @@
             warningBanner.style.borderColor = "#ef4444";
         }
         if (bannerText) {
-            bannerText.innerHTML = '<span style="font-size: 18px;">⛔</span><span><strong>انتهت فترة الاشتراك!</strong> تم قفل أقسام (إضافة منتج، المنتجات الظاهرة، المبيعات، الطلبات) لحين التجديد.</span>';
+            bannerText.innerHTML = '<span style="font-size: 18px;">⛔</span><span><strong>انتهت فترة الاشتراك!</strong>تم تقييد الوصول إلى بعض الأقسام مؤقتاً؛ يرجى تجديد الاشتراك لاستعادة كامل الصلاحيات والوصول إليها.</span>';
         }
         if (bannerDismiss) bannerDismiss.classList.add("hidden");
         if (bannerSupport) bannerSupport.classList.remove("hidden");
@@ -1493,7 +1493,7 @@ function dismissWarningBanner() {
 
         statusMsg.className = "status-msg status-loading";
         statusMsg.style.display = "block";
-        statusMsg.innerText = "جارِ حفظ إعدادات الهوية والبانر...";
+        statusMsg.innerText = "جارِ حفظ الإعدادات...";
 
         var mode = document.getElementById("headerModeSelect").value;
         var title = document.getElementById("storeTitleInput").value.trim();
@@ -1520,7 +1520,7 @@ function dismissWarningBanner() {
             if (data && data.status === "success") {
                 currentStoreIdentity.whatsapp = formattedWa;
                 statusMsg.className = "status-msg status-success";
-                statusMsg.innerText = "✅ تم حفظ إعدادات الهوية والبانر بنجاح";
+                statusMsg.innerText = "✅ تم حفظ الإعدادات بنجاح";
                 setTimeout(() => statusMsg.style.display = "none", 3000);
             } else {
                 throw new Error((data && data.message) ? data.message : "فشل الحفظ");
