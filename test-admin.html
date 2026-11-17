@@ -285,17 +285,17 @@
     <div class="nav-tabs" id="navTabsContainer">
         <button type="button" class="close-menu-btn" onclick="closeMobileMenu()">✕ إغلاق القائمة</button>
         <button class="tab-btn active" id="tabHomeBtn" onclick="switchTab('home')">🏠 الرئيسية</button>
-        <button class="tab-btn" id="tabStoreSettingsBtn" onclick="switchTab('storeSettings')">⚙️ الإعدادات</button>
+        <button class="tab-btn" id="tabOrdersBtn" onclick="switchTab('orders')">📦 الطلبات</button>
+        <button class="tab-btn" id="tabSalesBtn" onclick="switchTab('sales')">📊 المبيعات</button>
         <button class="tab-btn" id="tabFormBtn" onclick="switchTab('form')">➕ إضافة منتج</button>
-        <button class="tab-btn" id="tabSlideshowBtn" onclick="switchTab('slideshow')">🎠 السلايد شو</button>
         <button class="tab-btn" id="tabListBtn" onclick="switchTab('list')">📦 المنتجات الظاهرة</button>
         <button class="tab-btn" id="tabHiddenBtn" onclick="switchTab('hidden')">🙈 المنتجات المخفية</button>
         <button class="tab-btn" id="tabCategoriesBtn" onclick="switchTab('categories')">📁 الأقسام</button>
+        <button class="tab-btn" id="tabSlideshowBtn" onclick="switchTab('slideshow')">🎠 السلايد شو</button>
         <button class="tab-btn" id="tabCouponsBtn" onclick="switchTab('coupons')">🎟️ الخصم</button>
-        <button class="tab-btn" id="tabSalesBtn" onclick="switchTab('sales')">📊 المبيعات</button>
-        <button class="tab-btn" id="tabOrdersBtn" onclick="switchTab('orders')">📦 الطلبات</button>
-        <button class="tab-btn" id="tabAccountBtn" onclick="switchTab('account')">👤 حسابي</button>
         <button class="tab-btn" id="tabRegionsBtn" onclick="switchTab('regions')">🚚 التوصيل</button>
+        <button class="tab-btn" id="tabStoreSettingsBtn" onclick="switchTab('storeSettings')">⚙️ الإعدادات</button>
+        <button class="tab-btn" id="tabAccountBtn" onclick="switchTab('account')">👤 حسابي</button>
         <button type="button" class="menu-logout-btn" onclick="logout()">تسجيل خروج 🚪</button>
     </div>
 
@@ -752,7 +752,8 @@
     var currentOrderStatusFilter = "الكل";
 
     var editingProductId = null;
-    var editingCategoryValue = ""; 
+    var editingCategoryValue = "";
+    var editingBrandValue = "";
     var existingImages = ["", "", ""];
     var isStoreHidden = false;
     var slideshowCategoryRows = [];
@@ -1010,6 +1011,7 @@
         localStorage.removeItem("cached_products");
         localStorage.removeItem("cached_coupons");
         localStorage.removeItem("cached_categories");
+        localStorage.removeItem("cached_regions");
         localStorage.removeItem("cached_hide_all_store");
         location.reload();
     }
@@ -1097,7 +1099,7 @@
             if (formTab) formTab.classList.remove("hidden");
             if (tabFormBtn) tabFormBtn.classList.add("active");
             loadCategoriesDropdown();
-            loadBrandDropdown();
+            loadBrandDropdown(editingProductId ? editingBrandValue : "");
         } else if (tabName === 'slideshow') {
             if (slideshowTab) slideshowTab.classList.remove("hidden");
             if (tabSlideshowBtn) tabSlideshowBtn.classList.add("active");
@@ -2024,18 +2026,21 @@ function dismissWarningBanner() {
         var select = document.getElementById("pBrandSelect");
         if (!select) return;
 
+        var targetBrand = (selectedBrand !== undefined && selectedBrand !== null && String(selectedBrand).trim() !== "")
+            ? String(selectedBrand).trim()
+            : (editingProductId && editingBrandValue ? String(editingBrandValue).trim() : "");
+
         var brands = [];
         allProducts.forEach(function(p) {
-            if (p.brand && typeof p.brand === 'string') {
-                var b = p.brand.trim();
-                if (b && !brands.includes(b)) {
+            if (p.brand !== undefined && p.brand !== null) {
+                var b = String(p.brand).trim();
+                if (b && !brands.some(existing => existing.toLowerCase() === b.toLowerCase())) {
                     brands.push(b);
                 }
             }
         });
 
-        var targetBrand = (selectedBrand && typeof selectedBrand === 'string') ? selectedBrand.trim() : "";
-        if (targetBrand && !brands.includes(targetBrand)) {
+        if (targetBrand && !brands.some(existing => existing.toLowerCase() === targetBrand.toLowerCase())) {
             brands.push(targetBrand);
         }
         
@@ -2044,7 +2049,8 @@ function dismissWarningBanner() {
         var html = '<option value="">اختر الماركة...</option>';
         html += '<option value="__custom__">➕ ماركة جديدة (كتابة يدوية)...</option>';
         brands.forEach(function(b) {
-            html += `<option value="${b}">${b}</option>`;
+            var safeVal = b.replace(/"/g, '"');
+            html += `<option value="${safeVal}">${b}</option>`;
         });
         select.innerHTML = html;
 
@@ -2710,9 +2716,10 @@ function dismissWarningBanner() {
 
         editingProductId = p.id;
         editingCategoryValue = p.category; 
+        editingBrandValue = (p.brand !== undefined && p.brand !== null) ? String(p.brand).trim() : "";
         document.getElementById("pName").value = p.name;
         document.getElementById("pCategory").value = p.category;
-        loadBrandDropdown(p.brand);
+        loadBrandDropdown(editingBrandValue);
         document.getElementById("pPrice").value = p.price;
         document.getElementById("pIcon").value = p.icon;
         document.getElementById("pDesc").value = p.desc || "";
@@ -2764,6 +2771,7 @@ function dismissWarningBanner() {
     function resetFormToCreate() {
         editingProductId = null;
         editingCategoryValue = ""; 
+        editingBrandValue = "";
         existingImages = ["", "", ""];
         document.getElementById("productForm").reset();
         document.getElementById("pHidden").checked = false;
@@ -2960,15 +2968,30 @@ var allRegions = [];
 
     async function loadRegionsList() {
         var container = document.getElementById("regionsListContainer");
-        container.innerHTML = '<p style="text-align:center; color:#94a3b8; padding:20px;">جار تحميل المناطق...</p>';
+        var cachedRegions = localStorage.getItem("cached_regions");
+
+        if (cachedRegions) {
+            try {
+                allRegions = JSON.parse(cachedRegions);
+                renderRegionsList(allRegions);
+            } catch(e) {}
+        } else {
+            if (container) container.innerHTML = '<p style="text-align:center; color:#94a3b8; padding:20px;">جار تحميل المناطق...</p>';
+        }
+
         try {
             var res = await fetch(SHEET_API_URL + "?action=getRegions");
             var data = await res.json();
             if (!checkServerResponse(data)) return;
-            allRegions = Array.isArray(data) ? data : [];
-            renderRegionsList(allRegions);
+            if (Array.isArray(data)) {
+                allRegions = data;
+                localStorage.setItem("cached_regions", JSON.stringify(allRegions));
+                renderRegionsList(allRegions);
+            }
         } catch(err) {
-            container.innerHTML = '<p style="text-align:center; color:#ef4444; padding:20px;">فشل في جلب المناطق</p>';
+            if (!cachedRegions) {
+                if (container) container.innerHTML = '<p style="text-align:center; color:#ef4444; padding:20px;">فشل في جلب المناطق</p>';
+            }
         }
     }
 
@@ -2979,7 +3002,10 @@ var allRegions = [];
             return;
         }
         var html = "";
-        regions.forEach(function(r) {
+        regions.forEach(function(r, index) {
+            var moveUpBtn = index > 0 ? `<button class="btn-action" style="background:#334155; color:#fff;" onclick="moveRegion('${r.name}', 'up')">⬆️</button>` : '';
+            var moveDownBtn = index < regions.length - 1 ? `<button class="btn-action" style="background:#334155; color:#fff;" onclick="moveRegion('${r.name}', 'down')">⬇️</button>` : '';
+
             html += `
                 <div class="product-item" style="background:#0f172a; border:1px solid #334155; padding:12px; border-radius:8px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
                     <div>
@@ -2987,6 +3013,8 @@ var allRegions = [];
                         <div style="color:#4ade80; font-size:13px; font-weight:bold; margin-top:4px;">💰 ${r.price.toLocaleString()} د.ع</div>
                     </div>
                     <div style="display:flex; gap:6px;">
+                        ${moveUpBtn}
+                        ${moveDownBtn}
                         <button class="btn-action btn-edit" onclick="editRegion('${r.name}', ${r.price})">✏ تعديل</button>
                         <button class="btn-action btn-delete" onclick="deleteRegion('${r.name}')">🗑️ حذف</button>
                     </div>
@@ -2994,6 +3022,45 @@ var allRegions = [];
             `;
         });
         container.innerHTML = html;
+    }
+
+    async function moveRegion(regionName, direction) {
+        var index = allRegions.findIndex(function(r) { return r.name === regionName; });
+        if (index === -1) return;
+        var targetIndex = direction === 'up' ? index - 1 : index + 1;
+        if (targetIndex < 0 || targetIndex >= allRegions.length) return;
+
+        var temp = allRegions[index];
+        allRegions[index] = allRegions[targetIndex];
+        allRegions[targetIndex] = temp;
+
+        renderRegionsList(allRegions);
+
+        var statusMsg = document.getElementById('productStatus');
+        statusMsg.className = "status-msg status-loading";
+        statusMsg.style.display = "block";
+        statusMsg.innerText = "جار حفظ ترتيب المناطق...";
+
+        try {
+            var response = await fetch(SHEET_API_URL, {
+                method: "POST",
+                body: JSON.stringify({ action: "reorderRegions", token: sessionStorage.getItem("admin_session"), regions: allRegions })
+            });
+            var resData = await response.json();
+            if (!checkServerResponse(resData)) return;
+            if (resData && resData.status === "success") {
+                localStorage.setItem("cached_regions", JSON.stringify(allRegions));
+                statusMsg.className = "status-msg status-success";
+                statusMsg.innerText = "✅ تم تحديث الترتيب بنجاح";
+                setTimeout(function() { statusMsg.style.display = "none"; }, 3000);
+            } else {
+                throw new Error("فشل الحفظ");
+            }
+        } catch(err) {
+            statusMsg.className = "status-msg status-error";
+            statusMsg.innerText = "❌ تعذر حفظ الترتيب";
+            setTimeout(function() { statusMsg.style.display = "none"; }, 3000);
+        }
     }
 
     async function handleAddRegion(event) {
