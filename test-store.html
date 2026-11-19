@@ -948,7 +948,6 @@
                 slideshowSettings.categories = Array.isArray(settingsRes.slideshowCategories) ? settingsRes.slideshowCategories : [];
             }
 
-            // إغلاق واجهة المتجر وعرض رسالة محايدة للزبائن عند انتهاء الاشتراك
             if (settingsRes && settingsRes.status === "expired") {
                 renderStoreIdentity();
                 var catBar = document.getElementById('categoriesBar');
@@ -972,6 +971,18 @@
             renderRegionOptions();
 
             products = Array.isArray(productsRes) ? productsRes : [];
+
+            var cartChanged = false;
+            for (var cartId in cart) {
+                var prodItem = getProductById(cartId);
+                if (prodItem && isProductOutOfStock(prodItem)) {
+                    delete cart[cartId];
+                    cartChanged = true;
+                }
+            }
+            if (cartChanged) {
+                saveCartToStorage();
+            }
 
             var backendCategories = Array.isArray(catRes) ? catRes : [];
             var catList = ["الرئيسية", "المنتجات المميزة"];
@@ -1367,6 +1378,11 @@
         initDragScroll();
     }
 
+    function isProductOutOfStock(p) {
+        if (!p) return false;
+        return (p.outOfStock === true || p.outOfStock === "TRUE" || p.outOfStock === "true" || p.outOfStock === 1);
+    }
+
     function createCategorySection(title, prodList, categoryName) {
         var sectionHtml = '<div style="margin-bottom: 34px;">' +
             '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding: 0 4px;">' +
@@ -1377,14 +1393,17 @@
 
         for (var i = 0; i < prodList.length; i++) {
             var p = prodList[i];
+            var outOfStock = isProductOutOfStock(p);
             var qty = cart[p.id] || 0;
             var cardImage = (p.images && p.images.length > 0) ? p.images[0] : p.image;
+            var imgStyle = outOfStock ? ' style="opacity:0.65;"' : '';
             var imageContent = (cardImage && cardImage.trim().startsWith('http')) 
-                ? '<img src="' + cardImage + '" alt="' + p.name + '" onerror="this.onerror=null; this.parentNode.innerHTML=\'' + p.icon + '\';">'
+                ? '<img src="' + cardImage + '" alt="' + p.name + '"' + imgStyle + ' onerror="this.onerror=null; this.parentNode.innerHTML=\'' + p.icon + '\';">'
                 : p.icon;
+            var outBadge = outOfStock ? '<span style="position:absolute; top:5px; right:5px; background:rgba(220,38,38,0.92); color:#ffffff; padding:2px 6px; border-radius:6px; font-size:9px; font-weight:700; z-index:2;">نفذت الكمية</span>' : '';
 
             sectionHtml += '<div class="product-card" style="flex: 0 0 130px; min-width: 130px;" onclick="openProductDetail(' + p.id + ')">' +
-                '<div class="img-box" style="height: 100px;">' + imageContent + '</div>' +
+                '<div class="img-box" style="height: 100px;">' + outBadge + imageContent + '</div>' +
                 '<div class="product-details">' +
                     '<span class="brand-tag">' + p.brand + '</span>' +
                     '<div class="product-title">' + p.name + '</div>' +
@@ -1392,7 +1411,9 @@
                 '</div>' +
                 '<div class="qty-controls" onclick="event.stopPropagation()">';
 
-            if (qty > 0) {
+            if (outOfStock) {
+                sectionHtml += '<button class="btn-qty" disabled style="width:100%; background:#e2e8f0; color:#64748b; cursor:not-allowed; font-size:10px;">غير متوفر حالياً</button>';
+            } else if (qty > 0) {
                 sectionHtml += '<button class="btn-qty btn-minus" onclick="changeQty(' + p.id + ', -1)">-</button>' +
                         '<span class="qty-number">' + qty + '</span>' +
                         '<button class="btn-qty btn-plus" style="width:26px;" onclick="changeQty(' + p.id + ', 1)">+</button>';
@@ -1425,14 +1446,17 @@
 
             if (matchesCategory && matchesSearch) {
                 matchCount++;
+                var outOfStock = isProductOutOfStock(p);
                 var qty = cart[p.id] || 0;
                 var cardImage = (p.images && p.images.length > 0) ? p.images[0] : p.image;
+                var imgStyle = outOfStock ? ' style="opacity:0.65;"' : '';
                 var imageContent = (cardImage && cardImage.trim().startsWith('http')) 
-                    ? '<img src="' + cardImage + '" alt="' + p.name + '" onerror="this.onerror=null; this.parentNode.innerHTML=\'' + p.icon + '\';">'
+                    ? '<img src="' + cardImage + '" alt="' + p.name + '"' + imgStyle + ' onerror="this.onerror=null; this.parentNode.innerHTML=\'' + p.icon + '\';">'
                     : p.icon;
+                var outBadge = outOfStock ? '<span style="position:absolute; top:6px; right:6px; background:rgba(220,38,38,0.92); color:#ffffff; padding:2px 7px; border-radius:6px; font-size:10px; font-weight:700; z-index:2;">نفذت الكمية</span>' : '';
 
                 html += '<div class="product-card" onclick="openProductDetail(' + p.id + ')">' +
-                    '<div class="img-box">' + imageContent + '</div>' +
+                    '<div class="img-box">' + outBadge + imageContent + '</div>' +
                     '<div class="product-details">' +
                         '<span class="brand-tag">' + p.brand + '</span>' +
                         '<div class="product-title">' + p.name + '</div>' +
@@ -1440,7 +1464,9 @@
                     '</div>' +
                     '<div class="qty-controls" onclick="event.stopPropagation()">';
 
-                if (qty > 0) {
+                if (outOfStock) {
+                    html += '<button class="btn-qty" disabled style="width:100%; background:#e2e8f0; color:#64748b; cursor:not-allowed; font-size:11px;">غير متوفر حالياً</button>';
+                } else if (qty > 0) {
                     html += '<button class="btn-qty btn-minus" onclick="changeQty(' + p.id + ', -1)">-</button>' +
                             '<span class="qty-number">' + qty + '</span>' +
                             '<button class="btn-qty btn-plus" style="width:26px;" onclick="changeQty(' + p.id + ', 1)">+</button>';
@@ -1478,6 +1504,7 @@
         var p = getProductById(id);
         if (!p) return;
         currentDetailId = id;
+        var outOfStock = isProductOutOfStock(p);
 
         document.getElementById('shopPage').classList.add('hidden');
         document.getElementById('cartPage').classList.add('hidden');
@@ -1504,6 +1531,7 @@
         
         var indicatorHtml = "";
         var navButtonsHtml = "";
+        var outBadgeHtml = outOfStock ? '<span style="position:absolute; top:12px; right:12px; background:rgba(220,38,38,0.95); color:#ffffff; padding:5px 12px; border-radius:8px; font-size:12px; font-weight:700; z-index:5; box-shadow:0 2px 8px rgba(0,0,0,0.2);">🚫 نفذت الكمية</span>' : '';
 
         if (imageCount > 1) {
             indicatorHtml = '<div class="img-indicator"> اسحب لعرض الصور </div>';
@@ -1513,6 +1541,7 @@
 
         var html = '<div class="detail-card">' +
             '<div style="position: relative; margin-bottom: 12px;">' +
+                outBadgeHtml +
                 '<div class="detail-img-box" id="detailImgBox">' + imageContent + '</div>' +
                 navButtonsHtml +
                 indicatorHtml +
@@ -1532,11 +1561,22 @@
     }
 
     function renderDetailQtyControls(id) {
+        var p = getProductById(id);
+        var outOfStock = isProductOutOfStock(p);
         var qty = cart[id] || 0;
         var box = document.getElementById('detailQtyBox');
         if (!box) return;
 
         var html = '<div style="display: flex; flex-direction: column; gap: 8px; margin-top: 12px;">';
+
+        if (outOfStock) {
+            html += '<div style="background:#fef2f2; border:1px solid #fecaca; color:#dc2626; padding:12px; border-radius:10px; text-align:center; font-weight:700; font-size:14px;">🚫 نفذت الكمية — هذا المنتج غير متوفر حالياً</div>';
+            html += '<button onclick="openShopPage()" style="width: 100%; padding: 12px; background: #0f172a; color: white; border: none; border-radius: 10px; font-weight: 700; font-size: 14px; cursor: pointer; box-shadow: 0 4px 12px rgba(15, 23, 42, 0.25); transition: all 0.2s ease;">🏠 الصفحة الرئيسية</button>';
+            html += '</div>';
+            box.innerHTML = html;
+            return;
+        }
+
         html += '<div class="qty-controls" style="padding: 8px 12px;">';
         if (qty > 0) {
             html += '<button class="btn-qty btn-minus" style="width:40px; height:40px; font-size:20px;" onclick="changeQty(' + id + ', -1)">-</button>' +
@@ -1555,6 +1595,11 @@
     }
 
     function buyNowProduct(id) {
+        var p = getProductById(id);
+        if (isProductOutOfStock(p)) {
+            alert('عذراً، نفذت كمية هذا المنتج حالياً.');
+            return;
+        }
         var currentQty = cart[id] || 0;
         if (currentQty <= 0) {
             cart[id] = 1;
@@ -1565,6 +1610,11 @@
     }
 
     function changeQty(id, delta) {
+        var p = getProductById(id);
+        if (delta > 0 && isProductOutOfStock(p)) {
+            alert('عذراً، نفذت كمية هذا المنتج حالياً.');
+            return;
+        }
         var currentQty = cart[id] || 0;
         var newQty = currentQty + delta;
 
@@ -1999,5 +2049,6 @@
     });
 })();
 </script>
+
 </body>
 </html>
