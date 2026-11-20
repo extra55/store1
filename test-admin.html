@@ -224,6 +224,49 @@
         overflow: hidden !important;
         text-overflow: ellipsis !important;
     }
+
+    /* تنسيق شريط تنبيه الاشتراك في شاشة الهاتف */
+    #subWarningBanner:not(.hidden) {
+        position: relative !important;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 8px !important;
+        padding: 10px 10px !important;
+        margin: 12px -6px 0 -6px !important;
+    }
+
+    #subBannerText {
+        display: flex !important;
+        align-items: center !important;
+        gap: 5px !important;
+        font-size: 12px !important;
+        white-space: nowrap !important;
+        padding-left: 20px !important;
+    }
+
+    #subWarningBanner > div:last-child {
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+        gap: 8px !important;
+        width: 100% !important;
+    }
+
+    #bannerDismissBtn {
+        position: absolute !important;
+        top: 7px !important;
+        left: 8px !important;
+        padding: 2px 4px !important;
+        font-size: 15px !important;
+    }
+
+    #subWarningBanner.expired-banner #subBannerText {
+        white-space: normal !important;
+        align-items: flex-start !important;
+        line-height: 1.5 !important;
+        padding-left: 0 !important;
+    }
 }
 
     </style>
@@ -288,8 +331,7 @@
         <button class="tab-btn" id="tabOrdersBtn" onclick="switchTab('orders')">📦 الطلبات</button>
         <button class="tab-btn" id="tabSalesBtn" onclick="switchTab('sales')">📊 المبيعات</button>
         <button class="tab-btn" id="tabFormBtn" onclick="switchTab('form')">➕ إضافة منتج</button>
-        <button class="tab-btn" id="tabListBtn" onclick="switchTab('list')">📦 المنتجات الظاهرة</button>
-        <button class="tab-btn" id="tabHiddenBtn" onclick="switchTab('hidden')">🙈 المنتجات المخفية</button>
+        <button class="tab-btn" id="tabListBtn" onclick="switchTab('list')">📦 المنتجات</button>
         <button class="tab-btn" id="tabCategoriesBtn" onclick="switchTab('categories')">📁 الأقسام</button>
         <button class="tab-btn" id="tabSlideshowBtn" onclick="switchTab('slideshow')">🎠 السلايد شو</button>
         <button class="tab-btn" id="tabCouponsBtn" onclick="switchTab('coupons')">🎟️ الخصم</button>
@@ -498,28 +540,26 @@
         </form>
     </div>
 
-    <!-- تبويب قائمة المنتجات الظاهرة -->
+    <!-- تبويب قائمة المنتجات الموحد -->
     <div id="listTab" class="hidden">
         <div id="storeStatusBox" style="background: #0f172a; padding: 10px 12px; border-radius: 8px; border: 1px solid #334155; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;">
             <span id="storeStatusText" style="font-size: 13px; font-weight: bold; color: #4ade80;">👁️ المنتجات ظاهرة في المتجر</span>
             <button type="button" id="toggleStoreBtn" onclick="toggleStoreVisibility()" style="background: #ef4444; color: #fff; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: bold;">🙈 إخفاء جميع المنتجات</button>
         </div>
 
+        <div id="productFilterBar" style="display: flex; gap: 5px; margin-bottom: 12px; flex-wrap: wrap;">
+            <button type="button" class="tab-btn active" style="min-width: auto; padding: 6px 10px; font-size: 11px; border: 1px solid #334155;" onclick="setProductFilter('all', this)">الكل <span id="countFilterAll">(0)</span></button>
+            <button type="button" class="tab-btn" style="min-width: auto; padding: 6px 10px; font-size: 11px; border: 1px solid #334155;" onclick="setProductFilter('visible', this)">👁️ المنتجات الظاهرة <span id="countFilterVisible">(0)</span></button>
+            <button type="button" class="tab-btn" style="min-width: auto; padding: 6px 10px; font-size: 11px; border: 1px solid #334155;" onclick="setProductFilter('pinned', this)">⭐ المنتجات المميزة <span id="countFilterPinned">(0)</span></button>
+            <button type="button" class="tab-btn" style="min-width: auto; padding: 6px 10px; font-size: 11px; border: 1px solid #334155;" onclick="setProductFilter('outOfStock', this)">🚫 المنتجات النافذة <span id="countFilterOutOfStock">(0)</span></button>
+            <button type="button" class="tab-btn" style="min-width: auto; padding: 6px 10px; font-size: 11px; border: 1px solid #334155;" onclick="setProductFilter('hidden', this)">🙈 المنتجات المخفية <span id="countFilterHidden">(0)</span></button>
+        </div>
+
         <div class="form-group">
-            <input type="text" id="searchBox" placeholder="🔍 بحث عن منتج ظاهر..." oninput="filterProducts()">
+            <input type="text" id="searchBox" placeholder="🔍 بحث عن منتج..." oninput="filterProducts()">
         </div>
         <div id="productsContainer">
             <p style="text-align:center; color:#94a3b8; padding:20px;">جار تحميل المنتجات...</p>
-        </div>
-    </div>
-
-    <!-- تبويب قائمة المنتجات المخفية -->
-    <div id="hiddenTab" class="hidden">
-        <div class="form-group">
-            <input type="text" id="searchHiddenBox" placeholder="🔍 بحث عن منتج مخفي..." oninput="filterHiddenProducts()">
-        </div>
-        <div id="hiddenProductsContainer">
-            <p style="text-align:center; color:#94a3b8; padding:20px;">جار تحميل المنتجات المخفية...</p>
         </div>
     </div>
 
@@ -749,6 +789,7 @@
 
     var currentTab = 'home';
     var previousTabBeforeEdit = 'list'; // التبويب الافتراضي هو المنتجات الظاهرة
+    var currentProductFilter = 'all';
     var allProducts = [];
     var allCoupons = [];
     var allCategories = [];
@@ -902,6 +943,7 @@
 
         if (warningBanner) {
             warningBanner.classList.remove("hidden");
+            warningBanner.classList.add("expired-banner");
             warningBanner.style.background = "rgba(185, 28, 28, 0.25)";
             warningBanner.style.borderColor = "#ef4444";
         }
@@ -983,7 +1025,7 @@
         var role = sessionStorage.getItem("admin_role") || "Manager";
         
         if (role === "Preparer") {
-            var tabsToHide = ["tabHomeBtn", "tabStoreSettingsBtn", "tabFormBtn", "tabSlideshowBtn", "tabListBtn", "tabHiddenBtn", "tabCategoriesBtn", "tabCouponsBtn", "tabSalesBtn", "tabRegionsBtn"];
+            var tabsToHide = ["tabHomeBtn", "tabStoreSettingsBtn", "tabFormBtn", "tabSlideshowBtn", "tabListBtn", "tabCategoriesBtn", "tabCouponsBtn", "tabSalesBtn", "tabRegionsBtn"];
             tabsToHide.forEach(function(id) {
                 var el = document.getElementById(id);
                 if(el) el.style.display = "none";
@@ -1046,7 +1088,6 @@
         var formTab = document.getElementById("formTab");
         var slideshowTab = document.getElementById("slideshowTab");
         var listTab = document.getElementById("listTab");
-        var hiddenTab = document.getElementById("hiddenTab");
         var categoriesTab = document.getElementById("categoriesTab");
         var couponsTab = document.getElementById("couponsTab");
         var salesTab = document.getElementById("salesTab");
@@ -1059,7 +1100,6 @@
         var tabFormBtn = document.getElementById("tabFormBtn");
         var tabSlideshowBtn = document.getElementById("tabSlideshowBtn");
         var tabListBtn = document.getElementById("tabListBtn");
-        var tabHiddenBtn = document.getElementById("tabHiddenBtn");
         var tabCategoriesBtn = document.getElementById("tabCategoriesBtn");
         var tabCouponsBtn = document.getElementById("tabCouponsBtn");
         var tabSalesBtn = document.getElementById("tabSalesBtn");
@@ -1072,7 +1112,6 @@
         if (formTab) formTab.classList.add("hidden");
         if (slideshowTab) slideshowTab.classList.add("hidden");
         if (listTab) listTab.classList.add("hidden");
-        if (hiddenTab) hiddenTab.classList.add("hidden");
         if (categoriesTab) categoriesTab.classList.add("hidden");
         if (couponsTab) couponsTab.classList.add("hidden");
         if (salesTab) salesTab.classList.add("hidden");
@@ -1085,7 +1124,6 @@
         if (tabFormBtn) tabFormBtn.classList.remove("active");
         if (tabSlideshowBtn) tabSlideshowBtn.classList.remove("active");
         if (tabListBtn) tabListBtn.classList.remove("active");
-        if (tabHiddenBtn) tabHiddenBtn.classList.remove("active");
         if (tabCategoriesBtn) tabCategoriesBtn.classList.remove("active");
         if (tabCouponsBtn) tabCouponsBtn.classList.remove("active");
         if (tabSalesBtn) tabSalesBtn.classList.remove("active");
@@ -1112,10 +1150,6 @@
         } else if (tabName === 'list') {
             if (listTab) listTab.classList.remove("hidden");
             if (tabListBtn) tabListBtn.classList.add("active");
-            loadProductsList();
-        } else if (tabName === 'hidden') {
-            if (hiddenTab) hiddenTab.classList.remove("hidden");
-            if (tabHiddenBtn) tabHiddenBtn.classList.add("active");
             loadProductsList();
         } else if (tabName === 'categories') {
             if (categoriesTab) categoriesTab.classList.remove("hidden");
@@ -2325,7 +2359,6 @@ function dismissWarningBanner() {
     async function loadProductsList() {
         if (isSubscriptionBlocked) return;
         var container = document.getElementById("productsContainer");
-        var hiddenContainer = document.getElementById("hiddenProductsContainer");
 
         var cachedStatus = localStorage.getItem("cached_hide_all_store");
         if (cachedStatus !== null) {
@@ -2339,13 +2372,11 @@ function dismissWarningBanner() {
                 allProducts = JSON.parse(cachedProducts);
                 if (Array.isArray(allProducts)) {
                     loadBrandDropdown();
-                    renderProducts(allProducts.filter(p => !p.hidden && !isStoreHidden));
-                    renderHiddenProducts(allProducts.filter(p => p.hidden || isStoreHidden));
+                    filterProducts();
                 }
             } catch (e) {}
         } else {
             if (container) container.innerHTML = '<p style="text-align:center; color:#94a3b8; padding:20px;">جار تحميل المنتجات...</p>';
-            if (hiddenContainer) hiddenContainer.innerHTML = '<p style="text-align:center; color:#94a3b8; padding:20px;">جار تحميل المنتجات المخفية...</p>';
         }
 
         try {
@@ -2359,13 +2390,11 @@ function dismissWarningBanner() {
                 allProducts = resData;
                 localStorage.setItem("cached_products", JSON.stringify(allProducts));
                 loadBrandDropdown();
-                renderProducts(allProducts.filter(p => !p.hidden && !isStoreHidden));
-                renderHiddenProducts(allProducts.filter(p => p.hidden || isStoreHidden));
+                filterProducts();
             }
         } catch (err) {
             if (!cachedProducts) {
                 if (container) container.innerHTML = '<p style="text-align:center; color:#ef4444; padding:20px;">فشل في جلب المنتجات</p>';
-                if (hiddenContainer) hiddenContainer.innerHTML = '<p style="text-align:center; color:#ef4444; padding:20px;">فشل في جلب المنتجات المخفية</p>';
             }
         }
     }
@@ -2434,8 +2463,7 @@ function dismissWarningBanner() {
                 updateStoreStatusUI();
 
                 if (Array.isArray(allProducts)) {
-                    renderProducts(allProducts.filter(p => !p.hidden && !isStoreHidden));
-                    renderHiddenProducts(allProducts.filter(p => p.hidden || isStoreHidden));
+                    filterProducts();
                 }
 
                 statusMsg.className = "status-msg status-success";
@@ -2454,10 +2482,23 @@ function dismissWarningBanner() {
         }
     }
 
+    function setProductFilter(filterType, btnElement) {
+        currentProductFilter = filterType;
+        var bar = document.getElementById("productFilterBar");
+        if (bar) {
+            var btns = bar.getElementsByTagName("button");
+            for (var i = 0; i < btns.length; i++) {
+                btns[i].classList.remove("active");
+            }
+        }
+        if (btnElement) btnElement.classList.add("active");
+        filterProducts();
+    }
+
     function renderProducts(products) {
         var container = document.getElementById("productsContainer");
         if (!products || !Array.isArray(products) || products.length === 0) {
-            container.innerHTML = '<p style="text-align:center; color:#94a3b8; padding:20px;">لا توجد منتجات ظاهرة حالياً</p>';
+            container.innerHTML = '<p style="text-align:center; color:#94a3b8; padding:20px;">لا توجد منتجات مطابقة حالياً</p>';
             return;
         }
 
@@ -2470,54 +2511,21 @@ function dismissWarningBanner() {
         var html = "";
         products.forEach(function(p) {
             var mainImg = p.image || "https://via.placeholder.com/50?text=No+Img";
+            var isHiddenItem = !!(p.hidden || isStoreHidden);
+            var hiddenBadge = "";
+            if (p.hidden) {
+                hiddenBadge = '<span style="color:#fca5a5; background:#7f1d1d; padding:2px 6px; border-radius:4px; font-size:10px; margin-right:6px;">🙈 مخفي</span>';
+            } else if (isStoreHidden) {
+                hiddenBadge = '<span style="color:#fca5a5; background:#7f1d1d; padding:2px 6px; border-radius:4px; font-size:10px; margin-right:6px;">🙈 إخفاء المتجر</span>';
+            }
             var isPinned = (p.pinned === true || p.pinned === "TRUE" || p.pinned === "true" || p.pinned === 1);
             var pinnedBadge = isPinned ? '<span style="color:#38bdf8; background:#0369a1; padding:2px 6px; border-radius:4px; font-size:10px; margin-right:6px;">⭐ مميز</span>' : '';
             var isOutOfStock = (p.outOfStock === true || p.outOfStock === "TRUE" || p.outOfStock === "true" || p.outOfStock === 1);
             var outOfStockBadge = isOutOfStock ? '<span style="color:#fef3c7; background:#92400e; padding:2px 6px; border-radius:4px; font-size:10px; margin-right:6px;">🚫 نفذت الكمية</span>' : '';
-            html += `
-                <div class="product-item">
-                    <img src="${mainImg}" alt="${p.name}">
-                    <div class="product-info">
-                        <h4>${p.icon || '🧴'} ${p.name} ${pinnedBadge} ${outOfStockBadge}</h4>
-                        <p>${Number(p.price).toLocaleString()} د.ع | ${p.category}</p>
-                    </div>
-                    <div class="product-actions">
-                        <button class="btn-action btn-edit" onclick="startEditProduct('${p.id}')">✏ تعديل</button>
-                        <button class="btn-action btn-delete" onclick="deleteProduct('${p.id}', '${p.name}')">🗑️ حذف</button>
-                    </div>
-                </div>
-            `;
-        });
-        container.innerHTML = html;
-    }
-
-    function renderHiddenProducts(products) {
-        var container = document.getElementById("hiddenProductsContainer");
-        if (!container) return;
-        if (!products || !Array.isArray(products) || products.length === 0) {
-            container.innerHTML = '<p style="text-align:center; color:#94a3b8; padding:20px;">لا توجد منتجات مخفية حالياً 🙈</p>';
-            return;
-        }
-
-        products.sort(function(a, b) {
-            var pinnedA = (a.pinned === true || a.pinned === "TRUE" || a.pinned === "true" || a.pinned === 1) ? 1 : 0;
-            var pinnedB = (b.pinned === true || b.pinned === "TRUE" || b.pinned === "true" || b.pinned === 1) ? 1 : 0;
-            return pinnedB - pinnedA;
-        });
-
-        var html = "";
-        products.forEach(function(p) {
-            var mainImg = p.image || "https://via.placeholder.com/50?text=No+Img";
-            var hiddenBadge = p.hidden 
-                ? '<span style="color:#fca5a5; background:#7f1d1d; padding:2px 6px; border-radius:4px; font-size:10px; margin-right:6px;">🙈 مخفي</span>'
-                : '<span style="color:#fca5a5; background:#7f1d1d; padding:2px 6px; border-radius:4px; font-size:10px; margin-right:6px;">🙈 إخفاء المتجر</span>';
-            var isPinned = (p.pinned === true || p.pinned === "TRUE" || p.pinned === "true" || p.pinned === 1);
-            var pinnedBadge = isPinned ? '<span style="color:#38bdf8; background:#0369a1; padding:2px 6px; border-radius:4px; font-size:10px; margin-right:6px;">⭐ مميز</span>' : '';
-            var isOutOfStock = (p.outOfStock === true || p.outOfStock === "TRUE" || p.outOfStock === "true" || p.outOfStock === 1);
-            var outOfStockBadge = isOutOfStock ? '<span style="color:#fef3c7; background:#92400e; padding:2px 6px; border-radius:4px; font-size:10px; margin-right:6px;">🚫 نفذت الكمية</span>' : '';
+            var itemBorderStyle = isHiddenItem ? 'style="border-color: #ef4444;"' : '';
 
             html += `
-                <div class="product-item" style="border-color: #7f1d1d; background: #1e1b2e;">
+                <div class="product-item" ${itemBorderStyle}>
                     <img src="${mainImg}" alt="${p.name}">
                     <div class="product-info">
                         <h4>${p.icon || '🧴'} ${p.name} ${hiddenBadge} ${pinnedBadge} ${outOfStockBadge}</h4>
@@ -2533,26 +2541,73 @@ function dismissWarningBanner() {
         container.innerHTML = html;
     }
 
-    function filterProducts() {
-        var q = document.getElementById("searchBox").value.toLowerCase();
+    function updateProductFilterCounts() {
         if (!Array.isArray(allProducts)) return;
-        var filtered = allProducts.filter(p => (!p.hidden && !isStoreHidden) && (
-            p.name.toLowerCase().includes(q) || 
-            p.category.toLowerCase().includes(q) || 
-            (p.brand && p.brand.toLowerCase().includes(q))
-        ));
-        renderProducts(filtered);
+
+        var totalCount = allProducts.length;
+        var visibleCount = 0;
+        var pinnedCount = 0;
+        var outOfStockCount = 0;
+        var hiddenCount = 0;
+
+        allProducts.forEach(function(p) {
+            var isPinned = (p.pinned === true || p.pinned === "TRUE" || p.pinned === "true" || p.pinned === 1);
+            var isOutOfStock = (p.outOfStock === true || p.outOfStock === "TRUE" || p.outOfStock === "true" || p.outOfStock === 1);
+            var isHiddenItem = !!(p.hidden || isStoreHidden);
+
+            if (isHiddenItem) {
+                hiddenCount++;
+            } else {
+                visibleCount++;
+            }
+            if (isPinned) pinnedCount++;
+            if (isOutOfStock) outOfStockCount++;
+        });
+
+        var elAll = document.getElementById("countFilterAll");
+        var elVisible = document.getElementById("countFilterVisible");
+        var elPinned = document.getElementById("countFilterPinned");
+        var elOut = document.getElementById("countFilterOutOfStock");
+        var elHidden = document.getElementById("countFilterHidden");
+
+        if (elAll) elAll.innerText = "(" + totalCount + ")";
+        if (elVisible) elVisible.innerText = "(" + visibleCount + ")";
+        if (elPinned) elPinned.innerText = "(" + pinnedCount + ")";
+        if (elOut) elOut.innerText = "(" + outOfStockCount + ")";
+        if (elHidden) elHidden.innerText = "(" + hiddenCount + ")";
     }
 
-    function filterHiddenProducts() {
-        var q = document.getElementById("searchHiddenBox").value.toLowerCase();
+    function filterProducts() {
+        var searchInput = document.getElementById("searchBox");
+        var q = searchInput ? searchInput.value.toLowerCase() : "";
         if (!Array.isArray(allProducts)) return;
-        var filtered = allProducts.filter(p => (p.hidden || isStoreHidden) && (
-            p.name.toLowerCase().includes(q) || 
-            p.category.toLowerCase().includes(q) || 
-            (p.brand && p.brand.toLowerCase().includes(q))
-        ));
-        renderHiddenProducts(filtered);
+
+        updateProductFilterCounts();
+
+        var filtered = allProducts.filter(function(p) {
+            var isPinned = (p.pinned === true || p.pinned === "TRUE" || p.pinned === "true" || p.pinned === 1);
+            var isOutOfStock = (p.outOfStock === true || p.outOfStock === "TRUE" || p.outOfStock === "true" || p.outOfStock === 1);
+            var isHiddenItem = !!(p.hidden || isStoreHidden);
+
+            var matchesFilter = true;
+            if (currentProductFilter === "visible") {
+                matchesFilter = !isHiddenItem;
+            } else if (currentProductFilter === "pinned") {
+                matchesFilter = isPinned;
+            } else if (currentProductFilter === "outOfStock") {
+                matchesFilter = isOutOfStock;
+            } else if (currentProductFilter === "hidden") {
+                matchesFilter = isHiddenItem;
+            }
+
+            if (!matchesFilter) return false;
+
+            return p.name.toLowerCase().includes(q) || 
+                   p.category.toLowerCase().includes(q) || 
+                   (p.brand && p.brand.toLowerCase().includes(q));
+        });
+
+        renderProducts(filtered);
     }
 
     function toggleUsageLimitField() {
