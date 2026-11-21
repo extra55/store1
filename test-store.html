@@ -1826,6 +1826,53 @@
         openCartPage();
     }
 
+    var addCartToastTimer = null;
+    function showAddToCartToast(p, key) {
+        var existing = document.getElementById("addToCartToast");
+        if (existing) existing.remove();
+        if (addCartToastTimer) clearTimeout(addCartToastTimer);
+
+        var variantText = getVariantTextFromCartKey(key);
+        var msgText = "";
+
+        if (variantText) {
+            var groupName = (p && Array.isArray(p.variants) && p.variants.length === 1 && p.variants[0].name)
+                ? p.variants[0].name
+                : "";
+            if (groupName) {
+                msgText = "✅ تمت إضافة (" + variantText + ") للسلة — يمكنك تحديد اختيار آخر من " + groupName + " أو الذهاب للسلة";
+            } else {
+                msgText = "✅ تمت إضافة (" + variantText + ") للسلة — يمكنك تحديد اختيار آخر أو الذهاب للسلة";
+            }
+        } else {
+            msgText = "✅ تمت إضافة المنتج إلى السلة";
+        }
+
+        var toast = document.createElement("div");
+        toast.id = "addToCartToast";
+        toast.style.cssText = "position:fixed; bottom:22px; left:50%; transform:translateX(-50%); background:rgba(15,23,42,0.96); color:#ffffff; border:1px solid #16a34a; padding:10px 14px; border-radius:14px; font-size:12px; font-weight:700; z-index:999999; box-shadow:0 6px 20px rgba(0,0,0,0.3); display:flex; align-items:center; gap:10px; max-width:92vw; line-height:1.5; direction:rtl;";
+
+        var textSpan = document.createElement("span");
+        textSpan.innerText = msgText;
+        toast.appendChild(textSpan);
+
+        var cartBtn = document.createElement("button");
+        cartBtn.type = "button";
+        cartBtn.innerText = "السلة 🛒";
+        cartBtn.style.cssText = "background:#16a34a; color:#ffffff; border:none; padding:5px 10px; border-radius:8px; font-size:11px; font-weight:800; cursor:pointer; white-space:nowrap; flex-shrink:0;";
+        cartBtn.onclick = function() {
+            toast.remove();
+            openCartPage();
+        };
+        toast.appendChild(cartBtn);
+
+        document.body.appendChild(toast);
+
+        addCartToastTimer = setTimeout(function() {
+            if (toast && toast.parentNode) toast.remove();
+        }, 6000);
+    }
+
     function changeQty(id, delta) {
         var key = String(id);
         var baseId = getBaseProductIdFromCartKey(key);
@@ -1853,8 +1900,10 @@
 
         if (!document.getElementById('cartPage').classList.contains('hidden')) {
             renderCartItems();
+        } else if (delta > 0) {
+            showAddToCartToast(p, key);
         }
-    }    
+    }
 
     function updateBadge() {
         var totalItems = 0;
