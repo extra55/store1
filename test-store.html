@@ -696,6 +696,48 @@
             margin-top: auto;
             border-radius: 10px;
         }
+
+        .variant-group-box { margin: 12px 0; }
+        .variant-group-label { font-size: 13px; font-weight: 700; color: #0f172a; margin-bottom: 8px; display: block; }
+        .variant-group-label span { color: #0369a1; font-weight: 800; }
+        .variant-pills-wrap { display: flex; flex-wrap: wrap; gap: 8px; }
+        .variant-pill {
+            background: #ffffff;
+            color: #0f172a;
+            border: 1.5px solid #cbd5e1;
+            padding: 7px 14px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .variant-pill:hover:not(.out-of-stock) { border-color: #0f172a; background: #f1f5f9; }
+        .variant-pill.selected {
+            background: #0f172a;
+            color: #ffffff;
+            border-color: #0f172a;
+            box-shadow: 0 3px 8px rgba(15, 23, 42, 0.2);
+        }
+        .variant-pill.out-of-stock {
+            background: #f1f5f9;
+            color: #94a3b8;
+            border-color: #e2e8f0;
+            text-decoration: line-through;
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+        .cart-item-variant {
+            display: inline-block;
+            background: #f1f5f9;
+            color: #334155;
+            border: 1px solid #cbd5e1;
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 700;
+            margin-top: 4px;
+        }
     </style>
 </head>
 <body>
@@ -919,6 +961,150 @@
         select.innerHTML = html;
     }
 
+    var selectedProductVariants = {};
+
+    function escapeStoreHtml(str) {
+        return String(str || "")
+            .replace(/&/g, "&")
+            .replace(/</g, "<")
+            .replace(/>/g, ">")
+            .replace(/"/g, """);
+    }
+
+    function hasProductVariants(p) {
+        return !!(p && Array.isArray(p.variants) && p.variants.length > 0);
+    }
+
+    function isAllVariantsOutOfStock(p) {
+        if (!hasProductVariants(p)) return false;
+        for (var i = 0; i < p.variants.length; i++) {
+            var vals = p.variants[i].values || [];
+            var hasAvailable = vals.some(function(v) { return !v.outOfStock; });
+            if (!hasAvailable) return true;
+        }
+        return false;
+    }
+
+    function getBaseProductIdFromCartKey(key) {
+        return String(key).split("::")[0];
+    }
+
+    function getVariantTextFromCartKey(key) {
+        var parts = String(key).split("::");
+        return parts.length > 1 ? decodeURIComponent(parts.slice(1).join("::")) : "";
+    }
+
+    function getTotalProductQtyInCart(productId) {
+        var total = 0;
+        var targetId = String(productId);
+        for (var key in cart) {
+            if (getBaseProductIdFromCartKey(key) === targetId) {
+                total += (Number(cart[key]) || 0);
+            }
+        }
+        return total;
+    }
+
+    function getSelectedVariantDetails(p) {
+        if (!hasProductVariants(p)) {
+            return { valid: true, summary: "", unitPrice: Number(p.price) || 0, cartKey: String(p.id) };
+        }
+        var labels = [];
+        var unitPrice = Number(p.price) || 0;
+        var allValid = true;
+
+        for (var gIdx = 0; gIdx < p.variants.length; gIdx++) {
+            var group = p.variants[gIdx];
+            var vIdx = selectedProductVariants[gIdx];
+            var valObj = (group.values && vIdx !== undefined && vIdx >= 0) ? group.values[vIdx] : null;
+            if (!valObj || valObj.outOfStock) {
+                allValid = false;
+            } else {
+                labels.push(group.name + ": " + valObj.label);
+                if (valObj.price !== "" && valObj.price !== null && valObj.price !== undefined && !isNaN(Number(valObj.price)) && Number(valObj.price) > 0) {
+                    unitPrice = Number(valObj.price);
+                }
+            }
+        }
+
+        var summary = labels.join(" | ");
+        var cartKey = String(p.id) + "::" + encodeURIComponent(summary);
+        return { valid: allValid, summary: summary, unitPrice: unitPrice, cartKey: cartKey };
+    }
+
+    function getCartItemUnitPrice(p, key) {
+        var basePrice = Number(p.price) || 0;
+        var variantText = getVariantTextFromCartKey(key);
+        if (!variantText || !hasProductVariants(p)) return basePrice;
+
+        var resolvedPrice = basePrice;
+        var pairs = variantText.split(" | ");
+        pairs.forEach(function(pair) {
+            var sepIdx = pair.indexOf(": ");
+            if (sepIdx !== -1) {
+                var gName = pair.substring(0, sepIdx);
+                var vLabel = pair.substring(sepIdx + 2);
+                var group = p.variants.find(function(g) { return g.name === gName; });
+                if (group && Array.isArray(group.values)) {
+                    var valObj = group.values.find(function(v) { return v.label === vLabel; });
+                    if (valObj && valObj.price !== "" && valObj.price !== null && valObj.price !== undefined && !isNaN(Number(valObj.price)) && Number(valObj.price) > 0) {
+                        resolvedPrice = Number(valObj.price);
+                    }
+                }
+            }
+        });
+        return resolvedPrice;
+    }
+
+    function selectProductVariant(productId, groupIdx, valIdx) {
+        var p = getProductById(productId);
+        if (!p || !hasProductVariants(p)) return;
+        var group = p.variants[groupIdx];
+        if (!group || !group.values || !group.values[valIdx] || group.values[valIdx].outOfStock) return;
+
+        selectedProductVariants[groupIdx] = valIdx;
+        renderDetailVariants(p);
+
+        var sel = getSelectedVariantDetails(p);
+        var priceEl = document.getElementById('detailPriceDisplay');
+        if (priceEl) {
+            priceEl.innerText = sel.unitPrice.toLocaleString() + ' د.ع';
+        }
+        renderDetailQtyControls(p.id);
+    }
+
+    function renderDetailVariants(p) {
+        var box = document.getElementById('detailVariantsBox');
+        if (!box) return;
+        if (!hasProductVariants(p)) {
+            box.innerHTML = "";
+            return;
+        }
+
+        var html = "";
+        p.variants.forEach(function(group, gIdx) {
+            var activeIdx = selectedProductVariants[gIdx];
+            var selectedValObj = (activeIdx !== undefined && activeIdx >= 0 && group.values) ? group.values[activeIdx] : null;
+            var selectedText = selectedValObj ? escapeStoreHtml(selectedValObj.label) : "غير متوفر";
+
+            html += '<div class="variant-group-box">' +
+                '<span class="variant-group-label">' + escapeStoreHtml(group.name) + ': <span>' + selectedText + '</span></span>' +
+                '<div class="variant-pills-wrap">';
+
+            (group.values || []).forEach(function(val, vIdx) {
+                var isSelected = (activeIdx === vIdx && !val.outOfStock);
+                var cls = 'variant-pill' + (isSelected ? ' selected' : '') + (val.outOfStock ? ' out-of-stock' : '');
+                var clickAttr = val.outOfStock ? '' : ' onclick="selectProductVariant(' + p.id + ', ' + gIdx + ', ' + vIdx + ')"';
+                var outTag = val.outOfStock ? ' (نفذ)' : '';
+                html += '<button type="button" class="' + cls + '"' + clickAttr + '>' + escapeStoreHtml(val.label) + outTag + '</button>';
+            });
+
+            html += '</div></div>';
+        });
+
+        box.innerHTML = html;
+    }
+
     async function initStoreData() {
         var container = document.getElementById('productsGrid');
         container.innerHTML = '<p style="text-align:center; padding:30px; color:#64748b;">جارٍ تحميل المتجر...</p>';
@@ -974,8 +1160,9 @@
 
             var cartChanged = false;
             for (var cartId in cart) {
-                var prodItem = getProductById(cartId);
-                if (prodItem && isProductOutOfStock(prodItem)) {
+                var baseId = getBaseProductIdFromCartKey(cartId);
+                var prodItem = getProductById(baseId);
+                if (prodItem && (isProductOutOfStock(prodItem) || isAllVariantsOutOfStock(prodItem))) {
                     delete cart[cartId];
                     cartChanged = true;
                 }
@@ -1143,9 +1330,9 @@
         if (found) {
             var subTotal = 0;
             for (var id in cart) {
-                var p = getProductById(id);
+                var p = getProductById(getBaseProductIdFromCartKey(id));
                 if (p) {
-                    subTotal += p.price * cart[id];
+                    subTotal += getCartItemUnitPrice(p, id) * cart[id];
                 }
             }
 
@@ -1393,8 +1580,9 @@
 
         for (var i = 0; i < prodList.length; i++) {
             var p = prodList[i];
-            var outOfStock = isProductOutOfStock(p);
-            var qty = cart[p.id] || 0;
+            var outOfStock = isProductOutOfStock(p) || isAllVariantsOutOfStock(p);
+            var hasVariants = hasProductVariants(p);
+            var qty = hasVariants ? getTotalProductQtyInCart(p.id) : (cart[p.id] || 0);
             var cardImage = (p.images && p.images.length > 0) ? p.images[0] : p.image;
             var imgStyle = outOfStock ? ' style="opacity:0.65;"' : '';
             var imageContent = (cardImage && cardImage.trim().startsWith('http')) 
@@ -1413,6 +1601,9 @@
 
             if (outOfStock) {
                 sectionHtml += '<button class="btn-qty" disabled style="width:100%; background:#e2e8f0; color:#64748b; cursor:not-allowed; font-size:10px;">غير متوفر حالياً</button>';
+            } else if (hasVariants) {
+                var btnLabel = qty > 0 ? ('⚙️ الخيارات (' + qty + ')') : '⚙️ اختر الخيارات';
+                sectionHtml += '<button class="btn-qty btn-plus" onclick="openProductDetail(' + p.id + ')">' + btnLabel + '</button>';
             } else if (qty > 0) {
                 sectionHtml += '<button class="btn-qty btn-minus" onclick="changeQty(' + p.id + ', -1)">-</button>' +
                         '<span class="qty-number">' + qty + '</span>' +
@@ -1446,8 +1637,9 @@
 
             if (matchesCategory && matchesSearch) {
                 matchCount++;
-                var outOfStock = isProductOutOfStock(p);
-                var qty = cart[p.id] || 0;
+                var outOfStock = isProductOutOfStock(p) || isAllVariantsOutOfStock(p);
+                var hasVariants = hasProductVariants(p);
+                var qty = hasVariants ? getTotalProductQtyInCart(p.id) : (cart[p.id] || 0);
                 var cardImage = (p.images && p.images.length > 0) ? p.images[0] : p.image;
                 var imgStyle = outOfStock ? ' style="opacity:0.65;"' : '';
                 var imageContent = (cardImage && cardImage.trim().startsWith('http')) 
@@ -1466,6 +1658,9 @@
 
                 if (outOfStock) {
                     html += '<button class="btn-qty" disabled style="width:100%; background:#e2e8f0; color:#64748b; cursor:not-allowed; font-size:11px;">غير متوفر حالياً</button>';
+                } else if (hasVariants) {
+                    var btnLabel = qty > 0 ? ('⚙️ الخيارات (' + qty + ')') : '⚙️ اختر الخيارات';
+                    html += '<button class="btn-qty btn-plus" onclick="openProductDetail(' + p.id + ')">' + btnLabel + '</button>';
                 } else if (qty > 0) {
                     html += '<button class="btn-qty btn-minus" onclick="changeQty(' + p.id + ', -1)">-</button>' +
                             '<span class="qty-number">' + qty + '</span>' +
@@ -1504,7 +1699,22 @@
         var p = getProductById(id);
         if (!p) return;
         currentDetailId = id;
-        var outOfStock = isProductOutOfStock(p);
+        var outOfStock = isProductOutOfStock(p) || isAllVariantsOutOfStock(p);
+
+        selectedProductVariants = {};
+        if (hasProductVariants(p)) {
+            p.variants.forEach(function(group, gIdx) {
+                var firstAvailableIdx = -1;
+                (group.values || []).forEach(function(v, vIdx) {
+                    if (firstAvailableIdx === -1 && !v.outOfStock) {
+                        firstAvailableIdx = vIdx;
+                    }
+                });
+                selectedProductVariants[gIdx] = firstAvailableIdx;
+            });
+        }
+
+        var initialPrice = getSelectedVariantDetails(p).unitPrice;
 
         document.getElementById('shopPage').classList.add('hidden');
         document.getElementById('cartPage').classList.add('hidden');
@@ -1548,7 +1758,8 @@
             '</div>' +
             '<span class="brand-tag">' + p.brand + '</span>' +
             '<h2 style="color:#0f172a; margin:8px 0; font-size:18px;">' + p.name + '</h2>' +
-            '<div style="color:#0f172a; font-size:18px; font-weight:800;">' + p.price.toLocaleString() + ' د.ع</div>' +
+            '<div id="detailPriceDisplay" style="color:#0f172a; font-size:18px; font-weight:800;">' + initialPrice.toLocaleString() + ' د.ع</div>' +
+            '<div id="detailVariantsBox"></div>' +
             '<div class="detail-desc-box">' +
                 '<h3>تفاصيل ومعلومات المنتج:</h3>' +
                 '<p>' + description + '</p>' +
@@ -1557,19 +1768,23 @@
         '</div>';
 
         document.getElementById('productDetailContent').innerHTML = html;
+        renderDetailVariants(p);
         renderDetailQtyControls(p.id);
     }
 
     function renderDetailQtyControls(id) {
         var p = getProductById(id);
-        var outOfStock = isProductOutOfStock(p);
-        var qty = cart[id] || 0;
+        var outOfStock = isProductOutOfStock(p) || isAllVariantsOutOfStock(p);
+        var sel = getSelectedVariantDetails(p);
+        var cartKey = sel.cartKey;
+        var safeKeyAttr = escapeStoreHtml(JSON.stringify(cartKey));
+        var qty = cart[cartKey] || 0;
         var box = document.getElementById('detailQtyBox');
         if (!box) return;
 
         var html = '<div style="display: flex; flex-direction: column; gap: 8px; margin-top: 12px;">';
 
-        if (outOfStock) {
+        if (outOfStock || !sel.valid) {
             html += '<div style="background:#fef2f2; border:1px solid #fecaca; color:#dc2626; padding:12px; border-radius:10px; text-align:center; font-weight:700; font-size:14px;">🚫 نفذت الكمية — هذا المنتج غير متوفر حالياً</div>';
             html += '<button onclick="openShopPage()" style="width: 100%; padding: 12px; background: #0f172a; color: white; border: none; border-radius: 10px; font-weight: 700; font-size: 14px; cursor: pointer; box-shadow: 0 4px 12px rgba(15, 23, 42, 0.25); transition: all 0.2s ease;">🏠 الصفحة الرئيسية</button>';
             html += '</div>';
@@ -1579,15 +1794,15 @@
 
         html += '<div class="qty-controls" style="padding: 8px 12px;">';
         if (qty > 0) {
-            html += '<button class="btn-qty btn-minus" style="width:40px; height:40px; font-size:20px;" onclick="changeQty(' + id + ', -1)">-</button>' +
+            html += '<button class="btn-qty btn-minus" style="width:40px; height:40px; font-size:20px;" onclick="changeQty(' + safeKeyAttr + ', -1)">-</button>' +
                     '<span class="qty-number" style="font-size:18px;">' + qty + '</span>' +
-                    '<button class="btn-qty btn-plus" style="width:40px; height:40px; font-size:20px;" onclick="changeQty(' + id + ', 1)">+</button>';
+                    '<button class="btn-qty btn-plus" style="width:40px; height:40px; font-size:20px;" onclick="changeQty(' + safeKeyAttr + ', 1)">+</button>';
         } else {
-            html += '<button class="btn-qty btn-plus" style="height:42px; font-size:15px;" onclick="changeQty(' + id + ', 1)">+ إضافة للسلة</button>';
+            html += '<button class="btn-qty btn-plus" style="height:42px; font-size:15px;" onclick="changeQty(' + safeKeyAttr + ', 1)">+ إضافة للسلة</button>';
         }
         html += '</div>';
 
-        html += '<button onclick="buyNowProduct(' + id + ')" style="width: 100%; padding: 12px; background: #16a34a; color: white; border: none; border-radius: 10px; font-weight: 700; font-size: 14px; cursor: pointer; box-shadow: 0 4px 12px rgba(22, 163, 74, 0.25); transition: all 0.2s ease;">⚡ شراء الآن</button>';
+        html += '<button onclick="buyNowProduct(' + safeKeyAttr + ')" style="width: 100%; padding: 12px; background: #16a34a; color: white; border: none; border-radius: 10px; font-weight: 700; font-size: 14px; cursor: pointer; box-shadow: 0 4px 12px rgba(22, 163, 74, 0.25); transition: all 0.2s ease;">⚡ شراء الآن</button>';
         html += '<button onclick="openShopPage()" style="width: 100%; padding: 12px; background: #0f172a; color: white; border: none; border-radius: 10px; font-weight: 700; font-size: 14px; cursor: pointer; box-shadow: 0 4px 12px rgba(15, 23, 42, 0.25); transition: all 0.2s ease;">🏠 الصفحة الرئيسية</button>';
         html += '</div>';
         
@@ -1595,14 +1810,16 @@
     }
 
     function buyNowProduct(id) {
-        var p = getProductById(id);
-        if (isProductOutOfStock(p)) {
+        var key = String(id);
+        var baseId = getBaseProductIdFromCartKey(key);
+        var p = getProductById(baseId);
+        if (isProductOutOfStock(p) || isAllVariantsOutOfStock(p)) {
             alert('عذراً، نفذت كمية هذا المنتج حالياً.');
             return;
         }
-        var currentQty = cart[id] || 0;
+        var currentQty = cart[key] || 0;
         if (currentQty <= 0) {
-            cart[id] = 1;
+            cart[key] = 1;
             saveCartToStorage();
             updateBadge();
         }
@@ -1610,32 +1827,34 @@
     }
 
     function changeQty(id, delta) {
-        var p = getProductById(id);
-        if (delta > 0 && isProductOutOfStock(p)) {
+        var key = String(id);
+        var baseId = getBaseProductIdFromCartKey(key);
+        var p = getProductById(baseId);
+        if (delta > 0 && (isProductOutOfStock(p) || isAllVariantsOutOfStock(p))) {
             alert('عذراً، نفذت كمية هذا المنتج حالياً.');
             return;
         }
-        var currentQty = cart[id] || 0;
+        var currentQty = cart[key] || 0;
         var newQty = currentQty + delta;
 
         if (newQty <= 0) {
-            delete cart[id];
+            delete cart[key];
         } else {
-            cart[id] = newQty;
+            cart[key] = newQty;
         }
 
         saveCartToStorage();
 
         renderProducts();
         
-        if (!document.getElementById('productDetailPage').classList.contains('hidden') && currentDetailId === id) {
-            renderDetailQtyControls(id);
+        if (!document.getElementById('productDetailPage').classList.contains('hidden') && currentDetailId == baseId) {
+            renderDetailQtyControls(baseId);
         }
 
         if (!document.getElementById('cartPage').classList.contains('hidden')) {
             renderCartItems();
         }
-    }
+    }    
 
     function updateBadge() {
         var totalItems = 0;
@@ -1676,21 +1895,27 @@
 
         for (var id in cart) {
             var qty = cart[id];
-            var p = getProductById(id);
+            var baseId = getBaseProductIdFromCartKey(id);
+            var p = getProductById(baseId);
             if (p) {
                 itemCount++;
-                var itemTotal = p.price * qty;
+                var unitPrice = getCartItemUnitPrice(p, id);
+                var variantText = getVariantTextFromCartKey(id);
+                var itemTotal = unitPrice * qty;
                 subTotal += itemTotal;
+                var safeKeyAttr = escapeStoreHtml(JSON.stringify(String(id)));
+                var variantBadgeHtml = variantText ? '<div class="cart-item-variant">🎛️ ' + escapeStoreHtml(variantText) + '</div>' : '';
 
                 html += '<div class="cart-item">' +
                     '<div>' +
                         '<div class="cart-item-title">' + p.name + '</div>' +
-                        '<div class="cart-item-price">' + p.price.toLocaleString() + ' د.ع × ' + qty + ' = ' + itemTotal.toLocaleString() + ' د.ع</div>' +
+                        variantBadgeHtml +
+                        '<div class="cart-item-price">' + unitPrice.toLocaleString() + ' د.ع × ' + qty + ' = ' + itemTotal.toLocaleString() + ' د.ع</div>' +
                     '</div>' +
                     '<div class="qty-controls">' +
-                        '<button class="btn-qty btn-minus" onclick="changeQty(' + p.id + ', -1)">-</button>' +
+                        '<button class="btn-qty btn-minus" onclick="changeQty(' + safeKeyAttr + ', -1)">-</button>' +
                         '<span class="qty-number">' + qty + '</span>' +
-                        '<button class="btn-qty btn-plus" style="width:30px;" onclick="changeQty(' + p.id + ', 1)">+</button>' +
+                        '<button class="btn-qty btn-plus" style="width:30px;" onclick="changeQty(' + safeKeyAttr + ', 1)">+</button>' +
                     '</div>' +
                 '</div>';
             }
@@ -1730,7 +1955,6 @@
                 }
             }
 
-            // قراءة أجرة التوصيل من القائمة المنسدلة
             var regionSelect = document.getElementById("regionSelect");
             var deliveryFee = 0;
             if (regionSelect && regionSelect.selectedIndex > 0) {
@@ -1774,7 +1998,6 @@
         var phone = document.getElementById('custPhone').value.trim();
         var address = document.getElementById('custAddress').value.trim();
 
-        // --- التعديل الجديد: التحقق من اختيار المنطقة وجلب أجرة التوصيل ---
         var regionSelect = document.getElementById("regionSelect");
         if (!regionSelect || regionSelect.value === "") {
             alert('يرجى اختيار المحافظة / المنطقة أولاً لتحديد أجرة التوصيل');
@@ -1782,7 +2005,6 @@
         }
         var deliveryFee = Number(regionSelect.options[regionSelect.selectedIndex].getAttribute("data-price")) || 0;
         var regionName = regionSelect.value;
-        // -------------------------------------------------------------
 
         if (Object.keys(cart).length === 0) {
             alert('السلة فارغة!');
@@ -1800,11 +2022,18 @@
         var itemsSummary = "";
         var subTotal = 0;
         for (var id in cart) {
-            var p = getProductById(id);
+            var baseId = getBaseProductIdFromCartKey(id);
+            var p = getProductById(baseId);
             if (p) {
-                var itemTotal = p.price * cart[id];
+                var unitPrice = getCartItemUnitPrice(p, id);
+                var variantText = getVariantTextFromCartKey(id);
+                var itemTotal = unitPrice * cart[id];
                 subTotal += itemTotal;
-                itemsSummary += p.name + " (" + cart[id] + "x), ";
+                if (variantText) {
+                    itemsSummary += p.name + " (" + variantText + " - " + cart[id] + "x), ";
+                } else {
+                    itemsSummary += p.name + " (" + cart[id] + "x), ";
+                }
             }
         }
         if (itemsSummary.endsWith(", ")) {
@@ -1817,12 +2046,8 @@
             discountAmount = Math.round((subTotal * appliedCoupon.discount) / 100);
         }
         
-        // التعديل: إضافة أجرة التوصيل إلى المجموع النهائي
         var finalTotal = subTotal - discountAmount + deliveryFee;
-
-        // التعديل: دمج المنطقة وأجرة التوصيل مع العنوان ليتم حفظها في الشيت
         var fullAddress = address + " (المنطقة: " + regionName + " - توصيل: " + deliveryFee + " د.ع)";
-
         var invoiceNo = "INV-" + Math.floor(100000 + Math.random() * 900000);
 
         fetch(SHEET_API_URL, {
@@ -1832,10 +2057,10 @@
                 invoiceNo: invoiceNo,
                 name: name,
                 phone: phone,
-                address: fullAddress, // إرسال العنوان الكامل (مدمج مع المحافظة)
+                address: fullAddress,
                 items: itemsSummary,
                 discount: discountVal,
-                total: finalTotal     // إرسال المجموع الكلي الحقيقي (متضمن التوصيل)
+                total: finalTotal
             })
         }).catch(function(err) { console.log(err); });
 
