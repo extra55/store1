@@ -931,9 +931,6 @@
                 fetch(SHEET_API_URL + "?action=getRegions").then(r => r.json()).catch(() => [])
             ]);
 
-            allRegions = Array.isArray(regionsRes) ? regionsRes : [];
-            renderRegionOptions();
-
             if (settingsRes) {
                 globalStoreSettings.headerMode = settingsRes.headerMode || "text";
                 globalStoreSettings.storeTitle = settingsRes.storeTitle || "";
@@ -942,12 +939,50 @@
                 globalStoreSettings.promoBanner = settingsRes.promoBanner || "";
                 globalStoreSettings.promoBannerCategory = settingsRes.promoBannerCategory || "";
 
+                if (settingsRes.storeWhatsApp && String(settingsRes.storeWhatsApp).trim() !== "") {
+                    PHARMACY_WA = String(settingsRes.storeWhatsApp).trim();
+                }
+
                 slideshowSettings.hideSlideshow = !!settingsRes.hideSlideshow;
                 slideshowSettings.speedSeconds = Number(settingsRes.slideshowSpeed) || 4;
                 slideshowSettings.categories = Array.isArray(settingsRes.slideshowCategories) ? settingsRes.slideshowCategories : [];
             }
 
+            if (settingsRes && settingsRes.status === "expired") {
+                renderStoreIdentity();
+                var catBar = document.getElementById('categoriesBar');
+                if (catBar) catBar.classList.add('hidden');
+                var slideWrap = document.getElementById('mainSlideshowWrapper');
+                if (slideWrap) slideWrap.classList.add('hidden');
+                var searchBox = document.getElementById('searchContainerBox');
+                if (searchBox) searchBox.classList.add('hidden');
+                var headerActions = document.querySelector('.header > div:last-child');
+                if (headerActions) headerActions.style.display = 'none';
+
+                container.innerHTML = '<div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:16px; padding:40px 20px; text-align:center; margin:20px auto; max-width:480px; box-shadow:0 4px 15px rgba(0,0,0,0.04);">' +
+                    '<div style="font-size:46px; margin-bottom:12px;">🛍️</div>' +
+                    '<h2 style="color:#0f172a; font-size:18px; font-weight:800; margin-bottom:8px;">المتجر مغلق مؤقتاً للتحديث</h2>' +
+                    '<p style="color:#64748b; font-size:13px; line-height:1.6;">نعمل حالياً على تحديث المتجر وتجهيز المنتجات، سنعود للعمل قريباً. شكراً لتفهمكم!</p>' +
+                '</div>';
+                return;
+            }
+
+            allRegions = Array.isArray(regionsRes) ? regionsRes : [];
+            renderRegionOptions();
+
             products = Array.isArray(productsRes) ? productsRes : [];
+
+            var cartChanged = false;
+            for (var cartId in cart) {
+                var prodItem = getProductById(cartId);
+                if (prodItem && isProductOutOfStock(prodItem)) {
+                    delete cart[cartId];
+                    cartChanged = true;
+                }
+            }
+            if (cartChanged) {
+                saveCartToStorage();
+            }
 
             var backendCategories = Array.isArray(catRes) ? catRes : [];
             var catList = ["الرئيسية", "المنتجات المميزة"];
@@ -1069,7 +1104,7 @@
         fetch(SHEET_API_URL + "?action=getCoupons")
             .then(function(response) { return response.json(); })
             .then(function(data) {
-                allCoupons = data || [];
+                allCoupons = Array.isArray(data) ? data : [];
             })
             .catch(function(err) {
                 console.log("Error fetching coupons:", err);
@@ -1091,12 +1126,19 @@
             return;
         }
 
+        msg.style.display = "block";
+        msg.style.color = "#64748b";
+        msg.innerText = "جارٍ التحقق من الكود...";
+
         try {
             var res = await fetch(SHEET_API_URL + "?action=getCoupons");
-            allCoupons = await res.json();
+            var data = await res.json();
+            if (Array.isArray(data)) {
+                allCoupons = data;
+            }
         } catch(e) {}
 
-        var found = allCoupons.find(c => String(c.code).trim().toUpperCase() === codeVal);
+        var found = Array.isArray(allCoupons) ? allCoupons.find(c => String(c.code).trim().toUpperCase() === codeVal) : null;
 
         if (found) {
             var subTotal = 0;
@@ -1336,6 +1378,11 @@
         initDragScroll();
     }
 
+    function isProductOutOfStock(p) {
+        if (!p) return false;
+        return (p.outOfStock === true || p.outOfStock === "TRUE" || p.outOfStock === "true" || p.outOfStock === 1);
+    }
+
     function createCategorySection(title, prodList, categoryName) {
         var sectionHtml = '<div style="margin-bottom: 34px;">' +
             '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding: 0 4px;">' +
@@ -1346,14 +1393,17 @@
 
         for (var i = 0; i < prodList.length; i++) {
             var p = prodList[i];
+            var outOfStock = isProductOutOfStock(p);
             var qty = cart[p.id] || 0;
             var cardImage = (p.images && p.images.length > 0) ? p.images[0] : p.image;
+            var imgStyle = outOfStock ? ' style="opacity:0.65;"' : '';
             var imageContent = (cardImage && cardImage.trim().startsWith('http')) 
-                ? '<img src="' + cardImage + '" alt="' + p.name + '" onerror="this.onerror=null; this.parentNode.innerHTML=\'' + p.icon + '\';">'
+                ? '<img src="' + cardImage + '" alt="' + p.name + '"' + imgStyle + ' onerror="this.onerror=null; this.parentNode.innerHTML=\'' + p.icon + '\';">'
                 : p.icon;
+            var outBadge = outOfStock ? '<span style="position:absolute; top:5px; right:5px; background:rgba(220,38,38,0.92); color:#ffffff; padding:2px 6px; border-radius:6px; font-size:9px; font-weight:700; z-index:2;">نفذت الكمية</span>' : '';
 
             sectionHtml += '<div class="product-card" style="flex: 0 0 130px; min-width: 130px;" onclick="openProductDetail(' + p.id + ')">' +
-                '<div class="img-box" style="height: 100px;">' + imageContent + '</div>' +
+                '<div class="img-box" style="height: 100px;">' + outBadge + imageContent + '</div>' +
                 '<div class="product-details">' +
                     '<span class="brand-tag">' + p.brand + '</span>' +
                     '<div class="product-title">' + p.name + '</div>' +
@@ -1361,7 +1411,9 @@
                 '</div>' +
                 '<div class="qty-controls" onclick="event.stopPropagation()">';
 
-            if (qty > 0) {
+            if (outOfStock) {
+                sectionHtml += '<button class="btn-qty" disabled style="width:100%; background:#e2e8f0; color:#64748b; cursor:not-allowed; font-size:10px;">غير متوفر حالياً</button>';
+            } else if (qty > 0) {
                 sectionHtml += '<button class="btn-qty btn-minus" onclick="changeQty(' + p.id + ', -1)">-</button>' +
                         '<span class="qty-number">' + qty + '</span>' +
                         '<button class="btn-qty btn-plus" style="width:26px;" onclick="changeQty(' + p.id + ', 1)">+</button>';
@@ -1394,14 +1446,17 @@
 
             if (matchesCategory && matchesSearch) {
                 matchCount++;
+                var outOfStock = isProductOutOfStock(p);
                 var qty = cart[p.id] || 0;
                 var cardImage = (p.images && p.images.length > 0) ? p.images[0] : p.image;
+                var imgStyle = outOfStock ? ' style="opacity:0.65;"' : '';
                 var imageContent = (cardImage && cardImage.trim().startsWith('http')) 
-                    ? '<img src="' + cardImage + '" alt="' + p.name + '" onerror="this.onerror=null; this.parentNode.innerHTML=\'' + p.icon + '\';">'
+                    ? '<img src="' + cardImage + '" alt="' + p.name + '"' + imgStyle + ' onerror="this.onerror=null; this.parentNode.innerHTML=\'' + p.icon + '\';">'
                     : p.icon;
+                var outBadge = outOfStock ? '<span style="position:absolute; top:6px; right:6px; background:rgba(220,38,38,0.92); color:#ffffff; padding:2px 7px; border-radius:6px; font-size:10px; font-weight:700; z-index:2;">نفذت الكمية</span>' : '';
 
                 html += '<div class="product-card" onclick="openProductDetail(' + p.id + ')">' +
-                    '<div class="img-box">' + imageContent + '</div>' +
+                    '<div class="img-box">' + outBadge + imageContent + '</div>' +
                     '<div class="product-details">' +
                         '<span class="brand-tag">' + p.brand + '</span>' +
                         '<div class="product-title">' + p.name + '</div>' +
@@ -1409,7 +1464,9 @@
                     '</div>' +
                     '<div class="qty-controls" onclick="event.stopPropagation()">';
 
-                if (qty > 0) {
+                if (outOfStock) {
+                    html += '<button class="btn-qty" disabled style="width:100%; background:#e2e8f0; color:#64748b; cursor:not-allowed; font-size:11px;">غير متوفر حالياً</button>';
+                } else if (qty > 0) {
                     html += '<button class="btn-qty btn-minus" onclick="changeQty(' + p.id + ', -1)">-</button>' +
                             '<span class="qty-number">' + qty + '</span>' +
                             '<button class="btn-qty btn-plus" style="width:26px;" onclick="changeQty(' + p.id + ', 1)">+</button>';
@@ -1447,6 +1504,7 @@
         var p = getProductById(id);
         if (!p) return;
         currentDetailId = id;
+        var outOfStock = isProductOutOfStock(p);
 
         document.getElementById('shopPage').classList.add('hidden');
         document.getElementById('cartPage').classList.add('hidden');
@@ -1473,6 +1531,7 @@
         
         var indicatorHtml = "";
         var navButtonsHtml = "";
+        var outBadgeHtml = outOfStock ? '<span style="position:absolute; top:12px; right:12px; background:rgba(220,38,38,0.95); color:#ffffff; padding:5px 12px; border-radius:8px; font-size:12px; font-weight:700; z-index:5; box-shadow:0 2px 8px rgba(0,0,0,0.2);">🚫 نفذت الكمية</span>' : '';
 
         if (imageCount > 1) {
             indicatorHtml = '<div class="img-indicator"> اسحب لعرض الصور </div>';
@@ -1482,6 +1541,7 @@
 
         var html = '<div class="detail-card">' +
             '<div style="position: relative; margin-bottom: 12px;">' +
+                outBadgeHtml +
                 '<div class="detail-img-box" id="detailImgBox">' + imageContent + '</div>' +
                 navButtonsHtml +
                 indicatorHtml +
@@ -1501,11 +1561,22 @@
     }
 
     function renderDetailQtyControls(id) {
+        var p = getProductById(id);
+        var outOfStock = isProductOutOfStock(p);
         var qty = cart[id] || 0;
         var box = document.getElementById('detailQtyBox');
         if (!box) return;
 
         var html = '<div style="display: flex; flex-direction: column; gap: 8px; margin-top: 12px;">';
+
+        if (outOfStock) {
+            html += '<div style="background:#fef2f2; border:1px solid #fecaca; color:#dc2626; padding:12px; border-radius:10px; text-align:center; font-weight:700; font-size:14px;">🚫 نفذت الكمية — هذا المنتج غير متوفر حالياً</div>';
+            html += '<button onclick="openShopPage()" style="width: 100%; padding: 12px; background: #0f172a; color: white; border: none; border-radius: 10px; font-weight: 700; font-size: 14px; cursor: pointer; box-shadow: 0 4px 12px rgba(15, 23, 42, 0.25); transition: all 0.2s ease;">🏠 الصفحة الرئيسية</button>';
+            html += '</div>';
+            box.innerHTML = html;
+            return;
+        }
+
         html += '<div class="qty-controls" style="padding: 8px 12px;">';
         if (qty > 0) {
             html += '<button class="btn-qty btn-minus" style="width:40px; height:40px; font-size:20px;" onclick="changeQty(' + id + ', -1)">-</button>' +
@@ -1524,6 +1595,11 @@
     }
 
     function buyNowProduct(id) {
+        var p = getProductById(id);
+        if (isProductOutOfStock(p)) {
+            alert('عذراً، نفذت كمية هذا المنتج حالياً.');
+            return;
+        }
         var currentQty = cart[id] || 0;
         if (currentQty <= 0) {
             cart[id] = 1;
@@ -1534,6 +1610,11 @@
     }
 
     function changeQty(id, delta) {
+        var p = getProductById(id);
+        if (delta > 0 && isProductOutOfStock(p)) {
+            alert('عذراً، نفذت كمية هذا المنتج حالياً.');
+            return;
+        }
         var currentQty = cart[id] || 0;
         var newQty = currentQty + delta;
 
@@ -1787,6 +1868,186 @@
     loadCartFromStorage();
     initStoreData();
     fetchCouponsFromSheet();
+</script>
+<script>
+(function() {
+    var isStorePopState = false;
+    var storeExitConfirmPending = false;
+
+    function showStoreBackToast(text) {
+        var existing = document.getElementById("storeBackToast");
+        if (existing) existing.remove();
+
+        var toast = document.createElement("div");
+        toast.id = "storeBackToast";
+        toast.innerText = text;
+        toast.style.cssText = "position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:rgba(15,23,42,0.95); color:#fff; padding:10px 18px; border-radius:25px; font-size:13px; font-weight:700; z-index:999999; box-shadow:0 4px 15px rgba(0,0,0,0.25); white-space:nowrap;";
+        document.body.appendChild(toast);
+
+        setTimeout(function() {
+            if (toast && toast.parentNode) toast.remove();
+        }, 2000);
+    }
+
+    function isSameStoreState(a, b) {
+        if (!a || !b) return false;
+        return a.storeView === b.storeView &&
+               a.productId === b.productId &&
+               a.category === b.category &&
+               a.brand === b.brand;
+    }
+
+    function pushStoreState(stateObj) {
+        if (isStorePopState) return;
+        if (isSameStoreState(history.state, stateObj)) return;
+
+        if (history.state && history.state.storeView === "search" && stateObj.storeView !== "search") {
+            history.replaceState(stateObj, "");
+        } else {
+            history.pushState(stateObj, "");
+        }
+    }
+
+    history.replaceState({ storeView: "root" }, "");
+    history.pushState({ storeView: "home" }, "");
+
+    var origOpenProductDetail = window.openProductDetail;
+    window.openProductDetail = function(id) {
+        if (typeof origOpenProductDetail === "function") origOpenProductDetail(id);
+        pushStoreState({ storeView: "detail", productId: id });
+    };
+
+    var origOpenCartPage = window.openCartPage;
+    window.openCartPage = function() {
+        if (typeof origOpenCartPage === "function") origOpenCartPage();
+        pushStoreState({ storeView: "cart" });
+    };
+
+    var origOpenShopPage = window.openShopPage;
+    window.openShopPage = function() {
+        if (typeof origOpenShopPage === "function") origOpenShopPage();
+        if (activeCategory !== "الرئيسية" || activeBrand) {
+            pushStoreState({ storeView: "filter", category: activeCategory, brand: activeBrand });
+        } else {
+            pushStoreState({ storeView: "home" });
+        }
+    };
+
+    var origSelectCategory = window.selectCategory;
+    window.selectCategory = function(cat) {
+        if (typeof origSelectCategory === "function") origSelectCategory(cat);
+        if (cat === "الرئيسية") {
+            pushStoreState({ storeView: "home" });
+        } else {
+            pushStoreState({ storeView: "filter", category: cat, brand: null });
+        }
+    };
+
+    var origFilterByBrand = window.filterByBrand;
+    window.filterByBrand = function(brandName) {
+        if (typeof origFilterByBrand === "function") origFilterByBrand(brandName);
+        pushStoreState({ storeView: "filter", category: "الرئيسية", brand: brandName });
+    };
+
+    var origResetToHome = window.resetToHome;
+    window.resetToHome = function() {
+        if (typeof origResetToHome === "function") origResetToHome();
+        pushStoreState({ storeView: "home" });
+    };
+
+    var origToggleSearchBox = window.toggleSearchBox;
+    window.toggleSearchBox = function() {
+        if (typeof origToggleSearchBox === "function") origToggleSearchBox();
+        var box = document.getElementById("searchContainerBox");
+        if (box && !box.classList.contains("hidden")) {
+            pushStoreState({ storeView: "search" });
+        }
+    };
+
+    var origHideSearchBox = window.hideSearchBox;
+    window.hideSearchBox = function() {
+        if (typeof origHideSearchBox === "function") origHideSearchBox();
+        if (!isStorePopState && history.state && history.state.storeView === "search") {
+            if (activeCategory !== "الرئيسية" || activeBrand) {
+                history.replaceState({ storeView: "filter", category: activeCategory, brand: activeBrand }, "");
+            } else {
+                history.replaceState({ storeView: "home" }, "");
+            }
+        }
+    };
+
+    window.addEventListener("popstate", function(event) {
+        var state = event.state;
+        isStorePopState = true;
+
+        if (state && state.storeView === "detail") {
+            if (typeof origOpenProductDetail === "function") origOpenProductDetail(state.productId);
+            isStorePopState = false;
+            return;
+        }
+
+        if (state && state.storeView === "cart") {
+            if (typeof origOpenCartPage === "function") origOpenCartPage();
+            isStorePopState = false;
+            return;
+        }
+
+        if (state && state.storeView === "filter") {
+            document.getElementById("cartPage").classList.add("hidden");
+            document.getElementById("productDetailPage").classList.add("hidden");
+            document.getElementById("shopPage").classList.remove("hidden");
+            if (state.brand) {
+                if (typeof origFilterByBrand === "function") origFilterByBrand(state.brand);
+            } else {
+                var input = document.getElementById("searchInput");
+                if (input) input.value = "";
+                if (typeof origHideSearchBox === "function") origHideSearchBox();
+                if (typeof origSelectCategory === "function") origSelectCategory(state.category || "الرئيسية");
+            }
+            isStorePopState = false;
+            return;
+        }
+
+        if (state && state.storeView === "home") {
+            var searchInput = document.getElementById("searchInput");
+            if (searchInput) searchInput.value = "";
+            if (typeof origHideSearchBox === "function") origHideSearchBox();
+            if (activeCategory !== "الرئيسية" || activeBrand || searchQuery !== "") {
+                if (typeof origResetToHome === "function") origResetToHome();
+            } else {
+                if (typeof origOpenShopPage === "function") origOpenShopPage();
+            }
+            isStorePopState = false;
+            return;
+        }
+
+        var isSubPageOpen = !document.getElementById("productDetailPage").classList.contains("hidden") ||
+                            !document.getElementById("cartPage").classList.contains("hidden");
+        var searchBox = document.getElementById("searchContainerBox");
+        var isSearchOpen = searchBox && !searchBox.classList.contains("hidden");
+
+        if (isSubPageOpen || isSearchOpen || activeCategory !== "الرئيسية" || activeBrand || searchQuery !== "") {
+            var inp = document.getElementById("searchInput");
+            if (inp) inp.value = "";
+            if (typeof origHideSearchBox === "function") origHideSearchBox();
+            if (typeof origResetToHome === "function") origResetToHome();
+            if (typeof origOpenShopPage === "function") origOpenShopPage();
+            isStorePopState = false;
+            history.pushState({ storeView: "home" }, "");
+            return;
+        }
+
+        isStorePopState = false;
+        if (!storeExitConfirmPending) {
+            storeExitConfirmPending = true;
+            showStoreBackToast("اضغط زر الرجوع مرة أخرى للخروج من المتجر");
+            history.pushState({ storeView: "home" }, "");
+            setTimeout(function() { storeExitConfirmPending = false; }, 2000);
+        } else {
+            history.back();
+        }
+    });
+})();
 </script>
 
 </body>
