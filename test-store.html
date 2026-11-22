@@ -787,7 +787,12 @@
 <div id="productDetailPage" class="page hidden">
     <div class="cart-header">
         <h2>تفاصيل المنتج 📦</h2>
-        <button class="btn-back" onclick="openShopPage()">← رجوع</button>
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <button class="cart-icon-btn" onclick="openCartPage()" style="padding: 6px 10px; font-size: 12px;">
+                🛒 السلة <span class="cart-badge" id="detailCartBadgeCount">0</span>
+            </button>
+            <button class="btn-back" onclick="openShopPage()">← رجوع</button>
+        </div>
     </div>
     <div id="productDetailContent"></div>
 </div>
@@ -2012,46 +2017,16 @@
         if (existing) existing.remove();
         if (addCartToastTimer) clearTimeout(addCartToastTimer);
 
-        var variantText = getVariantTextFromCartKey(key);
-        var msgText = "";
-
-        if (variantText) {
-            var groupName = (p && Array.isArray(p.variants) && p.variants.length === 1 && p.variants[0].name)
-                ? p.variants[0].name
-                : "";
-            if (groupName) {
-                msgText = "✅ أُضيف (" + variantText + ") — يمكنك إضافة " + groupName + " الآخر";
-            } else {
-                msgText = "✅ أُضيف (" + variantText + ") — يمكنك إضافة اختيار آخر";
-            }
-        } else {
-            msgText = "✅ تمت الإضافة إلى السلة";
-        }
-
         var toast = document.createElement("div");
         toast.id = "addToCartToast";
-        toast.style.cssText = "position:fixed; bottom:16px; left:50%; transform:translateX(-50%); background:rgba(15,23,42,0.96); color:#ffffff; border:1px solid #16a34a; padding:8px 12px; border-radius:12px; font-size:11.5px; font-weight:700; z-index:999999; box-shadow:0 4px 16px rgba(0,0,0,0.28); display:flex; align-items:center; justify-content:space-between; gap:10px; width:92vw; max-width:440px; line-height:1.35; direction:rtl;";
-
-        var textSpan = document.createElement("span");
-        textSpan.innerText = msgText;
-        textSpan.style.cssText = "flex:1; min-width:0;";
-        toast.appendChild(textSpan);
-
-        var cartBtn = document.createElement("button");
-        cartBtn.type = "button";
-        cartBtn.innerText = "السلة 🛒";
-        cartBtn.style.cssText = "background:#16a34a; color:#ffffff; border:none; padding:5px 10px; border-radius:8px; font-size:11px; font-weight:800; cursor:pointer; white-space:nowrap; flex-shrink:0;";
-        cartBtn.onclick = function() {
-            toast.remove();
-            openCartPage();
-        };
-        toast.appendChild(cartBtn);
+        toast.innerText = "✅ تم إضافة المنتج الى السلة بنجاح";
+        toast.style.cssText = "position:fixed; bottom:18px; left:50%; transform:translateX(-50%); background:rgba(15,23,42,0.96); color:#ffffff; border:1px solid #16a34a; padding:9px 16px; border-radius:10px; font-size:12px; font-weight:700; z-index:999999; box-shadow:0 4px 16px rgba(0,0,0,0.28); width:max-content; max-width:92vw; text-align:center; line-height:1.4; direction:rtl;";
 
         document.body.appendChild(toast);
 
         addCartToastTimer = setTimeout(function() {
             if (toast && toast.parentNode) toast.remove();
-        }, 6000);
+        }, 3000);
     }
 
     function changeQty(id, delta) {
@@ -2089,7 +2064,10 @@
     function updateBadge() {
         var totalItems = 0;
         for (var id in cart) { totalItems += cart[id]; }
-        document.getElementById('cartBadgeCount').innerText = totalItems;
+        var mainBadge = document.getElementById('cartBadgeCount');
+        if (mainBadge) mainBadge.innerText = totalItems;
+        var detailBadge = document.getElementById('detailCartBadgeCount');
+        if (detailBadge) detailBadge.innerText = totalItems;
     }
 
     function openCartPage() {
@@ -2504,6 +2482,5 @@
     });
 })();
 </script>
-
 </body>
 </html>
