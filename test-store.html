@@ -975,12 +975,135 @@
         return !!(p && Array.isArray(p.variants) && p.variants.length > 0);
     }
 
+    function getProductCombinations(p) {
+        if (hasProductVariants(p) && p.variants.length >= 2 && Array.isArray(p.variants[0].combinations) && p.variants[0].combinations.length > 0) {
+            return p.variants[0].combinations;
+        }
+        return null;
+    }
+
+    function findCombinationForLabels(p, labelsArray) {
+        var combos = getProductCombinations(p);
+        if (!combos || !Array.isArray(labelsArray) || labelsArray.length !== p.variants.length) return null;
+        for (var i = 0; i < combos.length; i++) {
+            var c = combos[i];
+            if (Array.isArray(c.values) && c.values.length === labelsArray.length) {
+                var match = true;
+                for (var j = 0; j < labelsArray.length; j++) {
+                    if (String(c.values[j]) !== String(labelsArray[j])) {
+                        match = false;
+                        break;
+                    }
+                }
+                if (match) return c;
+            }
+        }
+        return null;
+    }
+
+    function isCombinationUnavailable(p, labelsArray) {
+        if (!hasProductVariants(p)) return false;
+        for (var gIdx = 0; gIdx < labelsArray.length; gIdx++) {
+            var group = p.variants[gIdx];
+            if (!group || !Array.isArray(group.values)) return true;
+            var valObj = group.values.find(function(v) { return String(v.label) === String(labelsArray[gIdx]); });
+            if (!valObj || valObj.outOfStock) return true;
+        }
+        var combo = findCombinationForLabels(p, labelsArray);
+        if (combo && combo.outOfStock) return true;
+        return false;
+    }
+
+    function findFirstAvailableVariantIndices(p) {
+        if (!hasProductVariants(p)) return {};
+        var foundIndices = null;
+
+        function search(gIdx, currentIndices, currentLabels) {
+            if (foundIndices) return;
+            if (gIdx === p.variants.length) {
+                if (!isCombinationUnavailable(p, currentLabels)) {
+                    foundIndices = currentIndices.slice();
+                }
+                return;
+            }
+            var vals = p.variants[gIdx].values || [];
+            for (var vIdx = 0; vIdx < vals.length; vIdx++) {
+                if (vals[vIdx].outOfStock) continue;
+                currentIndices.push(vIdx);
+                currentLabels.push(vals[vIdx].label);
+                search(gIdx + 1, currentIndices, currentLabels);
+                currentIndices.pop();
+                currentLabels.pop();
+            }
+        }
+
+        search(0, [], []);
+
+        var map = {};
+        if (foundIndices) {
+            for (var i = 0; i < foundIndices.length; i++) {
+                map[i] = foundIndices[i];
+            }
+        } else {
+            for (var g = 0; g < p.variants.length; g++) {
+                map[g] = -1;
+            }
+        }
+        return map;
+    }
+
+    function isVariantOptionAvailableForSelection(p, targetGroupIdx, targetValIdx) {
+        var group = p.variants[targetGroupIdx];
+        if (!group || !group.values || !group.values[targetValIdx] || group.values[targetValIdx].outOfStock) {
+            return false;
+        }
+        if (!getProductCombinations(p)) return true;
+
+        var possible = false;
+        function check(gIdx, currentLabels) {
+            if (possible) return;
+            if (gIdx === p.variants.length) {
+                if (!isCombinationUnavailable(p, currentLabels)) {
+                    possible = true;
+                }
+                return;
+            }
+            if (gIdx === targetGroupIdx) {
+                currentLabels.push(group.values[targetValIdx].label);
+                check(gIdx + 1, currentLabels);
+                currentLabels.pop();
+            } else if (gIdx < targetGroupIdx) {
+                var selIdx = selectedProductVariants[gIdx];
+                var selVal = (p.variants[gIdx].values && selIdx >= 0) ? p.variants[gIdx].values[selIdx] : null;
+                if (!selVal || selVal.outOfStock) return;
+                currentLabels.push(selVal.label);
+                check(gIdx + 1, currentLabels);
+                currentLabels.pop();
+            } else {
+                var vals = p.variants[gIdx].values || [];
+                for (var vIdx = 0; vIdx < vals.length; vIdx++) {
+                    if (vals[vIdx].outOfStock) continue;
+                    currentLabels.push(vals[vIdx].label);
+                    check(gIdx + 1, currentLabels);
+                    currentLabels.pop();
+                }
+            }
+        }
+
+        check(0, []);
+        return possible;
+    }
+
     function isAllVariantsOutOfStock(p) {
         if (!hasProductVariants(p)) return false;
         for (var i = 0; i < p.variants.length; i++) {
             var vals = p.variants[i].values || [];
             var hasAvailable = vals.some(function(v) { return !v.outOfStock; });
             if (!hasAvailable) return true;
+        }
+        if (getProductCombinations(p)) {
+            var firstAvail = findFirstAvailableVariantIndices(p);
+            return firstAvail[0] === -1;
         }
         return false;
     }
@@ -1010,6 +1133,7 @@
             return { valid: true, summary: "", unitPrice: Number(p.price) || 0, cartKey: String(p.id) };
         }
         var labels = [];
+        var rawLabels = [];
         var unitPrice = Number(p.price) || 0;
         var allValid = true;
 
@@ -1021,8 +1145,21 @@
                 allValid = false;
             } else {
                 labels.push(group.name + ": " + valObj.label);
+                rawLabels.push(valObj.label);
                 if (valObj.price !== "" && valObj.price !== null && valObj.price !== undefined && !isNaN(Number(valObj.price)) && Number(valObj.price) > 0) {
                     unitPrice = Number(valObj.price);
+                }
+            }
+        }
+
+        if (allValid && rawLabels.length === p.variants.length) {
+            var combo = findCombinationForLabels(p, rawLabels);
+            if (combo) {
+                if (combo.outOfStock) {
+                    allValid = false;
+                }
+                if (combo.price !== "" && combo.price !== null && combo.price !== undefined && !isNaN(Number(combo.price)) && Number(combo.price) > 0) {
+                    unitPrice = Number(combo.price);
                 }
             }
         }
@@ -1038,12 +1175,14 @@
         if (!variantText || !hasProductVariants(p)) return basePrice;
 
         var resolvedPrice = basePrice;
+        var extractedLabels = [];
         var pairs = variantText.split(" | ");
         pairs.forEach(function(pair) {
             var sepIdx = pair.indexOf(": ");
             if (sepIdx !== -1) {
                 var gName = pair.substring(0, sepIdx);
                 var vLabel = pair.substring(sepIdx + 2);
+                extractedLabels.push(vLabel);
                 var group = p.variants.find(function(g) { return g.name === gName; });
                 if (group && Array.isArray(group.values)) {
                     var valObj = group.values.find(function(v) { return v.label === vLabel; });
@@ -1053,6 +1192,12 @@
                 }
             }
         });
+
+        var combo = findCombinationForLabels(p, extractedLabels);
+        if (combo && combo.price !== "" && combo.price !== null && combo.price !== undefined && !isNaN(Number(combo.price)) && Number(combo.price) > 0) {
+            resolvedPrice = Number(combo.price);
+        }
+
         return resolvedPrice;
     }
 
@@ -1061,8 +1206,50 @@
         if (!p || !hasProductVariants(p)) return;
         var group = p.variants[groupIdx];
         if (!group || !group.values || !group.values[valIdx] || group.values[valIdx].outOfStock) return;
+        if (!isVariantOptionAvailableForSelection(p, groupIdx, valIdx)) return;
 
         selectedProductVariants[groupIdx] = valIdx;
+
+        if (getProductCombinations(p)) {
+            var currentLabels = [];
+            for (var i = 0; i < p.variants.length; i++) {
+                var idx = selectedProductVariants[i];
+                var vObj = (p.variants[i].values && idx >= 0) ? p.variants[i].values[idx] : null;
+                currentLabels.push(vObj ? vObj.label : "");
+            }
+
+            if (isCombinationUnavailable(p, currentLabels)) {
+                var fixed = false;
+                function fixSubsequent(g) {
+                    if (fixed) return;
+                    if (g === p.variants.length) {
+                        var testLabels = [];
+                        for (var k = 0; k < p.variants.length; k++) {
+                            var tIdx = selectedProductVariants[k];
+                            var tObj = (p.variants[k].values && tIdx >= 0) ? p.variants[k].values[tIdx] : null;
+                            testLabels.push(tObj ? tObj.label : "");
+                        }
+                        if (!isCombinationUnavailable(p, testLabels)) {
+                            fixed = true;
+                        }
+                        return;
+                    }
+                    if (g <= groupIdx) {
+                        fixSubsequent(g + 1);
+                        return;
+                    }
+                    var vals = p.variants[g].values || [];
+                    for (var v = 0; v < vals.length; v++) {
+                        if (vals[v].outOfStock) continue;
+                        selectedProductVariants[g] = v;
+                        fixSubsequent(g + 1);
+                        if (fixed) return;
+                    }
+                }
+                fixSubsequent(groupIdx + 1);
+            }
+        }
+
         renderDetailVariants(p);
 
         var sel = getSelectedVariantDetails(p);
@@ -1092,10 +1279,11 @@
                 '<div class="variant-pills-wrap">';
 
             (group.values || []).forEach(function(val, vIdx) {
-                var isSelected = (activeIdx === vIdx && !val.outOfStock);
-                var cls = 'variant-pill' + (isSelected ? ' selected' : '') + (val.outOfStock ? ' out-of-stock' : '');
-                var clickAttr = val.outOfStock ? '' : ' onclick="selectProductVariant(' + p.id + ', ' + gIdx + ', ' + vIdx + ')"';
-                var outTag = val.outOfStock ? ' (نفذ)' : '';
+                var isAvailable = isVariantOptionAvailableForSelection(p, gIdx, vIdx);
+                var isSelected = (activeIdx === vIdx && isAvailable);
+                var cls = 'variant-pill' + (isSelected ? ' selected' : '') + (!isAvailable ? ' out-of-stock' : '');
+                var clickAttr = !isAvailable ? '' : ' onclick="selectProductVariant(' + p.id + ', ' + gIdx + ', ' + vIdx + ')"';
+                var outTag = !isAvailable ? ' (نفذ)' : '';
                 html += '<button type="button" class="' + cls + '"' + clickAttr + '>' + escapeStoreHtml(val.label) + outTag + '</button>';
             });
 
@@ -1703,15 +1891,7 @@
 
         selectedProductVariants = {};
         if (hasProductVariants(p)) {
-            p.variants.forEach(function(group, gIdx) {
-                var firstAvailableIdx = -1;
-                (group.values || []).forEach(function(v, vIdx) {
-                    if (firstAvailableIdx === -1 && !v.outOfStock) {
-                        firstAvailableIdx = vIdx;
-                    }
-                });
-                selectedProductVariants[gIdx] = firstAvailableIdx;
-            });
+            selectedProductVariants = findFirstAvailableVariantIndices(p);
         }
 
         var initialPrice = getSelectedVariantDetails(p).unitPrice;
@@ -1840,20 +2020,21 @@
                 ? p.variants[0].name
                 : "";
             if (groupName) {
-                msgText = "✅ تمت إضافة (" + variantText + ") للسلة — يمكنك تحديد اختيار آخر من " + groupName + " أو الذهاب للسلة";
+                msgText = "✅ أُضيف (" + variantText + ") — يمكنك إضافة " + groupName + " الآخر";
             } else {
-                msgText = "✅ تمت إضافة (" + variantText + ") للسلة — يمكنك تحديد اختيار آخر أو الذهاب للسلة";
+                msgText = "✅ أُضيف (" + variantText + ") — يمكنك إضافة اختيار آخر";
             }
         } else {
-            msgText = "✅ تمت إضافة المنتج إلى السلة";
+            msgText = "✅ تمت الإضافة إلى السلة";
         }
 
         var toast = document.createElement("div");
         toast.id = "addToCartToast";
-        toast.style.cssText = "position:fixed; bottom:22px; left:50%; transform:translateX(-50%); background:rgba(15,23,42,0.96); color:#ffffff; border:1px solid #16a34a; padding:10px 14px; border-radius:14px; font-size:12px; font-weight:700; z-index:999999; box-shadow:0 6px 20px rgba(0,0,0,0.3); display:flex; align-items:center; gap:10px; max-width:92vw; line-height:1.5; direction:rtl;";
+        toast.style.cssText = "position:fixed; bottom:16px; left:50%; transform:translateX(-50%); background:rgba(15,23,42,0.96); color:#ffffff; border:1px solid #16a34a; padding:8px 12px; border-radius:12px; font-size:11.5px; font-weight:700; z-index:999999; box-shadow:0 4px 16px rgba(0,0,0,0.28); display:flex; align-items:center; justify-content:space-between; gap:10px; width:92vw; max-width:440px; line-height:1.35; direction:rtl;";
 
         var textSpan = document.createElement("span");
         textSpan.innerText = msgText;
+        textSpan.style.cssText = "flex:1; min-width:0;";
         toast.appendChild(textSpan);
 
         var cartBtn = document.createElement("button");
@@ -2323,5 +2504,6 @@
     });
 })();
 </script>
+
 </body>
 </html>
