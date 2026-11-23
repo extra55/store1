@@ -2511,13 +2511,14 @@ function dismissWarningBanner() {
     }
 
     var productVariantGroups = [];
+    var productVariantCombinations = [];
 
     function escapeAdminAttr(str) {
         return String(str || "")
-            .replace(/&/g, "&")
+            .replace(/&/g, "&amp;")
             .replace(/"/g, "&quot;")
-            .replace(/</g, "<")
-            .replace(/>/g, ">");
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;");
     }
 
     function addVariantGroup() {
@@ -2548,11 +2549,104 @@ function dismissWarningBanner() {
         renderVariantGroups();
     }
 
+    function buildSyncedVariantCombinations(groupsList) {
+        var validGroups = (groupsList || []).map(function(g) {
+            return {
+                name: String(g.name || "").trim(),
+                values: (g.values || []).filter(function(v) {
+                    return String(v.label || "").trim() !== "";
+                }).map(function(v) {
+                    return {
+                        label: String(v.label || "").trim(),
+                        outOfStock: !!v.outOfStock
+                    };
+                })
+            };
+        }).filter(function(g) {
+            return g.values.length > 0;
+        });
+
+        if (validGroups.length < 2) {
+            return [];
+        }
+
+        var existingMap = {};
+        (productVariantCombinations || []).forEach(function(c) {
+            if (c && Array.isArray(c.values)) {
+                existingMap[c.values.join("||")] = c;
+            }
+        });
+
+        var result = [];
+        function generate(depth, currentLabels, parentOutOfStock) {
+            if (depth === validGroups.length) {
+                var key = currentLabels.join("||");
+                var prev = existingMap[key];
+                result.push({
+                    values: currentLabels.slice(),
+                    price: prev && prev.price !== undefined && prev.price !== null ? prev.price : "",
+                    outOfStock: parentOutOfStock ? true : (prev ? !!prev.outOfStock : false),
+                    lockedByParent: parentOutOfStock
+                });
+                return;
+            }
+            validGroups[depth].values.forEach(function(valObj) {
+                currentLabels.push(valObj.label);
+                generate(depth + 1, currentLabels, parentOutOfStock || valObj.outOfStock);
+                currentLabels.pop();
+            });
+        }
+
+        generate(0, [], false);
+        return result;
+    }
+
+    function updateCombinationField(cIdx, field, value) {
+        if (!productVariantCombinations[cIdx]) return;
+        productVariantCombinations[cIdx][field] = value;
+    }
+
+    function renderVariantCombinationsMatrix() {
+        var matrixBox = document.getElementById("variantCombinationsContainer");
+        if (!matrixBox) return;
+
+        productVariantCombinations = buildSyncedVariantCombinations(productVariantGroups);
+
+        if (productVariantCombinations.length === 0) {
+            matrixBox.innerHTML = "";
+            return;
+        }
+
+        var html = '<div style="background:#1e293b; border:1px solid #0284c7; border-radius:8px; padding:10px; margin-top:10px;">' +
+            '<div style="font-size:12px; font-weight:bold; color:#38bdf8; margin-bottom:4px;">🔗 ربط الخيارات وتحديد التوفر والسعر لكل توليفة:</div>' +
+            '<p style="font-size:11px; color:#94a3b8; margin-bottom:10px;">يمكنك تحديد حالة النفاذ أو سعر خاص لكل توليفة بشكل مستقل (مثلاً: أسود - 39 نافذ، بينما أحمر - 39 متوفر).</p>';
+
+        productVariantCombinations.forEach(function(combo, cIdx) {
+            var comboTitle = combo.values.map(function(v) { return escapeAdminAttr(v); }).join(" — ");
+            var checkedAttr = combo.outOfStock ? "checked" : "";
+            var disabledAttr = combo.lockedByParent ? "disabled" : "";
+            var parentNote = combo.lockedByParent ? ' <span style="color:#fca5a5; font-size:10px;">(نافذ من المجموعة)</span>' : '';
+
+            html += '<div class="variant-val-row" style="border-bottom:1px dashed #334155; padding-bottom:6px;">' +
+                '<div style="flex:2; min-width:130px; font-size:12px; font-weight:bold; color:#f8fafc;">' + comboTitle + parentNote + '</div>' +
+                '<input type="number" placeholder="سعر خاص (اختياري)" value="' + escapeAdminAttr(combo.price) + '" oninput="updateCombinationField(' + cIdx + ', \'price\', this.value)" style="flex:1; min-width:110px;">' +
+                '<label style="display:flex; align-items:center; gap:4px; margin-bottom:0; font-size:11px; color:#fbbf24; cursor:pointer; white-space:nowrap;">' +
+                    '<input type="checkbox" ' + checkedAttr + ' ' + disabledAttr + ' onchange="updateCombinationField(' + cIdx + ', \'outOfStock\', this.checked)" style="width:15px; height:15px; cursor:pointer;">' +
+                    '🚫 نافذ' +
+                '</label>' +
+            '</div>';
+        });
+
+        html += '</div>';
+        matrixBox.innerHTML = html;
+    }
+
     function renderVariantGroups() {
         var container = document.getElementById("variantGroupsContainer");
         if (!container) return;
 
         if (!productVariantGroups || productVariantGroups.length === 0) {
+            productVariantCombinations = [];
             container.innerHTML = "";
             return;
         }
@@ -2568,10 +2662,10 @@ function dismissWarningBanner() {
             (group.values || []).forEach(function(val, vIdx) {
                 var checkedAttr = val.outOfStock ? "checked" : "";
                 html += `<div class="variant-val-row">
-                    <input type="text" placeholder="اسم الخيار (مثال: أسود / 42 / 100 مل)" value="${escapeAdminAttr(val.label)}" oninput="productVariantGroups[${gIdx}].values[${vIdx}].label = this.value" style="flex: 2; min-width: 130px;">
+                    <input type="text" placeholder="اسم الخيار (مثال: أسود / 42 / 100 مل)" value="${escapeAdminAttr(val.label)}" oninput="productVariantGroups[${gIdx}].values[${vIdx}].label = this.value; renderVariantCombinationsMatrix();" style="flex: 2; min-width: 130px;">
                     <input type="number" placeholder="سعر خاص (اختياري)" value="${escapeAdminAttr(val.price)}" oninput="productVariantGroups[${gIdx}].values[${vIdx}].price = this.value" style="flex: 1; min-width: 110px;">
                     <label style="display: flex; align-items: center; gap: 4px; margin-bottom: 0; font-size: 11px; color: #fbbf24; cursor: pointer; white-space: nowrap;">
-                        <input type="checkbox" ${checkedAttr} onchange="productVariantGroups[${gIdx}].values[${vIdx}].outOfStock = this.checked" style="width: 15px; height: 15px; cursor: pointer;">
+                        <input type="checkbox" ${checkedAttr} onchange="productVariantGroups[${gIdx}].values[${vIdx}].outOfStock = this.checked; renderVariantCombinationsMatrix();" style="width: 15px; height: 15px; cursor: pointer;">
                         🚫 نافذ
                     </label>
                     <button type="button" class="btn-action btn-delete" onclick="removeVariantValue(${gIdx}, ${vIdx})" style="padding: 6px 8px;">✕</button>
@@ -2582,7 +2676,9 @@ function dismissWarningBanner() {
             </div>`;
         });
 
+        html += '<div id="variantCombinationsContainer"></div>';
         container.innerHTML = html;
+        renderVariantCombinationsMatrix();
     }
 
     function getCleanedVariantGroups() {
@@ -2604,6 +2700,18 @@ function dismissWarningBanner() {
                 cleaned.push({ name: gName, values: cleanVals });
             }
         });
+
+        if (cleaned.length >= 2) {
+            var syncedCombos = buildSyncedVariantCombinations(cleaned).map(function(c) {
+                return {
+                    values: c.values,
+                    price: (c.price !== undefined && c.price !== null && String(c.price).trim() !== "") ? Number(c.price) : "",
+                    outOfStock: !!c.outOfStock
+                };
+            });
+            cleaned[0].combinations = syncedCombos;
+        }
+
         return cleaned;
     }
 
@@ -2918,6 +3026,9 @@ function dismissWarningBanner() {
         document.getElementById("pOutOfStock").checked = (p.outOfStock === true || p.outOfStock === "TRUE" || p.outOfStock === "true" || p.outOfStock === 1);
 
         productVariantGroups = Array.isArray(p.variants) ? JSON.parse(JSON.stringify(p.variants)) : [];
+        productVariantCombinations = (productVariantGroups[0] && Array.isArray(productVariantGroups[0].combinations))
+            ? JSON.parse(JSON.stringify(productVariantGroups[0].combinations))
+            : [];
         renderVariantGroups();
 
         existingImages = [
