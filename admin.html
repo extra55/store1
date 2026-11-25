@@ -92,6 +92,12 @@
         body.light-mode th { background: #e2e8f0 !important; color: #0284c7 !important; border-color: #cbd5e1 !important; }
         body.light-mode td { border-color: #cbd5e1 !important; color: #0f172a !important; }
 
+     .variant-wrapper-box { background: #0f172a; padding: 12px; border-radius: 8px; border: 1px dashed #38bdf8; margin-bottom: 15px; }
+.variant-group-card { background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 10px; margin-bottom: 10px; }
+.variant-val-row { display: flex; gap: 6px; align-items: center; margin-bottom: 6px; flex-wrap: wrap; }
+body.light-mode .variant-wrapper-box { background: #f8fafc; border-color: #0284c7; }
+body.light-mode .variant-group-card { background: #ffffff; border-color: #cbd5e1; }
+
 /* تثبيت الهيدر العلوي (العنوان وزر القائمة) أثناء التمرير */
 .header-box {
     position: sticky !important;
@@ -504,6 +510,15 @@
             <div class="form-group" style="display: flex; align-items: center; gap: 8px; background: #0f172a; padding: 10px; border-radius: 8px; border: 1px solid #334155;">
                 <input type="checkbox" id="pOutOfStock" style="width: 18px; height: 18px; cursor: pointer;">
                 <label for="pOutOfStock" style="margin-bottom: 0; cursor: pointer; color: #fbbf24;">🚫 نفذت الكمية (غير متوفر حالياً في المتجر)</label>
+            </div>
+
+           <div class="variant-wrapper-box">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 6px;">
+                    <label style="margin-bottom: 0; color: #38bdf8;">🎛️ خيارات المنتج (ألوان، قياسات، أحجام... اختياري)</label>
+                    <button type="button" class="btn-action" style="background: #0284c7; color: #fff;" onclick="addVariantGroup()">➕ إضافة مجموعة خيارات</button>
+                </div>
+                <p style="font-size: 11px; color: #94a3b8; margin-bottom: 10px;">اتركه فارغاً للمنتجات العادية، أو أضف مجموعات مثل (اللون، القياس، الحجم) مع إمكانية تحديد سعر خاص أو حالة نفاذ لكل خيار.</p>
+                <div id="variantGroupsContainer"></div>
             </div>
 
             <label>صور المنتج:</label>
@@ -2101,7 +2116,7 @@ function dismissWarningBanner() {
         var html = '<option value="">اختر الماركة...</option>';
         html += '<option value="__custom__">➕ ماركة جديدة (كتابة يدوية)...</option>';
         brands.forEach(function(b) {
-            var safeVal = b.replace(/"/g, '"');
+            var safeVal = b.replace(/"/g, "&quot;");
             html += `<option value="${safeVal}">${b}</option>`;
         });
         select.innerHTML = html;
@@ -2495,6 +2510,211 @@ function dismissWarningBanner() {
         filterProducts();
     }
 
+    var productVariantGroups = [];
+    var productVariantCombinations = [];
+
+    function escapeAdminAttr(str) {
+        return String(str || "")
+            .replace(/&/g, "&amp;")
+            .replace(/"/g, "&quot;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;");
+    }
+
+    function addVariantGroup() {
+        productVariantGroups.push({
+            name: "",
+            values: [{ label: "", price: "", outOfStock: false }]
+        });
+        renderVariantGroups();
+    }
+
+    function removeVariantGroup(gIdx) {
+        productVariantGroups.splice(gIdx, 1);
+        renderVariantGroups();
+    }
+
+    function addVariantValue(gIdx) {
+        if (!productVariantGroups[gIdx]) return;
+        productVariantGroups[gIdx].values.push({ label: "", price: "", outOfStock: false });
+        renderVariantGroups();
+    }
+
+    function removeVariantValue(gIdx, vIdx) {
+        if (!productVariantGroups[gIdx]) return;
+        productVariantGroups[gIdx].values.splice(vIdx, 1);
+        if (productVariantGroups[gIdx].values.length === 0) {
+            productVariantGroups.splice(gIdx, 1);
+        }
+        renderVariantGroups();
+    }
+
+    function buildSyncedVariantCombinations(groupsList) {
+        var validGroups = (groupsList || []).map(function(g) {
+            return {
+                name: String(g.name || "").trim(),
+                values: (g.values || []).filter(function(v) {
+                    return String(v.label || "").trim() !== "";
+                }).map(function(v) {
+                    return {
+                        label: String(v.label || "").trim(),
+                        outOfStock: !!v.outOfStock
+                    };
+                })
+            };
+        }).filter(function(g) {
+            return g.values.length > 0;
+        });
+
+        if (validGroups.length < 2) {
+            return [];
+        }
+
+        var existingMap = {};
+        (productVariantCombinations || []).forEach(function(c) {
+            if (c && Array.isArray(c.values)) {
+                existingMap[c.values.join("||")] = c;
+            }
+        });
+
+        var result = [];
+        function generate(depth, currentLabels, parentOutOfStock) {
+            if (depth === validGroups.length) {
+                var key = currentLabels.join("||");
+                var prev = existingMap[key];
+                result.push({
+                    values: currentLabels.slice(),
+                    price: prev && prev.price !== undefined && prev.price !== null ? prev.price : "",
+                    outOfStock: parentOutOfStock ? true : (prev ? !!prev.outOfStock : false),
+                    lockedByParent: parentOutOfStock
+                });
+                return;
+            }
+            validGroups[depth].values.forEach(function(valObj) {
+                currentLabels.push(valObj.label);
+                generate(depth + 1, currentLabels, parentOutOfStock || valObj.outOfStock);
+                currentLabels.pop();
+            });
+        }
+
+        generate(0, [], false);
+        return result;
+    }
+
+    function updateCombinationField(cIdx, field, value) {
+        if (!productVariantCombinations[cIdx]) return;
+        productVariantCombinations[cIdx][field] = value;
+    }
+
+    function renderVariantCombinationsMatrix() {
+        var matrixBox = document.getElementById("variantCombinationsContainer");
+        if (!matrixBox) return;
+
+        productVariantCombinations = buildSyncedVariantCombinations(productVariantGroups);
+
+        if (productVariantCombinations.length === 0) {
+            matrixBox.innerHTML = "";
+            return;
+        }
+
+        var html = '<div style="background:#1e293b; border:1px solid #0284c7; border-radius:8px; padding:10px; margin-top:10px;">' +
+            '<div style="font-size:12px; font-weight:bold; color:#38bdf8; margin-bottom:4px;">🔗 ربط الخيارات وتحديد التوفر والسعر لكل توليفة:</div>' +
+            '<p style="font-size:11px; color:#94a3b8; margin-bottom:10px;">يمكنك تحديد حالة النفاذ أو سعر خاص لكل توليفة بشكل مستقل (مثلاً: أسود - 39 نافذ، بينما أحمر - 39 متوفر).</p>';
+
+        productVariantCombinations.forEach(function(combo, cIdx) {
+            var comboTitle = combo.values.map(function(v) { return escapeAdminAttr(v); }).join(" — ");
+            var checkedAttr = combo.outOfStock ? "checked" : "";
+            var disabledAttr = combo.lockedByParent ? "disabled" : "";
+            var parentNote = combo.lockedByParent ? ' <span style="color:#fca5a5; font-size:10px;">(نافذ من المجموعة)</span>' : '';
+
+            html += '<div class="variant-val-row" style="border-bottom:1px dashed #334155; padding-bottom:6px;">' +
+                '<div style="flex:2; min-width:130px; font-size:12px; font-weight:bold; color:#f8fafc;">' + comboTitle + parentNote + '</div>' +
+                '<input type="number" placeholder="سعر خاص (اختياري)" value="' + escapeAdminAttr(combo.price) + '" oninput="updateCombinationField(' + cIdx + ', \'price\', this.value)" style="flex:1; min-width:110px;">' +
+                '<label style="display:flex; align-items:center; gap:4px; margin-bottom:0; font-size:11px; color:#fbbf24; cursor:pointer; white-space:nowrap;">' +
+                    '<input type="checkbox" ' + checkedAttr + ' ' + disabledAttr + ' onchange="updateCombinationField(' + cIdx + ', \'outOfStock\', this.checked)" style="width:15px; height:15px; cursor:pointer;">' +
+                    '🚫 نافذ' +
+                '</label>' +
+            '</div>';
+        });
+
+        html += '</div>';
+        matrixBox.innerHTML = html;
+    }
+
+    function renderVariantGroups() {
+        var container = document.getElementById("variantGroupsContainer");
+        if (!container) return;
+
+        if (!productVariantGroups || productVariantGroups.length === 0) {
+            productVariantCombinations = [];
+            container.innerHTML = "";
+            return;
+        }
+
+        var html = "";
+        productVariantGroups.forEach(function(group, gIdx) {
+            html += `<div class="variant-group-card">
+                <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 10px;">
+                    <input type="text" placeholder="اسم المجموعة (مثال: اللون أو القياس أو الحجم)" value="${escapeAdminAttr(group.name)}" oninput="productVariantGroups[${gIdx}].name = this.value" style="flex: 1;">
+                    <button type="button" class="btn-action btn-delete" onclick="removeVariantGroup(${gIdx})">🗑️ حذف المجموعة</button>
+                </div>`;
+
+            (group.values || []).forEach(function(val, vIdx) {
+                var checkedAttr = val.outOfStock ? "checked" : "";
+                html += `<div class="variant-val-row">
+                    <input type="text" placeholder="اسم الخيار (مثال: أسود / 42 / 100 مل)" value="${escapeAdminAttr(val.label)}" oninput="productVariantGroups[${gIdx}].values[${vIdx}].label = this.value; renderVariantCombinationsMatrix();" style="flex: 2; min-width: 130px;">
+                    <input type="number" placeholder="سعر خاص (اختياري)" value="${escapeAdminAttr(val.price)}" oninput="productVariantGroups[${gIdx}].values[${vIdx}].price = this.value" style="flex: 1; min-width: 110px;">
+                    <label style="display: flex; align-items: center; gap: 4px; margin-bottom: 0; font-size: 11px; color: #fbbf24; cursor: pointer; white-space: nowrap;">
+                        <input type="checkbox" ${checkedAttr} onchange="productVariantGroups[${gIdx}].values[${vIdx}].outOfStock = this.checked; renderVariantCombinationsMatrix();" style="width: 15px; height: 15px; cursor: pointer;">
+                        🚫 نافذ
+                    </label>
+                    <button type="button" class="btn-action btn-delete" onclick="removeVariantValue(${gIdx}, ${vIdx})" style="padding: 6px 8px;">✕</button>
+                </div>`;
+            });
+
+            html += `<button type="button" class="btn-action" style="background: #334155; color: #fff; font-size: 11px; margin-top: 4px;" onclick="addVariantValue(${gIdx})">➕ إضافة خيار آخر</button>
+            </div>`;
+        });
+
+        html += '<div id="variantCombinationsContainer"></div>';
+        container.innerHTML = html;
+        renderVariantCombinationsMatrix();
+    }
+
+    function getCleanedVariantGroups() {
+        var cleaned = [];
+        productVariantGroups.forEach(function(g) {
+            var gName = String(g.name || "").trim();
+            if (!gName) return;
+            var cleanVals = [];
+            (g.values || []).forEach(function(v) {
+                var vLabel = String(v.label || "").trim();
+                if (!vLabel) return;
+                cleanVals.push({
+                    label: vLabel,
+                    price: (v.price !== undefined && v.price !== null && String(v.price).trim() !== "") ? Number(v.price) : "",
+                    outOfStock: !!v.outOfStock
+                });
+            });
+            if (cleanVals.length > 0) {
+                cleaned.push({ name: gName, values: cleanVals });
+            }
+        });
+
+        if (cleaned.length >= 2) {
+            var syncedCombos = buildSyncedVariantCombinations(cleaned).map(function(c) {
+                return {
+                    values: c.values,
+                    price: (c.price !== undefined && c.price !== null && String(c.price).trim() !== "") ? Number(c.price) : "",
+                    outOfStock: !!c.outOfStock
+                };
+            });
+            cleaned[0].combinations = syncedCombos;
+        }
+
+        return cleaned;
+    }
+
     function renderProducts(products) {
         var container = document.getElementById("productsContainer");
         if (!products || !Array.isArray(products) || products.length === 0) {
@@ -2522,13 +2742,14 @@ function dismissWarningBanner() {
             var pinnedBadge = isPinned ? '<span style="color:#38bdf8; background:#0369a1; padding:2px 6px; border-radius:4px; font-size:10px; margin-right:6px;">⭐ مميز</span>' : '';
             var isOutOfStock = (p.outOfStock === true || p.outOfStock === "TRUE" || p.outOfStock === "true" || p.outOfStock === 1);
             var outOfStockBadge = isOutOfStock ? '<span style="color:#fef3c7; background:#92400e; padding:2px 6px; border-radius:4px; font-size:10px; margin-right:6px;">🚫 نفذت الكمية</span>' : '';
+            var variantsBadge = (Array.isArray(p.variants) && p.variants.length > 0) ? `<span style="color:#e9d5ff; background:#581c87; padding:2px 6px; border-radius:4px; font-size:10px; margin-right:6px;">🎛️ ${p.variants.length} خيارات</span>` : '';
             var itemBorderStyle = isHiddenItem ? 'style="border-color: #ef4444;"' : '';
 
             html += `
                 <div class="product-item" ${itemBorderStyle}>
                     <img src="${mainImg}" alt="${p.name}">
                     <div class="product-info">
-                        <h4>${p.icon || '🧴'} ${p.name} ${hiddenBadge} ${pinnedBadge} ${outOfStockBadge}</h4>
+                        <h4>${p.icon || '🧴'} ${p.name} ${hiddenBadge} ${pinnedBadge} ${outOfStockBadge} ${variantsBadge}</h4>
                         <p>${Number(p.price).toLocaleString()} د.ع | ${p.category}</p>
                     </div>
                     <div class="product-actions">
@@ -2804,6 +3025,12 @@ function dismissWarningBanner() {
         document.getElementById("pPinned").checked = (p.pinned === true || p.pinned === "TRUE" || p.pinned === "true" || p.pinned === 1);
         document.getElementById("pOutOfStock").checked = (p.outOfStock === true || p.outOfStock === "TRUE" || p.outOfStock === "true" || p.outOfStock === 1);
 
+        productVariantGroups = Array.isArray(p.variants) ? JSON.parse(JSON.stringify(p.variants)) : [];
+        productVariantCombinations = (productVariantGroups[0] && Array.isArray(productVariantGroups[0].combinations))
+            ? JSON.parse(JSON.stringify(productVariantGroups[0].combinations))
+            : [];
+        renderVariantGroups();
+
         existingImages = [
             (p.rawImages && p.rawImages[0]) ? p.rawImages[0] : (p.images && p.images[0] ? p.images[0] : ""),
             (p.rawImages && p.rawImages[1]) ? p.rawImages[1] : (p.images && p.images[1] ? p.images[1] : ""),
@@ -2851,6 +3078,8 @@ function dismissWarningBanner() {
         editingCategoryValue = ""; 
         editingBrandValue = "";
         existingImages = ["", "", ""];
+        productVariantGroups = [];
+        renderVariantGroups();
         document.getElementById("productForm").reset();
         document.getElementById("pHidden").checked = false;
         document.getElementById("pPinned").checked = false;
@@ -2965,83 +3194,84 @@ function dismissWarningBanner() {
     }
 
     async function handleProductSubmit(event) {
-    event.preventDefault();
+        event.preventDefault();
 
-    var submitBtn = document.getElementById('submitBtn');
-    var statusMsg = document.getElementById('productStatus');
+        var submitBtn = document.getElementById('submitBtn');
+        var statusMsg = document.getElementById('productStatus');
 
-    submitBtn.disabled = true;
-    statusMsg.className = "status-msg status-loading";
-    statusMsg.style.display = "block";
-    statusMsg.innerText = "جار معالجة البيانات والحفظ...";
+        submitBtn.disabled = true;
+        statusMsg.className = "status-msg status-loading";
+        statusMsg.style.display = "block";
+        statusMsg.innerText = "جار معالجة البيانات والحفظ...";
 
-    try {
-        var imgFile1 = document.getElementById('img1').files[0];
-        var imgFile2 = document.getElementById('img2').files[0];
-        var imgFile3 = document.getElementById('img3').files[0];
+        try {
+            var imgFile1 = document.getElementById('img1').files[0];
+            var imgFile2 = document.getElementById('img2').files[0];
+            var imgFile3 = document.getElementById('img3').files[0];
 
-        var imgData1 = imgFile1 ? await compressAndConvertToBase64(imgFile1) : existingImages[0];
-        var imgData2 = imgFile2 ? await compressAndConvertToBase64(imgFile2) : existingImages[1];
-        var imgData3 = imgFile3 ? await compressAndConvertToBase64(imgFile3) : existingImages[2];
+            var imgData1 = imgFile1 ? await compressAndConvertToBase64(imgFile1) : existingImages[0];
+            var imgData2 = imgFile2 ? await compressAndConvertToBase64(imgFile2) : existingImages[1];
+            var imgData3 = imgFile3 ? await compressAndConvertToBase64(imgFile3) : existingImages[2];
 
-        var brandVal = "";
-        var brandSelectVal = document.getElementById('pBrandSelect').value;
-        if (brandSelectVal === "__custom__") {
-            brandVal = document.getElementById('pBrandCustomInput').value.trim();
-        } else {
-            brandVal = brandSelectVal;
-        }
-
-        var isEditMode = Boolean(editingProductId);
-
-        var payload = {
-            action: editingProductId ? "update" : "add",
-            token: sessionStorage.getItem("admin_session"),
-            id: editingProductId,
-            name: document.getElementById('pName').value.trim(),
-            category: document.getElementById('pCategory').value.trim(),
-            brand: brandVal,
-            price: document.getElementById('pPrice').value,
-            icon: document.getElementById('pIcon').value.trim() || "🧴",
-            desc: document.getElementById('pDesc').value.trim(),
-            hidden: document.getElementById('pHidden').checked,
-            pinned: document.getElementById('pPinned').checked,
-            outOfStock: document.getElementById('pOutOfStock').checked,
-            images: [imgData1, imgData2, imgData3]
-        };
-
-        var response = await fetch(SHEET_API_URL, {
-            method: "POST",
-            body: JSON.stringify(payload)
-        });
-
-        var resData = await response.json();
-        if (!checkServerResponse(resData)) return;
-
-        if (resData && resData.status === "success") {
-            statusMsg.className = "status-msg status-success";
-            statusMsg.innerText = isEditMode ? "✅ تم تعديل المنتج بنجاح!" : "✅ تم إضافة المنتج بنجاح برقم: " + resData.id;
-
-            resetFormToCreate();
-            loadProductsList();
-
-            if (isEditMode) {
-                switchTab(previousTabBeforeEdit);
+            var brandVal = "";
+            var brandSelectVal = document.getElementById('pBrandSelect').value;
+            if (brandSelectVal === "__custom__") {
+                brandVal = document.getElementById('pBrandCustomInput').value.trim();
+            } else {
+                brandVal = brandSelectVal;
             }
 
-            setTimeout(function() { statusMsg.style.display = "none"; }, 3000);
-        } else {
-            throw new Error((resData && resData.message) ? resData.message : "حدث خطأ أثناء الحفظ");
-        }
+            var isEditMode = Boolean(editingProductId);
 
-    } catch (err) {
-        statusMsg.className = "status-msg status-error";
-        statusMsg.innerText = "❌ تعذر إتمام العملية: " + err.message;
-        setTimeout(function() { statusMsg.style.display = "none"; }, 3000);
-    } finally {
-        submitBtn.disabled = false;
+            var payload = {
+                action: editingProductId ? "update" : "add",
+                token: sessionStorage.getItem("admin_session"),
+                id: editingProductId,
+                name: document.getElementById('pName').value.trim(),
+                category: document.getElementById('pCategory').value.trim(),
+                brand: brandVal,
+                price: document.getElementById('pPrice').value,
+                icon: document.getElementById('pIcon').value.trim() || "🧴",
+                desc: document.getElementById('pDesc').value.trim(),
+                hidden: document.getElementById('pHidden').checked,
+                pinned: document.getElementById('pPinned').checked,
+                outOfStock: document.getElementById('pOutOfStock').checked,
+                variants: getCleanedVariantGroups(),
+                images: [imgData1, imgData2, imgData3]
+            };
+
+            var response = await fetch(SHEET_API_URL, {
+                method: "POST",
+                body: JSON.stringify(payload)
+            });
+
+            var resData = await response.json();
+            if (!checkServerResponse(resData)) return;
+
+            if (resData && resData.status === "success") {
+                statusMsg.className = "status-msg status-success";
+                statusMsg.innerText = isEditMode ? "✅ تم تعديل المنتج بنجاح!" : "✅ تم إضافة المنتج بنجاح برقم: " + resData.id;
+
+                resetFormToCreate();
+                loadProductsList();
+
+                if (isEditMode) {
+                    switchTab(previousTabBeforeEdit);
+                }
+
+                setTimeout(function() { statusMsg.style.display = "none"; }, 3000);
+            } else {
+                throw new Error((resData && resData.message) ? resData.message : "حدث خطأ أثناء الحفظ");
+            }
+
+        } catch (err) {
+            statusMsg.className = "status-msg status-error";
+            statusMsg.innerText = "❌ تعذر إتمام العملية: " + err.message;
+            setTimeout(function() { statusMsg.style.display = "none"; }, 3000);
+        } finally {
+            submitBtn.disabled = false;
+        }
     }
-}
 
 var allRegions = [];
 
