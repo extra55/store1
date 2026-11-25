@@ -8,36 +8,62 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
-        body { background: #0f172a; color: #fff; padding: 10px; max-width: 960px; margin: auto; direction: rtl; transition: background 0.3s, color 0.3s; }
+        body { background: #0f172a; color: #fff; padding: 10px; max-width: 960px; margin: auto; direction: rtl; transition: background 0.3s, color 
+
+0.3s; }
         
-        .card { background: #1e293b; border-radius: 12px; padding: 20px; border: 1px solid #334155; box-shadow: 0 4px 15px rgba(0,0,0,0.3); transition: background 0.3s, border-color 0.3s; }
-        .header-box { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #0284c7; padding-bottom: 8px; margin-bottom: 15px; }
+        .card { background: #1e293b; border-radius: 12px; padding: 20px; border: 1px solid #334155; box-shadow: 0 4px 15px rgba(0,0,0,0.3); 
+
+transition: background 0.3s, border-color 0.3s; }
+        .header-box { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #0284c7; padding-bottom: 8px; 
+
+margin-bottom: 15px; }
         h2 { color: #38bdf8; font-size: 18px; }
         
         /* Nav Tabs */
-        .nav-tabs { display: flex; gap: 6px; margin-bottom: 15px; background: #0f172a; padding: 5px; border-radius: 10px; flex-wrap: wrap; transition: background 0.3s; }
-        .tab-btn { flex: 1; min-width: 95px; padding: 10px 5px; background: transparent; color: #94a3b8; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 12px; transition: 0.2s; text-align: center; }
+        .nav-tabs { display: flex; gap: 6px; margin-bottom: 15px; background: #0f172a; padding: 5px; border-radius: 10px; flex-wrap: wrap; 
+
+transition: background 0.3s; }
+        .tab-btn { flex: 1; min-width: 95px; padding: 10px 5px; background: transparent; color: #94a3b8; border: none; border-radius: 8px; font-
+
+weight: bold; cursor: pointer; font-size: 12px; transition: 0.2s; text-align: center; }
         .tab-btn.active { background: #0284c7; color: #fff; }
 
         .form-group { margin-bottom: 15px; }
         label { display: block; font-size: 13px; color: #cbd5e1; margin-bottom: 6px; font-weight: bold; }
-        input, select, textarea { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #334155; background: #0f172a; color: #fff; font-size: 13px; outline: none; transition: border-color 0.2s, background 0.3s, color 0.3s; }
+        input, select, textarea { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #334155; background: #0f172a; color: #fff; font-
+
+size: 13px; outline: none; transition: border-color 0.2s, background 0.3s, color 0.3s; }
         input:focus, textarea:focus, select:focus { border-color: #38bdf8; }
         
         .row-2 { display: flex; gap: 10px; }
         .row-2 > div { flex: 1; }
 
-        .upload-box { background: #0f172a; border: 1px dashed #38bdf8; padding: 10px; border-radius: 8px; text-align: center; margin-bottom: 10px; transition: background 0.3s; }
-        .upload-box input[type="file"] { display: none; }
-        .upload-btn { background: #0284c7; color: white; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; display: inline-block; margin-top: 5px; }
-        .preview-img { max-width: 100%; height: 80px; object-fit: contain; margin-top: 8px; border-radius: 6px; display: none; margin-left: auto; margin-right: auto; }
+        .upload-box { background: #0f172a; border: 1px dashed #38bdf8; padding: 10px; border-radius: 8px; text-align: center; margin-bottom: 10px; 
 
-        .btn-remove-img { background: #ef4444; color: #fff; border: none; padding: 5px 10px; border-radius: 6px; cursor: pointer; font-size: 11px; font-weight: bold; margin-top: 8px; display: none; }
+transition: background 0.3s; }
+        .upload-box input[type="file"] { display: none; }
+        .upload-btn { background: #0284c7; color: white; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; display: inline-
+
+block; margin-top: 5px; }
+        .preview-img { max-width: 100%; height: 80px; object-fit: contain; margin-top: 8px; border-radius: 6px; display: none; margin-left: auto; 
+
+margin-right: auto; }
+
+        .btn-remove-img { background: #ef4444; color: #fff; border: none; padding: 5px 10px; border-radius: 6px; cursor: pointer; font-size: 11px; 
+
+font-weight: bold; margin-top: 8px; display: none; }
         .btn-remove-img:hover { background: #dc2626; }
 
-        .btn-submit { width: 100%; padding: 12px; background: #22c55e; color: white; border: none; border-radius: 10px; font-weight: bold; font-size: 15px; cursor: pointer; margin-top: 10px; }
-        .btn-cancel { width: 100%; padding: 10px; background: #64748b; color: white; border: none; border-radius: 10px; font-weight: bold; font-size: 13px; cursor: pointer; margin-top: 5px; display: none; }
-        .btn-logout { background: #ef4444; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: bold; }
+        .btn-submit { width: 100%; padding: 12px; background: #22c55e; color: white; border: none; border-radius: 10px; font-weight: bold; font-size: 
+
+15px; cursor: pointer; margin-top: 10px; }
+        .btn-cancel { width: 100%; padding: 10px; background: #64748b; color: white; border: none; border-radius: 10px; font-weight: bold; font-size: 
+
+13px; cursor: pointer; margin-top: 5px; display: none; }
+        .btn-logout { background: #ef4444; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; 
+
+font-weight: bold; }
 
         .status-msg { margin-top: 12px; padding: 10px; border-radius: 8px; font-size: 13px; text-align: center; display: none; }
         .status-success { background: #166534; color: #4ade80; }
@@ -45,7 +71,9 @@
         .status-loading { background: #1e40af; color: #93c5fd; }
 
         /* Product List Styling */
-        .product-item { display: flex; align-items: center; justify-content: space-between; background: #0f172a; padding: 10px 12px; border-radius: 8px; border: 1px solid #334155; margin-bottom: 10px; gap: 10px; transition: background 0.3s, border-color 0.3s; }
+        .product-item { display: flex; align-items: center; justify-content: space-between; background: #0f172a; padding: 10px 12px; border-radius: 
+
+8px; border: 1px solid #334155; margin-bottom: 10px; gap: 10px; transition: background 0.3s, border-color 0.3s; }
         .product-item img { width: 50px; height: 50px; object-fit: cover; border-radius: 6px; background: #1e293b; }
         .product-info { flex: 1; }
         .product-info h4 { font-size: 14px; color: #f8fafc; }
@@ -57,10 +85,14 @@
 
         .hidden { display: none !important; }
 
-        .btn-support { display: inline-block; background: #25d366; color: #fff; text-decoration: none; padding: 12px 24px; border-radius: 10px; font-weight: bold; font-size: 14px; transition: background 0.2s; }
+        .btn-support { display: inline-block; background: #25d366; color: #fff; text-decoration: none; padding: 12px 24px; border-radius: 10px; 
+
+font-weight: bold; font-size: 14px; transition: background 0.2s; }
         .btn-support:hover { background: #1da851; }
 
-        .expired-card { background: #7f1d1d; border: 1px solid #ef4444; border-radius: 12px; padding: 25px; text-align: center; margin-bottom: 15px; }
+        .expired-card { background: #7f1d1d; border: 1px solid #ef4444; border-radius: 12px; padding: 25px; text-align: center; margin-bottom: 15px; 
+
+}
         .expired-icon { font-size: 45px; margin-bottom: 10px; }
         .expired-title { color: #fca5a5; font-size: 20px; margin-bottom: 10px; }
         .expired-desc { color: #fecaca; font-size: 13px; line-height: 1.6; margin-bottom: 15px; }
@@ -315,15 +347,25 @@ body.light-mode .variant-group-card { background: #ffffff; border-color: #cbd5e1
 </div>
 
 <!-- شريط التنبيه العام لجميع التبويبات -->
-<div id="subWarningBanner" class="hidden" style="background: rgba(239, 68, 68, 0.15); border: 1px solid #ef4444; color: #fca5a5; border-radius: 10px; padding: 10px 16px; margin: 15px 15px 0 15px; display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; z-index: 1000;">
+<div id="subWarningBanner" class="hidden" style="background: rgba(239, 68, 68, 0.15); border: 1px solid #ef4444; color: #fca5a5; border-radius: 10px; 
+
+padding: 10px 16px; margin: 15px 15px 0 15px; display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; z-
+
+index: 1000;">
     <div id="subBannerText" style="font-size: 13px; display: flex; align-items: center; gap: 8px;">
         <span style="font-size: 18px;">🚨</span>
         <span>تنبيه: متبقي <strong><span id="bannerDaysLeft">--</span> أيام</strong> فقط على انتهاء الإشتراك!</span>
     </div>
     <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-        <a id="bannerRenewLink" href="https://wa.me/9647803342472" target="_blank" style="background: #ef4444; color: #ffffff; text-decoration: none; padding: 5px 12px; border-radius: 6px; font-weight: bold; font-size: 12px; white-space: nowrap;">💬 تجديد الآن</a>
-        <a id="bannerSupportLink" href="https://wa.me/9647803342472" target="_blank" class="hidden" style="background: #25d366; color: #ffffff; text-decoration: none; padding: 5px 12px; border-radius: 6px; font-weight: bold; font-size: 12px; white-space: nowrap;">🛠️ الدعم الفني</a>
-        <button type="button" id="bannerDismissBtn" onclick="dismissWarningBanner()" style="background: none; border: none; color: #fca5a5; cursor: pointer; font-size: 16px; padding: 0 4px; line-height: 1;" title="إغلاق التنبيه مؤقتاً">✕</button>
+        <a id="bannerRenewLink" href="https://wa.me/9647803342472" target="_blank" style="background: #ef4444; color: #ffffff; text-decoration: none; 
+
+padding: 5px 12px; border-radius: 6px; font-weight: bold; font-size: 12px; white-space: nowrap;">💬 تجديد الآن</a>
+        <a id="bannerSupportLink" href="https://wa.me/9647803342472" target="_blank" class="hidden" style="background: #25d366; color: #ffffff; 
+
+text-decoration: none; padding: 5px 12px; border-radius: 6px; font-weight: bold; font-size: 12px; white-space: nowrap;">🛠️ الدعم الفني</a>
+        <button type="button" id="bannerDismissBtn" onclick="dismissWarningBanner()" style="background: none; border: none; color: #fca5a5; cursor: 
+
+pointer; font-size: 16px; padding: 0 4px; line-height: 1;" title="إغلاق التنبيه مؤقتاً">✕</button>
     </div>
 </div>
 
@@ -349,11 +391,15 @@ body.light-mode .variant-group-card { background: #ffffff; border-color: #cbd5e1
 
     <!-- تبويب الصفحة الرئيسية لوحة التحكم -->
     <div id="homeTab">
-        <div id="homeDefaultContent" style="background: #0f172a; padding: 20px; border-radius: 12px; border: 1px solid #334155; text-align: center; margin-bottom: 10px;">
+        <div id="homeDefaultContent" style="background: #0f172a; padding: 20px; border-radius: 12px; border: 1px solid #334155; text-align: center; 
+
+margin-bottom: 10px;">
             <div style="font-size: 36px; margin-bottom: 10px;">⚙️</div>
             <h3 style="color: #38bdf8; font-size: 16px; margin-bottom: 8px;">مرحباً بك في لوحة التحكم</h3>
             <p style="color: #cbd5e1; font-size: 14px; margin-bottom: 15px;">يمكنك إدارة منتجاتك، طلباتك، وأقسامك بكل سهولة وأمان.</p>
-            <a id="homeSupportLink" href="https://wa.me/9647803342472" target="_blank" class="btn-support" style="display: inline-block; background: #25d366; color: #fff; text-decoration: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; font-size: 13px;">💬 مراسلة الدعم</a>
+            <a id="homeSupportLink" href="https://wa.me/9647803342472" target="_blank" class="btn-support" style="display: inline-block; background: 
+
+#25d366; color: #fff; text-decoration: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; font-size: 13px;">💬 مراسلة الدعم</a>
         </div>
         <div id="homeExpiredContent" class="hidden"></div>
     </div>
@@ -417,10 +463,16 @@ body.light-mode .variant-group-card { background: #ffffff; border-color: #cbd5e1
                 <div class="form-group">
                     <label>📱 رقم واتساب استقبال الطلبات:</label>
                     <div style="display: flex; gap: 8px; align-items: center;">
-                        <input type="tel" id="storeWhatsAppInput" dir="ltr" placeholder="مثال: 07801234567" oninput="updateWhatsAppPreviewHint()" style="text-align: left; flex: 1;">
-                        <button type="button" onclick="testStoreWhatsApp()" style="background: #25d366; color: #fff; border: none; padding: 10px 14px; border-radius: 8px; font-weight: bold; font-size: 12px; cursor: pointer; white-space: nowrap;">💬 تجربة الرقم</button>
+                        <input type="tel" id="storeWhatsAppInput" dir="ltr" placeholder="مثال: 07801234567" oninput="updateWhatsAppPreviewHint()" 
+
+style="text-align: left; flex: 1;">
+                        <button type="button" onclick="testStoreWhatsApp()" style="background: #25d366; color: #fff; border: none; padding: 10px 
+
+14px; border-radius: 8px; font-weight: bold; font-size: 12px; cursor: pointer; white-space: nowrap;">💬 تجربة الرقم</button>
                     </div>
-                    <small id="whatsAppFormattedHint" style="display: block; color: #94a3b8; font-size: 11px; margin-top: 6px;">يتم تحويل الرقم العراقي (07...) تلقائياً إلى الصيغة الدولية (9647...)</small>
+                    <small id="whatsAppFormattedHint" style="display: block; color: #94a3b8; font-size: 11px; margin-top: 6px;">يتم تحويل الرقم العراقي (07...) تلقائياً 
+
+إلى الصيغة الدولية (9647...)</small>
                 </div>
 
                 <button type="submit" id="saveStoreIdentityBtn" class="btn-submit" style="background:#0284c7; margin-top:10px;">💾 حفظ الإعدادات</button>
@@ -433,7 +485,9 @@ body.light-mode .variant-group-card { background: #ffffff; border-color: #cbd5e1
         <div style="background: #0f172a; padding: 15px; border-radius: 10px; border: 1px solid #334155; margin-bottom: 20px;">
             <label style="color: #38bdf8; font-size: 15px; margin-bottom: 12px; display: block;">🎠 إعدادات السلايد شو العلوي (الأقسام والبـنرات)</label>
             <form onsubmit="handleSaveSlideshowSettings(event)">
-                <div class="form-group" style="display: flex; align-items: center; gap: 8px; background: #1e293b; padding: 10px; border-radius: 8px; border: 1px solid #334155; margin-bottom: 12px;">
+                <div class="form-group" style="display: flex; align-items: center; gap: 8px; background: #1e293b; padding: 10px; border-radius: 8px; 
+
+border: 1px solid #334155; margin-bottom: 12px;">
                     <input type="checkbox" id="hideSlideshowCheck" style="width: 18px; height: 18px; cursor: pointer;">
                     <label for="hideSlideshowCheck" style="margin-bottom: 0; cursor: pointer; color: #fca5a5;">🙈 إخفاء السلايد شو بالكامل من الواجهة الرئيسية</label>
                 </div>
@@ -446,7 +500,9 @@ body.light-mode .variant-group-card { background: #ffffff; border-color: #cbd5e1
                 <div class="form-group">
                     <label>📁 أضف بانرات الأقسام للسلايد شو:</label>
                     <div id="slideshowCategoriesListContainer" style="margin-bottom: 12px;"></div>
-                    <button type="button" onclick="addSlideshowCategoryRow()" class="btn-action" style="background: #0284c7; color: #fff; padding: 8px 12px; width: 100%;">➕ إضافة قسم للسلايد</button>
+                    <button type="button" onclick="addSlideshowCategoryRow()" class="btn-action" style="background: #0284c7; color: #fff; padding: 
+
+8px 12px; width: 100%;">➕ إضافة قسم للسلايد</button>
                 </div>
 
                 <button type="submit" id="saveSlideshowBtn" class="btn-submit" style="background:#0284c7; margin-top:5px;">💾 حفظ إعدادات السلايد شو</button>
@@ -497,17 +553,23 @@ body.light-mode .variant-group-card { background: #ffffff; border-color: #cbd5e1
                 <textarea id="pDesc" rows="3" placeholder="اكتب تفاصيل ومميزات المنتج هنا..."></textarea>
             </div>
 
-            <div class="form-group" style="display: flex; align-items: center; gap: 8px; background: #0f172a; padding: 10px; border-radius: 8px; border: 1px solid #334155; margin-bottom: 10px;">
+            <div class="form-group" style="display: flex; align-items: center; gap: 8px; background: #0f172a; padding: 10px; border-radius: 8px; 
+
+border: 1px solid #334155; margin-bottom: 10px;">
                 <input type="checkbox" id="pHidden" style="width: 18px; height: 18px; cursor: pointer;">
                 <label for="pHidden" style="margin-bottom: 0; cursor: pointer; color: #fca5a5;">🙈 إخفاء هذا المنتج من المتجر</label>
             </div>
 
-            <div class="form-group" style="display: flex; align-items: center; gap: 8px; background: #0f172a; padding: 10px; border-radius: 8px; border: 1px solid #334155;">
+            <div class="form-group" style="display: flex; align-items: center; gap: 8px; background: #0f172a; padding: 10px; border-radius: 8px; 
+
+border: 1px solid #334155;">
                 <input type="checkbox" id="pPinned" style="width: 18px; height: 18px; cursor: pointer;">
                 <label for="pPinned" style="margin-bottom: 0; cursor: pointer; color: #38bdf8;">⭐ تعيين كمنتج مميز (يظهر في قسم المنتجات المميزة)</label>
             </div>
 
-            <div class="form-group" style="display: flex; align-items: center; gap: 8px; background: #0f172a; padding: 10px; border-radius: 8px; border: 1px solid #334155;">
+            <div class="form-group" style="display: flex; align-items: center; gap: 8px; background: #0f172a; padding: 10px; border-radius: 8px; 
+
+border: 1px solid #334155;">
                 <input type="checkbox" id="pOutOfStock" style="width: 18px; height: 18px; cursor: pointer;">
                 <label for="pOutOfStock" style="margin-bottom: 0; cursor: pointer; color: #fbbf24;">🚫 نفذت الكمية (غير متوفر حالياً في المتجر)</label>
             </div>
@@ -515,7 +577,9 @@ body.light-mode .variant-group-card { background: #ffffff; border-color: #cbd5e1
            <div class="variant-wrapper-box">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 6px;">
                     <label style="margin-bottom: 0; color: #38bdf8;">🎛️ خيارات المنتج (ألوان، قياسات، أحجام... اختياري)</label>
-                    <button type="button" class="btn-action" style="background: #0284c7; color: #fff;" onclick="addVariantGroup()">➕ إضافة مجموعة خيارات</button>
+                    <button type="button" class="btn-action" style="background: #0284c7; color: #fff;" onclick="addVariantGroup()">➕ إضافة مجموعة 
+
+خيارات</button>
                 </div>
                 <p style="font-size: 11px; color: #94a3b8; margin-bottom: 10px;">اتركه فارغاً للمنتجات العادية، أو أضف مجموعات مثل (اللون، القياس، الحجم) مع إمكانية تحديد سعر خاص أو حالة نفاذ لكل خيار.</p>
                 <div id="variantGroupsContainer"></div>
@@ -529,7 +593,9 @@ body.light-mode .variant-group-card { background: #ffffff; border-color: #cbd5e1
                 <input type="file" id="img1" accept="image/*" onchange="previewFile(this, 'prev1', 'removeBtn1')">
                 <img id="prev1" class="preview-img">
                 <br>
-                <button type="button" id="removeBtn1" class="btn-remove-img" onclick="removeImage(0, 'img1', 'prev1', 'removeBtn1')">🗑️ حذف الصورة</button>
+                <button type="button" id="removeBtn1" class="btn-remove-img" onclick="removeImage(0, 'img1', 'prev1', 'removeBtn1')">🗑️ حذف 
+
+الصورة</button>
             </div>
 
             <div class="upload-box">
@@ -538,7 +604,9 @@ body.light-mode .variant-group-card { background: #ffffff; border-color: #cbd5e1
                 <input type="file" id="img2" accept="image/*" onchange="previewFile(this, 'prev2', 'removeBtn2')">
                 <img id="prev2" class="preview-img">
                 <br>
-                <button type="button" id="removeBtn2" class="btn-remove-img" onclick="removeImage(1, 'img2', 'prev2', 'removeBtn2')">🗑️ حذف الصورة</button>
+                <button type="button" id="removeBtn2" class="btn-remove-img" onclick="removeImage(1, 'img2', 'prev2', 'removeBtn2')">🗑️ حذف 
+
+الصورة</button>
             </div>
 
             <div class="upload-box">
@@ -547,7 +615,9 @@ body.light-mode .variant-group-card { background: #ffffff; border-color: #cbd5e1
                 <input type="file" id="img3" accept="image/*" onchange="previewFile(this, 'prev3', 'removeBtn3')">
                 <img id="prev3" class="preview-img">
                 <br>
-                <button type="button" id="removeBtn3" class="btn-remove-img" onclick="removeImage(2, 'img3', 'prev3', 'removeBtn3')">🗑️ حذف الصورة</button>
+                <button type="button" id="removeBtn3" class="btn-remove-img" onclick="removeImage(2, 'img3', 'prev3', 'removeBtn3')">🗑️ حذف 
+
+الصورة</button>
             </div>
 
             <button type="submit" id="submitBtn" class="btn-submit">🚀 حفظ ونشر المنتج</button>
@@ -557,17 +627,31 @@ body.light-mode .variant-group-card { background: #ffffff; border-color: #cbd5e1
 
     <!-- تبويب قائمة المنتجات الموحد -->
     <div id="listTab" class="hidden">
-        <div id="storeStatusBox" style="background: #0f172a; padding: 10px 12px; border-radius: 8px; border: 1px solid #334155; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;">
+        <div id="storeStatusBox" style="background: #0f172a; padding: 10px 12px; border-radius: 8px; border: 1px solid #334155; margin-bottom: 12px; 
+
+display: flex; justify-content: space-between; align-items: center;">
             <span id="storeStatusText" style="font-size: 13px; font-weight: bold; color: #4ade80;">👁️ المنتجات ظاهرة في المتجر</span>
-            <button type="button" id="toggleStoreBtn" onclick="toggleStoreVisibility()" style="background: #ef4444; color: #fff; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: bold;">🙈 إخفاء جميع المنتجات</button>
+            <button type="button" id="toggleStoreBtn" onclick="toggleStoreVisibility()" style="background: #ef4444; color: #fff; border: none; 
+
+padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: bold;">🙈 إخفاء جميع المنتجات</button>
         </div>
 
         <div id="productFilterBar" style="display: flex; gap: 5px; margin-bottom: 12px; flex-wrap: wrap;">
-            <button type="button" class="tab-btn active" style="min-width: auto; padding: 6px 10px; font-size: 11px; border: 1px solid #334155;" onclick="setProductFilter('all', this)">الكل <span id="countFilterAll">(0)</span></button>
-            <button type="button" class="tab-btn" style="min-width: auto; padding: 6px 10px; font-size: 11px; border: 1px solid #334155;" onclick="setProductFilter('visible', this)">👁️ المنتجات الظاهرة <span id="countFilterVisible">(0)</span></button>
-            <button type="button" class="tab-btn" style="min-width: auto; padding: 6px 10px; font-size: 11px; border: 1px solid #334155;" onclick="setProductFilter('pinned', this)">⭐ المنتجات المميزة <span id="countFilterPinned">(0)</span></button>
-            <button type="button" class="tab-btn" style="min-width: auto; padding: 6px 10px; font-size: 11px; border: 1px solid #334155;" onclick="setProductFilter('outOfStock', this)">🚫 المنتجات النافذة <span id="countFilterOutOfStock">(0)</span></button>
-            <button type="button" class="tab-btn" style="min-width: auto; padding: 6px 10px; font-size: 11px; border: 1px solid #334155;" onclick="setProductFilter('hidden', this)">🙈 المنتجات المخفية <span id="countFilterHidden">(0)</span></button>
+            <button type="button" class="tab-btn active" style="min-width: auto; padding: 6px 10px; font-size: 11px; border: 1px solid #334155;" 
+
+onclick="setProductFilter('all', this)">الكل <span id="countFilterAll">(0)</span></button>
+            <button type="button" class="tab-btn" style="min-width: auto; padding: 6px 10px; font-size: 11px; border: 1px solid #334155;" 
+
+onclick="setProductFilter('visible', this)">👁️ المنتجات الظاهرة <span id="countFilterVisible">(0)</span></button>
+            <button type="button" class="tab-btn" style="min-width: auto; padding: 6px 10px; font-size: 11px; border: 1px solid #334155;" 
+
+onclick="setProductFilter('pinned', this)">⭐ المنتجات المميزة <span id="countFilterPinned">(0)</span></button>
+            <button type="button" class="tab-btn" style="min-width: auto; padding: 6px 10px; font-size: 11px; border: 1px solid #334155;" 
+
+onclick="setProductFilter('outOfStock', this)">🚫 المنتجات النافذة <span id="countFilterOutOfStock">(0)</span></button>
+            <button type="button" class="tab-btn" style="min-width: auto; padding: 6px 10px; font-size: 11px; border: 1px solid #334155;" 
+
+onclick="setProductFilter('hidden', this)">🙈 المنتجات المخفية <span id="countFilterHidden">(0)</span></button>
         </div>
 
         <div class="form-group">
@@ -649,7 +733,9 @@ body.light-mode .variant-group-card { background: #ffffff; border-color: #cbd5e1
     <div id="salesTab" class="hidden">
         <div class="form-group">
             <label>اختر فترة عرض المبيعات والإحصائيات:</label>
-            <select id="salesPeriodSelect" onchange="loadSalesList()" style="background: #0f172a; color: #fff; padding: 10px; border-radius: 8px; border: 1px solid #334155; margin-bottom: 8px;">
+            <select id="salesPeriodSelect" onchange="loadSalesList()" style="background: #0f172a; color: #fff; padding: 10px; border-radius: 8px; 
+
+border: 1px solid #334155; margin-bottom: 8px;">
                 <option value="today">المبيعات لهذا اليوم</option>
                 <option value="week">آخر أسبوع</option>
                 <option value="month">آخر شهر</option>
@@ -660,17 +746,25 @@ body.light-mode .variant-group-card { background: #ffffff; border-color: #cbd5e1
 
         <div id="analyticsDashboard" style="margin-top: 15px; margin-bottom: 25px;">
             <div style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;">
-                <div style="flex: 1; min-width: 150px; background: #0f172a; padding: 12px; border-radius: 10px; border: 1px solid #334155; text-align: center;">
+                <div style="flex: 1; min-width: 150px; background: #0f172a; padding: 12px; border-radius: 10px; border: 1px solid #334155; text-
+
+align: center;">
                     <span style="font-size: 11px; color: #94a3b8; font-weight: bold;">💵 إجمالي الإيرادات</span>
                     <h3 id="statTotalRevenue" style="color: #4ade80; margin-top: 5px; font-size: 16px;">0 د.ع</h3>
                 </div>
-                <div style="flex: 1; min-width: 150px; background: #0f172a; padding: 12px; border-radius: 10px; border: 1px solid #334155; text-align: center;">
+                <div style="flex: 1; min-width: 150px; background: #0f172a; padding: 12px; border-radius: 10px; border: 1px solid #334155; text-
+
+align: center;">
                     <span style="font-size: 11px; color: #94a3b8; font-weight: bold;">📅 أكثر الأيام أرباحاً</span>
                     <h3 id="statBestDay" style="color: #38bdf8; margin-top: 5px; font-size: 15px;">-</h3>
                 </div>
-                <div style="flex: 1; min-width: 150px; background: #0f172a; padding: 12px; border-radius: 10px; border: 1px solid #334155; text-align: center;">
+                <div style="flex: 1; min-width: 150px; background: #0f172a; padding: 12px; border-radius: 10px; border: 1px solid #334155; text-
+
+align: center;">
                     <span style="font-size: 11px; color: #94a3b8; font-weight: bold;">🏆 الأكثر مبيعاً</span>
-                    <h3 id="statTopProduct" style="color: #f59e0b; margin-top: 5px; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">-</h3>
+                    <h3 id="statTopProduct" style="color: #f59e0b; margin-top: 5px; font-size: 14px; overflow: hidden; text-overflow: ellipsis; 
+
+white-space: nowrap;">-</h3>
                 </div>
             </div>
 
@@ -737,17 +831,25 @@ body.light-mode .variant-group-card { background: #ffffff; border-color: #cbd5e1
     <!-- تبويب إعدادات الحساب -->
     <div id="accountTab" class="hidden">
         <!-- 1. البطاقة التعريفية بالصلاحية والمظهر -->
-        <div class="account-box" style="background: #0f172a; padding: 18px; border-radius: 10px; border: 1px solid #334155; margin-bottom: 20px; max-width: 500px; margin-left: auto; margin-right: auto; text-align: center;">
+        <div class="account-box" style="background: #0f172a; padding: 18px; border-radius: 10px; border: 1px solid #334155; margin-bottom: 20px; 
+
+max-width: 500px; margin-left: auto; margin-right: auto; text-align: center;">
             <div style="font-size: 42px; margin-bottom: 8px;">👤</div>
             <h3 id="accountUserNameDisplay" style="color: #38bdf8; font-size: 18px; margin-bottom: 8px;">حساب المستخدم</h3>
             <div style="margin-bottom: 15px;">
-                <span id="accountRoleBadge" class="account-badge-manager" style="display: inline-block; padding: 4px 14px; border-radius: 20px; font-size: 12px; font-weight: bold; background: #78350f; color: #fef08a; border: 1px solid #f59e0b;">المدير العام ⭐</span>
+                <span id="accountRoleBadge" class="account-badge-manager" style="display: inline-block; padding: 4px 14px; border-radius: 20px; 
+
+font-size: 12px; font-weight: bold; background: #78350f; color: #fef08a; border: 1px solid #f59e0b;">المدير العام ⭐</span>
             </div>
             
             <!-- 2. خيار التبديل بين المظهر الداكن والفاتح -->
-            <div style="display: flex; align-items: center; justify-content: space-between; background: #1e293b; padding: 10px 14px; border-radius: 8px; border: 1px solid #334155; margin-top: 10px;">
+            <div style="display: flex; align-items: center; justify-content: space-between; background: #1e293b; padding: 10px 14px; border-radius: 
+
+8px; border: 1px solid #334155; margin-top: 10px;">
                 <span style="font-size: 13px; font-weight: bold; color: #cbd5e1;">🎨 مظهر لوحة التحكم:</span>
-                <select id="themeModeSelect" onchange="changeThemeMode(this.value)" style="width: auto; padding: 6px 12px; font-size: 12px; border-radius: 6px;">
+                <select id="themeModeSelect" onchange="changeThemeMode(this.value)" style="width: auto; padding: 6px 12px; font-size: 12px; border-
+
+radius: 6px;">
                     <option value="dark">🌙 المظهر الداكن (Dark)</option>
                     <option value="light">☀️ المظهر الفاتح (Light)</option>
                 </select>
@@ -756,22 +858,34 @@ body.light-mode .variant-group-card { background: #ffffff; border-color: #cbd5e1
 
         <!-- 3. بطاقة حالة الاشتراك (تظهر للمدير فقط) -->
       <!-- داخل تبويب accountTab -->
-<div id="subscriptionManagerCard" class="subscription-card hidden" style="background: #064e3b; border: 1px solid #22c55e; border-radius: 10px; padding: 18px; max-width: 500px; margin-left: auto; margin-right: auto; margin-bottom: 20px; text-align: center;">
+<div id="subscriptionManagerCard" class="subscription-card hidden" style="background: #064e3b; border: 1px solid #22c55e; border-radius: 10px; 
+
+padding: 18px; max-width: 500px; margin-left: auto; margin-right: auto; margin-bottom: 20px; text-align: center;">
     <div style="font-size: 30px; margin-bottom: 6px;">💎</div>
     <h3 id="subCardTitle" class="subscription-title" style="color: #4ade80; font-size: 16px; margin-bottom: 6px;">حالة الاشتراك: نشط ✅</h3>
     
     <!-- 👈 إضافة مربع تفاصيل تاريخ الانتهاء -->
-    <div style="background: rgba(15, 23, 42, 0.4); border: 1px solid rgba(34, 197, 94, 0.3); padding: 10px; border-radius: 8px; margin: 12px 0; font-size: 13px;">
+    <div style="background: rgba(15, 23, 42, 0.4); border: 1px solid rgba(34, 197, 94, 0.3); padding: 10px; border-radius: 8px; margin: 12px 0; 
+
+font-size: 13px;">
         <div>📅 <strong>تاريخ الانتهاء:</strong> <span id="subExpiryDateDisplay" style="color: #38bdf8; font-weight: bold;">--/--/----</span></div>
-        <div style="margin-top: 4px;">⏳ <strong>الأيام المتبقية:</strong> <span id="subDaysLeftDisplay" style="color: #f59e0b; font-weight: bold;">-- يوم</span></div>
+        <div style="margin-top: 4px;">⏳ <strong>الأيام المتبقية:</strong> <span id="subDaysLeftDisplay" style="color: #f59e0b; font-weight: bold;">-- 
+
+يوم</span></div>
     </div>
 
-    <p class="subscription-desc" style="color: #a7f3d0; font-size: 12px; line-height: 1.5; margin-bottom: 12px;">اشتراك المتجر فعال ويتم إدارته عبر الدعم الفني. تواصل لتجديد أو استفسارات الاشتراك.</p>
-    <a id="subCardRenewLink" href="https://wa.me/9647803342472" target="_blank" class="btn-support" style="padding: 8px 18px; font-size: 13px; display: inline-block;">💬 تجديد الاشتراك ومراسلة الدعم</a>
+    <p class="subscription-desc" style="color: #a7f3d0; font-size: 12px; line-height: 1.5; margin-bottom: 12px;">اشتراك المتجر فعال ويتم إدارته عبر الدعم الفني. تواصل لتجديد أو 
+
+استفسارات الاشتراك.</p>
+    <a id="subCardRenewLink" href="https://wa.me/9647803342472" target="_blank" class="btn-support" style="padding: 8px 18px; font-size: 13px; 
+
+display: inline-block;">💬 تجديد الاشتراك ومراسلة الدعم</a>
 </div>
 
         <!-- 4. نموذج تغيير كلمة المرور -->
-        <div class="account-box" style="background: #0f172a; padding: 20px; border-radius: 10px; border: 1px solid #334155; margin-bottom: 20px; max-width: 500px; margin-left: auto; margin-right: auto;">
+        <div class="account-box" style="background: #0f172a; padding: 20px; border-radius: 10px; border: 1px solid #334155; margin-bottom: 20px; 
+
+max-width: 500px; margin-left: auto; margin-right: auto;">
             <label style="color: #38bdf8; font-size: 16px; margin-bottom: 15px; display: block; text-align: center;">🔒 تغيير بيانات الدخول</label>
             <form onsubmit="handleChangePassword(event)">
                 <div class="form-group">
@@ -818,7 +932,9 @@ body.light-mode .variant-group-card { background: #ffffff; border-color: #cbd5e1
     var existingImages = ["", "", ""];
     var isStoreHidden = false;
     var slideshowCategoryRows = [];
-    var currentStoreIdentity = { mode: "text", title: "متجر كوزمتك", subtitle: "أفضل المنتجات الأصلية والعالمية", logoUrl: "", promoBannerUrl: "", promoBannerCategory: "" };
+    var currentStoreIdentity = { mode: "text", title: "متجر كوزمتك", subtitle: "أفضل المنتجات الأصلية والعالمية", logoUrl: "", promoBannerUrl: "", promoBannerCategory: 
+
+"" };
 
     var chartInstanceSales = null;
     var chartInstanceProducts = null;
@@ -1040,7 +1156,9 @@ body.light-mode .variant-group-card { background: #ffffff; border-color: #cbd5e1
         var role = sessionStorage.getItem("admin_role") || "Manager";
         
         if (role === "Preparer") {
-            var tabsToHide = ["tabHomeBtn", "tabStoreSettingsBtn", "tabFormBtn", "tabSlideshowBtn", "tabListBtn", "tabCategoriesBtn", "tabCouponsBtn", "tabSalesBtn", "tabRegionsBtn"];
+            var tabsToHide = ["tabHomeBtn", "tabStoreSettingsBtn", "tabFormBtn", "tabSlideshowBtn", "tabListBtn", "tabCategoriesBtn", 
+
+"tabCouponsBtn", "tabSalesBtn", "tabRegionsBtn"];
             tabsToHide.forEach(function(id) {
                 var el = document.getElementById(id);
                 if(el) el.style.display = "none";
@@ -1457,7 +1575,9 @@ function dismissWarningBanner() {
 
                 if (document.getElementById("headerModeSelect")) document.getElementById("headerModeSelect").value = currentStoreIdentity.mode;
                 if (document.getElementById("storeTitleInput")) document.getElementById("storeTitleInput").value = currentStoreIdentity.title;
-                if (document.getElementById("storeSubtitleInput")) document.getElementById("storeSubtitleInput").value = currentStoreIdentity.subtitle;
+                if (document.getElementById("storeSubtitleInput")) document.getElementById("storeSubtitleInput").value = 
+
+currentStoreIdentity.subtitle;
                 if (document.getElementById("storeWhatsAppInput")) {
                     document.getElementById("storeWhatsAppInput").value = currentStoreIdentity.whatsapp;
                     updateWhatsAppPreviewHint();
@@ -1632,7 +1752,9 @@ function dismissWarningBanner() {
                 catOptions += `<option value="${cat}" ${selected}>${cat}</option>`;
             });
 
-            var imgPreviewStyle = row.image ? `display:block; max-height:80px; margin-top:6px; border-radius:6px; margin-left:auto; margin-right:auto;` : `display:none; max-height:80px; margin-top:6px; border-radius:6px; margin-left:auto; margin-right:auto;`;
+            var imgPreviewStyle = row.image ? `display:block; max-height:80px; margin-top:6px; border-radius:6px; margin-left:auto; margin-
+
+right:auto;` : `display:none; max-height:80px; margin-top:6px; border-radius:6px; margin-left:auto; margin-right:auto;`;
 
             html += `
                 <div style="background:#0f172a; border:1px solid #334155; padding:10px; border-radius:8px; margin-bottom:10px;">
@@ -1648,7 +1770,9 @@ function dismissWarningBanner() {
                         <input type="file" id="slideImg_${idx}" accept="image/*" onchange="handleSlideImgUpload(this, ${idx})">
                         <img id="slidePrev_${idx}" class="preview-img" src="${row.image || ''}" style="${imgPreviewStyle}">
                     </div>
-                    <button type="button" class="btn-action btn-delete" onclick="removeSlideshowCategoryRow(${idx})" style="width:100%;">🗑️ حذف هذا البانر</button>
+                    <button type="button" class="btn-action btn-delete" onclick="removeSlideshowCategoryRow(${idx})" style="width:100%;">🗑️ حذف هذا 
+
+البانر</button>
                 </div>
             `;
         });
@@ -1705,11 +1829,48 @@ function dismissWarningBanner() {
         }
     }
 
+    async function ensureProductsLoadedForOrders() {
+        if (Array.isArray(allProducts) && allProducts.length > 0) return;
+
+        var cachedProducts = localStorage.getItem("cached_products");
+        if (cachedProducts) {
+            try {
+                var parsed = JSON.parse(cachedProducts);
+                if (Array.isArray(parsed) && parsed.length > 0) {
+                    allProducts = parsed;
+                    return;
+                }
+            } catch (e) {}
+        }
+
+        try {
+            var token = sessionStorage.getItem("admin_session") || "";
+            var res = await fetch(SHEET_API_URL + "?action=getAdminProducts&token=" + encodeURIComponent(token));
+            var data = await res.json();
+            if (Array.isArray(data) && data.length > 0) {
+                allProducts = data;
+                localStorage.setItem("cached_products", JSON.stringify(allProducts));
+                return;
+            }
+        } catch (e) {}
+
+        try {
+            var pubRes = await fetch(SHEET_API_URL);
+            var pubData = await pubRes.json();
+            if (Array.isArray(pubData) && pubData.length > 0) {
+                allProducts = pubData;
+            }
+        } catch (e) {}
+    }
+
     async function loadOrdersList() {
         var container = document.getElementById("ordersContainer");
         container.innerHTML = '<p style="text-align:center; color:#94a3b8; padding:20px;">جار تحميل الطلبات...</p>';
         try {
-            var res = await fetch(SHEET_API_URL + "?action=getOrders&token=" + encodeURIComponent(sessionStorage.getItem("admin_session")));
+            var [res] = await Promise.all([
+                fetch(SHEET_API_URL + "?action=getOrders&token=" + encodeURIComponent(sessionStorage.getItem("admin_session"))),
+                ensureProductsLoadedForOrders()
+            ]);
             var data = await res.json();
             if (!checkServerResponse(data)) return;
             allOrders = Array.isArray(data) ? data : [];
@@ -1728,6 +1889,84 @@ function dismissWarningBanner() {
         }
         btnElement.classList.add("active");
         renderOrders();
+    }
+
+    function renderOrderItemsHtml(itemsStr) {
+        if (!itemsStr) return '<span style="color:#94a3b8;">لا توجد تفاصيل</span>';
+
+        var rawStr = String(itemsStr).trim();
+        var rawParts = /\[#[^\]]+\]/.test(rawStr)
+            ? rawStr.split(/,\s*(?=\[#)/)
+            : rawStr.split(',');
+
+        var listHtml = '<div style="display:flex; flex-direction:column; gap:8px; margin:6px 0 8px 0;">';
+
+        rawParts.forEach(function(part) {
+            var trimmed = part.trim();
+            if (!trimmed) return;
+
+            var idMatch = trimmed.match(/^\[#([^\]]+)\]\s*/);
+            var prodId = idMatch ? idMatch[1].trim() : "";
+            var rest = idMatch ? trimmed.slice(idMatch[0].length).trim() : trimmed;
+
+            var itemName = rest;
+            var itemMeta = "";
+            var parenMatch = rest.match(/^(.*?)\s*\(([^()]+)\)\s*$/);
+            if (parenMatch) {
+                itemName = parenMatch[1].trim();
+                itemMeta = parenMatch[2].trim();
+            }
+
+            var matchedProd = null;
+            if (Array.isArray(allProducts) && allProducts.length > 0) {
+                if (prodId) {
+                    matchedProd = allProducts.find(function(p) {
+                        return String(p.id).trim() === prodId;
+                    });
+                }
+                if (!matchedProd && itemName) {
+                    matchedProd = allProducts.find(function(p) {
+                        return String(p.name || "").trim() === itemName;
+                    });
+                }
+            }
+
+            var thumbUrl = "";
+            if (matchedProd) {
+                thumbUrl = (matchedProd.images && matchedProd.images.length > 0 && matchedProd.images[0])
+                    ? matchedProd.images[0]
+                    : (matchedProd.image || "");
+            }
+            var fallbackIcon = (matchedProd && matchedProd.icon) ? matchedProd.icon : "🧴";
+
+            var thumbHtml = (thumbUrl && (thumbUrl.trim().startsWith("http") || thumbUrl.trim().startsWith("data:")))
+                ? `<img src="${escapeAdminAttr(thumbUrl)}" alt="${escapeAdminAttr(itemName)}" style="width:46px; height:46px; object-fit:cover; border-radius:8px; border:1px solid #334155; background:#1e293b; flex-shrink:0;" onerror="this.outerHTML='<div style=\\'width:46px;height:46px;border-radius:8px;border:1px solid #334155;background:#1e293b;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;\\'>${fallbackIcon}</div>'">`
+                : `<div style="width:46px; height:46px; border-radius:8px; border:1px solid #334155; background:#1e293b; display:flex; align-items:center; justify-content:center; font-size:20px; flex-shrink:0;">${fallbackIcon}</div>`;
+
+            var idBadgeHtml = prodId
+                ? `<span style="background:#0369a1; color:#e0f2fe; padding:1px 6px; border-radius:4px; font-size:11px; font-family:monospace; font-weight:bold;">#${escapeAdminAttr(prodId)}</span>`
+                : "";
+
+            var metaHtml = itemMeta
+                ? `<div style="font-size:12px; color:#fbbf24; margin-top:3px;">🔹 ${escapeAdminAttr(itemMeta)}</div>`
+                : "";
+
+            listHtml += `
+                <div style="display:flex; align-items:center; gap:10px; background:#1e293b; border:1px solid #334155; padding:8px 10px; border-radius:8px;">
+                    ${thumbHtml}
+                    <div style="flex:1; min-width:0;">
+                        <div style="display:flex; align-items:center; flex-wrap:wrap; gap:6px;">
+                            ${idBadgeHtml}
+                            <span style="font-weight:bold; color:#f8fafc; font-size:13px;">${escapeAdminAttr(itemName)}</span>
+                        </div>
+                        ${metaHtml}
+                    </div>
+                </div>
+            `;
+        });
+
+        listHtml += '</div>';
+        return listHtml;
     }
 
     function renderOrders() {
@@ -1784,7 +2023,7 @@ function dismissWarningBanner() {
                         👤 <strong>الاسم:</strong> ${o.name}<br>
                         📞 <strong>الهاتف:</strong> ${o.phone}<br>
                         📍 <strong>العنوان:</strong> ${o.address}<br>
-                        🛒 <strong>المنتجات:</strong> ${o.items}<br>
+                        🛒 <strong>المنتجات:</strong> ${renderOrderItemsHtml(o.items)}
                         🏷️ <strong>الخصم:</strong> ${o.discount || '0%'}<br>
                         💰 <strong>الإجمالي:</strong> <span style="color:#4ade80; font-weight:bold;">${Number(o.total).toLocaleString()} د.ع</span><br>
                         📅 <strong>التاريخ:</strong> ${o.date}
@@ -1807,7 +2046,9 @@ function dismissWarningBanner() {
         try {
             var response = await fetch(SHEET_API_URL, {
                 method: "POST",
-                body: JSON.stringify({ action: "updateOrderStatus", token: sessionStorage.getItem("admin_session"), invoiceNo: invoiceNo, status: newStatus })
+                body: JSON.stringify({ action: "updateOrderStatus", token: sessionStorage.getItem("admin_session"), invoiceNo: invoiceNo, status: 
+
+newStatus })
             });
             var resData = await response.json();
             if (!checkServerResponse(resData)) return;
@@ -2195,13 +2436,19 @@ function dismissWarningBanner() {
 
         var html = "";
         categories.forEach(function(cat, index) {
-            var moveUpBtn = index > 0 ? `<button class="btn-action" style="background:#334155; color:#fff;" onclick="moveCategory('${cat}', 'up')">⬆️</button>` : '';
-            var moveDownBtn = index < categories.length - 1 ? `<button class="btn-action" style="background:#334155; color:#fff;" onclick="moveCategory('${cat}', 'down')">⬇️</button>` : '';
+            var moveUpBtn = index > 0 ? `<button class="btn-action" style="background:#334155; color:#fff;" onclick="moveCategory('${cat}', 
+
+'up')">⬆️</button>` : '';
+            var moveDownBtn = index < categories.length - 1 ? `<button class="btn-action" style="background:#334155; color:#fff;" 
+
+onclick="moveCategory('${cat}', 'down')">⬇️</button>` : '';
             // 👈 تعديل السطر ليتناسب مع الأقسام لاستدعاء renameCategory
             var editBtn = `<button class="btn-action btn-edit" onclick="renameCategory('${cat}')">✏ تعديل</button>`;
 
             html += `
-                <div class="product-item" style="background:#0f172a; border:1px solid #334155; padding:12px; border-radius:8px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
+                <div class="product-item" style="background:#0f172a; border:1px solid #334155; padding:12px; border-radius:8px; margin-bottom:10px; 
+
+display:flex; justify-content:space-between; align-items:center;">
                     <div>
                         <span style="font-weight:bold; color:#38bdf8; font-size:15px;">📁 ${cat}</span>
                     </div>
@@ -2655,24 +2902,38 @@ function dismissWarningBanner() {
         productVariantGroups.forEach(function(group, gIdx) {
             html += `<div class="variant-group-card">
                 <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 10px;">
-                    <input type="text" placeholder="اسم المجموعة (مثال: اللون أو القياس أو الحجم)" value="${escapeAdminAttr(group.name)}" oninput="productVariantGroups[${gIdx}].name = this.value" style="flex: 1;">
+                    <input type="text" placeholder="اسم المجموعة (مثال: اللون أو القياس أو الحجم)" value="${escapeAdminAttr(group.name)}" oninput="productVariantGroups
+
+[${gIdx}].name = this.value" style="flex: 1;">
                     <button type="button" class="btn-action btn-delete" onclick="removeVariantGroup(${gIdx})">🗑️ حذف المجموعة</button>
                 </div>`;
 
             (group.values || []).forEach(function(val, vIdx) {
                 var checkedAttr = val.outOfStock ? "checked" : "";
                 html += `<div class="variant-val-row">
-                    <input type="text" placeholder="اسم الخيار (مثال: أسود / 42 / 100 مل)" value="${escapeAdminAttr(val.label)}" oninput="productVariantGroups[${gIdx}].values[${vIdx}].label = this.value; renderVariantCombinationsMatrix();" style="flex: 2; min-width: 130px;">
-                    <input type="number" placeholder="سعر خاص (اختياري)" value="${escapeAdminAttr(val.price)}" oninput="productVariantGroups[${gIdx}].values[${vIdx}].price = this.value" style="flex: 1; min-width: 110px;">
-                    <label style="display: flex; align-items: center; gap: 4px; margin-bottom: 0; font-size: 11px; color: #fbbf24; cursor: pointer; white-space: nowrap;">
-                        <input type="checkbox" ${checkedAttr} onchange="productVariantGroups[${gIdx}].values[${vIdx}].outOfStock = this.checked; renderVariantCombinationsMatrix();" style="width: 15px; height: 15px; cursor: pointer;">
+                    <input type="text" placeholder="اسم الخيار (مثال: أسود / 42 / 100 مل)" value="${escapeAdminAttr(val.label)}" oninput="productVariantGroups
+
+[${gIdx}].values[${vIdx}].label = this.value; renderVariantCombinationsMatrix();" style="flex: 2; min-width: 130px;">
+                    <input type="number" placeholder="سعر خاص (اختياري)" value="${escapeAdminAttr(val.price)}" oninput="productVariantGroups
+
+[${gIdx}].values[${vIdx}].price = this.value" style="flex: 1; min-width: 110px;">
+                    <label style="display: flex; align-items: center; gap: 4px; margin-bottom: 0; font-size: 11px; color: #fbbf24; cursor: pointer; 
+
+white-space: nowrap;">
+                        <input type="checkbox" ${checkedAttr} onchange="productVariantGroups[${gIdx}].values[${vIdx}].outOfStock = this.checked; 
+
+renderVariantCombinationsMatrix();" style="width: 15px; height: 15px; cursor: pointer;">
                         🚫 نافذ
                     </label>
-                    <button type="button" class="btn-action btn-delete" onclick="removeVariantValue(${gIdx}, ${vIdx})" style="padding: 6px 8px;">✕</button>
+                    <button type="button" class="btn-action btn-delete" onclick="removeVariantValue(${gIdx}, ${vIdx})" style="padding: 6px 
+
+8px;">✕</button>
                 </div>`;
             });
 
-            html += `<button type="button" class="btn-action" style="background: #334155; color: #fff; font-size: 11px; margin-top: 4px;" onclick="addVariantValue(${gIdx})">➕ إضافة خيار آخر</button>
+            html += `<button type="button" class="btn-action" style="background: #334155; color: #fff; font-size: 11px; margin-top: 4px;" 
+
+onclick="addVariantValue(${gIdx})">➕ إضافة خيار آخر</button>
             </div>`;
         });
 
@@ -2731,6 +2992,7 @@ function dismissWarningBanner() {
         var html = "";
         products.forEach(function(p) {
             var mainImg = p.image || "https://via.placeholder.com/50?text=No+Img";
+            var idBadge = `<span style="color:#94a3b8; background:#1e293b; border:1px solid #334155; padding:1px 6px; border-radius:4px; font-size:11px; font-family:monospace; margin-right:6px;">#${p.id}</span>`;
             var isHiddenItem = !!(p.hidden || isStoreHidden);
             var hiddenBadge = "";
             if (p.hidden) {
@@ -2749,7 +3011,7 @@ function dismissWarningBanner() {
                 <div class="product-item" ${itemBorderStyle}>
                     <img src="${mainImg}" alt="${p.name}">
                     <div class="product-info">
-                        <h4>${p.icon || '🧴'} ${p.name} ${hiddenBadge} ${pinnedBadge} ${outOfStockBadge} ${variantsBadge}</h4>
+                        <h4>${p.icon || '🧴'} ${p.name} ${idBadge} ${hiddenBadge} ${pinnedBadge} ${outOfStockBadge} ${variantsBadge}</h4>
                         <p>${Number(p.price).toLocaleString()} د.ع | ${p.category}</p>
                     </div>
                     <div class="product-actions">
@@ -2805,6 +3067,8 @@ function dismissWarningBanner() {
 
         updateProductFilterCounts();
 
+        var cleanQueryId = q.replace(/^#/, '');
+
         var filtered = allProducts.filter(function(p) {
             var isPinned = (p.pinned === true || p.pinned === "TRUE" || p.pinned === "true" || p.pinned === 1);
             var isOutOfStock = (p.outOfStock === true || p.outOfStock === "TRUE" || p.outOfStock === "true" || p.outOfStock === 1);
@@ -2825,7 +3089,8 @@ function dismissWarningBanner() {
 
             return p.name.toLowerCase().includes(q) || 
                    p.category.toLowerCase().includes(q) || 
-                   (p.brand && p.brand.toLowerCase().includes(q));
+                   (p.brand && p.brand.toLowerCase().includes(q)) ||
+                   (cleanQueryId && String(p.id).toLowerCase().includes(cleanQueryId));
         });
 
         renderProducts(filtered);
@@ -2893,12 +3158,18 @@ function dismissWarningBanner() {
         var html = "";
         coupons.forEach(function(c) {
             var usageText = (c.usageLimit !== undefined && c.usageLimit !== null && c.usageLimit !== "") ? `الاستخدام: ${c.usageLimit}` : "غير محدود";
-            var minAmtText = (c.minAmount !== undefined && c.minAmount !== null && c.minAmount !== "") ? `الحد الأدنى: ${Number(c.minAmount).toLocaleString()} د.ع` : "بدون حد أدنى";
+            var minAmtText = (c.minAmount !== undefined && c.minAmount !== null && c.minAmount !== "") ? `الحد الأدنى: ${Number
+
+(c.minAmount).toLocaleString()} د.ع` : "بدون حد أدنى";
 
             html += `
-                <div class="product-item" style="background:#0f172a; border:1px solid #334155; padding:12px; border-radius:8px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
+                <div class="product-item" style="background:#0f172a; border:1px solid #334155; padding:12px; border-radius:8px; margin-bottom:10px; 
+
+display:flex; justify-content:space-between; align-items:center;">
                     <div>
-                        <span style="font-weight:bold; color:#38bdf8; font-size:15px; font-family:monospace; background:#1e293b; padding:4px 8px; border-radius:6px; border:1px dashed #0284c7;">${c.code}</span>
+                        <span style="font-weight:bold; color:#38bdf8; font-size:15px; font-family:monospace; background:#1e293b; padding:4px 8px; 
+
+border-radius:6px; border:1px dashed #0284c7;">${c.code}</span>
                         <span style="color:#22c55e; font-weight:bold; font-size:13px; margin-right:10px;">خصم: ${c.discount}%</span>
                         <div style="font-size:11px; color:#94a3b8; margin-top:4px;">🔄 ${usageText} | 💰 ${minAmtText}</div>
                     </div>
@@ -3023,7 +3294,9 @@ function dismissWarningBanner() {
         document.getElementById("pDesc").value = p.desc || "";
         document.getElementById("pHidden").checked = !!p.hidden;
         document.getElementById("pPinned").checked = (p.pinned === true || p.pinned === "TRUE" || p.pinned === "true" || p.pinned === 1);
-        document.getElementById("pOutOfStock").checked = (p.outOfStock === true || p.outOfStock === "TRUE" || p.outOfStock === "true" || p.outOfStock === 1);
+        document.getElementById("pOutOfStock").checked = (p.outOfStock === true || p.outOfStock === "TRUE" || p.outOfStock === "true" || p.outOfStock 
+
+=== 1);
 
         productVariantGroups = Array.isArray(p.variants) ? JSON.parse(JSON.stringify(p.variants)) : [];
         productVariantCombinations = (productVariantGroups[0] && Array.isArray(productVariantGroups[0].combinations))
@@ -3312,11 +3585,17 @@ var allRegions = [];
         }
         var html = "";
         regions.forEach(function(r, index) {
-            var moveUpBtn = index > 0 ? `<button class="btn-action" style="background:#334155; color:#fff;" onclick="moveRegion('${r.name}', 'up')">⬆️</button>` : '';
-            var moveDownBtn = index < regions.length - 1 ? `<button class="btn-action" style="background:#334155; color:#fff;" onclick="moveRegion('${r.name}', 'down')">⬇️</button>` : '';
+            var moveUpBtn = index > 0 ? `<button class="btn-action" style="background:#334155; color:#fff;" onclick="moveRegion('${r.name}', 
+
+'up')">⬆️</button>` : '';
+            var moveDownBtn = index < regions.length - 1 ? `<button class="btn-action" style="background:#334155; color:#fff;" onclick="moveRegion
+
+('${r.name}', 'down')">⬇️</button>` : '';
 
             html += `
-                <div class="product-item" style="background:#0f172a; border:1px solid #334155; padding:12px; border-radius:8px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
+                <div class="product-item" style="background:#0f172a; border:1px solid #334155; padding:12px; border-radius:8px; margin-bottom:10px; 
+
+display:flex; justify-content:space-between; align-items:center;">
                     <div>
                         <span style="font-weight:bold; color:#38bdf8; font-size:15px;">📍 ${r.name}</span>
                         <div style="color:#4ade80; font-size:13px; font-weight:bold; margin-top:4px;">💰 ${r.price.toLocaleString()} د.ع</div>
@@ -3421,7 +3700,9 @@ var allRegions = [];
         try {
             var response = await fetch(SHEET_API_URL, {
                 method: "POST",
-                body: JSON.stringify({ action: "editRegion", token: sessionStorage.getItem("admin_session"), oldName: oldName, newName: newName, newPrice: newPrice })
+                body: JSON.stringify({ action: "editRegion", token: sessionStorage.getItem("admin_session"), oldName: oldName, newName: newName, 
+
+newPrice: newPrice })
             });
             var resData = await response.json();
             if (resData.status === "success") {
