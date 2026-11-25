@@ -2238,9 +2238,9 @@
                 var itemTotal = unitPrice * cart[id];
                 subTotal += itemTotal;
                 if (variantText) {
-                    itemsSummary += p.name + " (" + variantText + " - " + cart[id] + "x), ";
+                    itemsSummary += "[#" + p.id + "] " + p.name + " (" + variantText + " - " + cart[id] + "x), ";
                 } else {
-                    itemsSummary += p.name + " (" + cart[id] + "x), ";
+                    itemsSummary += "[#" + p.id + "] " + p.name + " (" + cart[id] + "x), ";
                 }
             }
         }
